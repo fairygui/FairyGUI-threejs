@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="1136,640" designImageForTest="true">
+  <displayList>
+    <text id="n2_o3ds" name="n2" xy="87,92" size="530,104" fontSize="80" color="#33ff00" strokeColor="#000000" strokeSize="3" text="Hello World！"/>
+    <image id="n3_o3ds" name="logo" src="o3dsl" fileName="logo128.png" xy="270,249"/>
+  </displayList>
+</component>
