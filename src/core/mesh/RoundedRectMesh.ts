@@ -1,4 +1,3 @@
-import { Vector2 } from "three";
 import { IMeshFactory } from "./MeshFactory";
 import { IHitTest } from "../hittest/IHitTest";
 import { Rect } from "../../utils/Rect";

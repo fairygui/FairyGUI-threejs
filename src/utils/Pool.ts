@@ -1,11 +1,11 @@
 export class Pool<T extends Object>
 {
     pool = [];
-    _init: (T, ...argArray: any[]) => void;
-    _reset: (T) => void;
+    _init: (arg0: T, ...argArray: any[]) => void;
+    _reset: (arg0: T) => void;
     _ct: new () => T;
 
-    public constructor(type: new () => T, init?: (T) => void, reset?: (T) => void) {
+    public constructor(type: new () => T, init?: (arg0: T) => void, reset?: (arg0: T) => void) {
         this._init = init;
         this._reset = reset;
         this._ct = type;

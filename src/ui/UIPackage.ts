@@ -717,7 +717,7 @@ var _instByName: { [index: string]: UIPackage } = {};
 var _branch: string = "";
 var _vars: { [index: string]: string } = {};
 
-FontManager.packageFontGetter = name => UIPackage.getItemAssetByURL(name) as BaseFont;
+FontManager.packageFontGetter = name => <BaseFont>UIPackage.getItemAssetByURL(name);
 
 export interface IObjectFactoryType {
     resolvePackageItemExtension(pi: PackageItem): void;

@@ -207,14 +207,14 @@ export class ScrollPane {
             this._mouseWheelEnabled = false;
 
         if (headerRes) {
-            this._header = UIPackage.createObjectFromURL(headerRes) as GComponent;
-            if (this._header == null)
+            this._header = <GComponent>UIPackage.createObjectFromURL(headerRes);
+            if (!this._header)
                 throw new Error("cannot create scrollPane header from " + headerRes);
         }
 
         if (footerRes) {
-            this._footer = UIPackage.createObjectFromURL(footerRes) as GComponent;
-            if (this._footer == null)
+            this._footer = <GComponent>UIPackage.createObjectFromURL(footerRes);
+            if (!this._footer)
                 throw new Error("cannot create scrollPane footer from " + footerRes);
         }
 

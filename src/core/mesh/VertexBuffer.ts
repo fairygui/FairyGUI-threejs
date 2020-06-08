@@ -8,7 +8,7 @@ import { lerp } from "../../utils/ToolSet";
  * 1---2
  * | / |
  * 0---3
- * threejs要求逆时针顶点顺序，即 0-2-1， 0-3-2
+ * threejs anti-clockwise vertex order. ie 0-2-1， 0-3-2
  */
 export class VertexBuffer {
     public contentRect: Rect;

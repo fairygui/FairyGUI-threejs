@@ -1,8 +1,8 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('three')) :
     typeof define === 'function' && define.amd ? define(['exports', 'three'], factory) :
-    (global = global || self, factory(global.fgui = global.fgui || {}, global.THREE));
-}(this, (function (exports, THREE) { 'use strict';
+    (global = global || self, factory(global.fgui = global.fgui || {}, global.three));
+}(this, (function (exports, three) { 'use strict';
 
     (function (ButtonMode) {
         ButtonMode[ButtonMode["Common"] = 0] = "Common";
@@ -204,10 +204,10 @@
             this.height = yMax - yMin;
         }
         get position() {
-            return new THREE.Vector2(this.x, this.y);
+            return new three.Vector2(this.x, this.y);
         }
         get size() {
-            return new THREE.Vector2(this.width, this.height);
+            return new three.Vector2(this.width, this.height);
         }
         get xMin() {
             return this.x;
@@ -269,7 +269,7 @@
             this.height += y * 2;
         }
         contains(x, y) {
-            if (x instanceof THREE.Vector2) {
+            if (x instanceof three.Vector2) {
                 y = x.y;
                 x = x.x;
             }
@@ -575,8 +575,8 @@
 
     class HitTestContext {
         constructor() {
-            this.screenPt = new THREE.Vector3();
-            this.worldPt = new THREE.Vector3();
+            this.screenPt = new three.Vector3();
+            this.worldPt = new three.Vector3();
         }
         getLocal(obj) {
             s_vec3.copy(this.worldPt);
@@ -585,8 +585,8 @@
             return s_vec2;
         }
     }
-    var s_vec3 = new THREE.Vector3();
-    var s_vec2 = new THREE.Vector2();
+    var s_vec3 = new three.Vector3();
+    var s_vec2 = new three.Vector2();
 
     (function (ScaleMode) {
         ScaleMode[ScaleMode["ConstantPixelSize"] = 0] = "ConstantPixelSize";
@@ -697,7 +697,7 @@
         }
         static getTouchPos(touchId, ret) {
             if (!ret)
-                ret = new THREE.Vector2();
+                ret = new three.Vector2();
             if (touchId == null || touchId == -1)
                 ret.copy(_touchPos);
             else {
@@ -773,7 +773,7 @@
     var _touchscreen;
     function init(renderer) {
         _canvas = renderer.domElement;
-        _camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1000);
+        _camera = new three.OrthographicCamera(-1, 1, 1, -1, 0, 1000);
         _camera.layers.set(UILayer);
         _touchscreen = is_touch_enabled();
         _touches = [];
@@ -782,7 +782,7 @@
         if (!_touchscreen)
             _touches[0].touchId = 0;
         _touchCount = 0;
-        _touchPos = new THREE.Vector2();
+        _touchPos = new three.Vector2();
         if (_touchscreen) {
             document.addEventListener('touchstart', ev => handleTouch(ev, 0), { passive: false });
             document.addEventListener('touchend', ev => handleTouch(ev, 1), { passive: false });
@@ -1224,14 +1224,14 @@
     class DisplayObject extends EventDispatcher {
         constructor() {
             super();
-            this._obj3D = new THREE.Object3D();
+            this._obj3D = new three.Object3D();
             this._obj3D["isGroup"] = true;
             this._obj3D["$owner"] = this;
             this._obj3D.layers.set(UILayer);
             this._pos = this._obj3D.position;
             this._rot = this._obj3D.rotation;
-            this._pivot = new THREE.Vector2();
-            this._pivotOffset = new THREE.Vector3();
+            this._pivot = new three.Vector2();
+            this._pivotOffset = new three.Vector3();
             this._contentRect = new Rect();
             this._alpha = 1;
             this._touchable = true;
@@ -1428,7 +1428,7 @@
                 this._graphics.color = value;
         }
         get blendMode() {
-            return this._graphics ? this._graphics.material.blending : THREE.NormalBlending;
+            return this._graphics ? this._graphics.material.blending : three.NormalBlending;
         }
         set blendMode(value) {
             if (this._graphics)
@@ -1468,7 +1468,7 @@
             s_v3.unproject(Stage.camera);
             this._obj3D.worldToLocal(s_v3);
             if (!result)
-                result = new THREE.Vector2();
+                result = new three.Vector2();
             result.set(s_v3.x, -s_v3.y);
             return result;
         }
@@ -1479,7 +1479,7 @@
             this._obj3D.localToWorld(s_v3);
             s_v3.project(Stage.camera);
             if (!result)
-                result = new THREE.Vector2();
+                result = new three.Vector2();
             result.set((s_v3.x + 1) / 2 * Stage.width, (1 - s_v3.y) / 2 * Stage.height);
             return result;
         }
@@ -1497,7 +1497,7 @@
         }
         transformPoint(x, y, targetSpace, result) {
             if (!result)
-                result = new THREE.Vector2();
+                result = new three.Vector2();
             if (targetSpace == this._obj3D)
                 result.set(x, y);
             else {
@@ -1610,10 +1610,10 @@
                 }
                 if (!this._clipPlanes) {
                     this._clipPlanes = [
-                        new THREE.Plane(new THREE.Vector3(1, 0, 0)),
-                        new THREE.Plane(new THREE.Vector3(-1, 0, 0)),
-                        new THREE.Plane(new THREE.Vector3(0, -1, 0)),
-                        new THREE.Plane(new THREE.Vector3(0, 1, 0))
+                        new three.Plane(new three.Vector3(1, 0, 0)),
+                        new three.Plane(new three.Vector3(-1, 0, 0)),
+                        new three.Plane(new three.Vector3(0, -1, 0)),
+                        new three.Plane(new three.Vector3(0, 1, 0))
                     ];
                 }
                 clipPlanes = this._clipPlanes;
@@ -1653,13 +1653,13 @@
         dispose() {
         }
     }
-    var s_v3 = new THREE.Vector3();
-    var s_v3_0 = new THREE.Vector3();
-    var s_v4 = new THREE.Vector4();
+    var s_v3 = new three.Vector3();
+    var s_v3_0 = new three.Vector3();
+    var s_v4 = new three.Vector4();
     var s_rect = new Rect();
     var s_rect2 = new Rect();
-    var s_mat = new THREE.Matrix4();
-    var s_quaternion = new THREE.Quaternion();
+    var s_mat = new three.Matrix4();
+    var s_quaternion = new three.Quaternion();
     function traverseUpdate(p, clippingPlanes, alpha) {
         let children = p.children;
         let cnt = children.length;
@@ -2225,7 +2225,7 @@
         return bounce_easeOut(time * 2 - duration, duration) * 0.5 + 0.5;
     }
 
-    var s_vec2$1 = new THREE.Vector2();
+    var s_vec2$1 = new three.Vector2();
     class GTweener {
         constructor() {
             this._startValue = new TweenValue();
@@ -3754,7 +3754,7 @@
         }
     }
 
-    class Color4 extends THREE.Color {
+    class Color4 extends three.Color {
         constructor(rgb, a) {
             super(rgb || 0);
             this.a = a != null ? a : 1;
@@ -3843,7 +3843,7 @@
             this._sizePercentInGroup = 0;
             //drag support
             //-------------------------------------------------------------------
-            this._dragTouchStartPos = new THREE.Vector2();
+            this._dragTouchStartPos = new three.Vector2();
             this._dragTesting = false;
             this._id = "" + gInstanceCounter++;
             this._name = "";
@@ -4521,7 +4521,7 @@
             if (buffer.readBool())
                 this.grayed = true;
             var bm = buffer.readByte();
-            this.blendMode = BlendModeTranslate[bm] || THREE.NormalBlending;
+            this.blendMode = BlendModeTranslate[bm] || three.NormalBlending;
             var filter = buffer.readByte();
             var str = buffer.readS();
             if (str != null)
@@ -4580,7 +4580,7 @@
         }
         __touchBegin(evt) {
             if (this._dragTouchStartPos == null)
-                this._dragTouchStartPos = new THREE.Vector2();
+                this._dragTouchStartPos = new three.Vector2();
             this._dragTouchStartPos.set(evt.input.x, evt.input.y);
             this._dragTesting = true;
             evt.captureTouch();
@@ -4634,7 +4634,7 @@
         }
         static cast(obj) {
             let dobj;
-            if (obj instanceof THREE.Object3D) {
+            if (obj instanceof three.Object3D) {
                 dobj = obj["$owner"];
                 if (!dobj)
                     return null;
@@ -4651,17 +4651,17 @@
     function createGear(owner, index) {
         return new (GearClasses[index])(owner);
     }
-    var s_vec2$2 = new THREE.Vector2();
+    var s_vec2$2 = new three.Vector2();
     var s_rect$1 = new Rect();
-    var sGlobalDragStart = new THREE.Vector2();
+    var sGlobalDragStart = new three.Vector2();
     var sGlobalRect = new Rect();
     var s_dragging;
     const BlendModeTranslate = {
-        0: THREE.NormalBlending,
-        1: THREE.NoBlending,
-        2: THREE.AdditiveBlending,
-        3: THREE.MultiplyBlending,
-        4: THREE.SubtractiveBlending,
+        0: three.NormalBlending,
+        1: three.NoBlending,
+        2: three.AdditiveBlending,
+        3: three.MultiplyBlending,
+        4: three.SubtractiveBlending,
     };
     var Forwards = {};
     var gInstanceCounter = 0;
@@ -5072,7 +5072,7 @@
      * 1---2
      * | / |
      * 0---3
-     * threejs要求逆时针顶点顺序，即 0-2-1， 0-3-2
+     * threejs anti-clockwise vertex order. ie 0-2-1， 0-3-2
      */
     class VertexBuffer {
         constructor() {
@@ -5082,7 +5082,7 @@
             this.triangles = new Array();
             this.contentRect = new Rect();
             this.uvRect = new Rect();
-            this.textureSize = new THREE.Vector2();
+            this.textureSize = new three.Vector2();
             this.vertexColor = new Color4();
         }
         static begin(source) {
@@ -5183,7 +5183,7 @@
         getPosition(index, ret) {
             if (index < 0)
                 index = this.vertices.length / 3 + index;
-            let vec = ret ? ret : new THREE.Vector3();
+            let vec = ret ? ret : new three.Vector3();
             vec.x = this.vertices[index * 3];
             vec.y = -this.vertices[index * 3 + 1];
             vec.z = this.vertices[index * 3 + 2];
@@ -5199,13 +5199,13 @@
     var pool = new Pool(VertexBuffer);
     var uvBuf = new Array(8);
 
-    class NMaterial extends THREE.ShaderMaterial {
+    class NMaterial extends three.ShaderMaterial {
         constructor() {
             super();
-            let customUniforms = THREE.UniformsUtils.merge([
-                THREE.ShaderLib.basic.uniforms,
-                { _ColorMatrix: new THREE.Uniform(new THREE.Matrix4()) },
-                { _ColorOffset: new THREE.Uniform(new THREE.Vector4()) }
+            let customUniforms = three.UniformsUtils.merge([
+                three.ShaderLib.basic.uniforms,
+                { _ColorMatrix: new three.Uniform(new three.Matrix4()) },
+                { _ColorOffset: new three.Uniform(new three.Vector4()) }
             ]);
             this.uniforms = customUniforms;
             this.vertexShader = `
@@ -5357,12 +5357,12 @@
             this._color = 0xFFFFFF;
             this._contentRect = new Rect();
             this._material = new NMaterial();
-            this._geometry = new THREE.BufferGeometry();
+            this._geometry = new three.BufferGeometry();
             let o = owner;
             o.geometry = this._geometry;
             o.material = this._material;
             o.isMesh = true;
-            o.drawMode = THREE.TrianglesDrawMode;
+            o.drawMode = three.TrianglesDrawMode;
             delete o.isGroup;
         }
         get texture() {
@@ -5531,7 +5531,7 @@
         writeAttribute(gm, name, arr, itemSize) {
             let attr = gm.attributes[name];
             if (!attr || !attr.isBufferAttribute || attr.array.length < arr.length) {
-                attr = new THREE.BufferAttribute(new Float32Array(arr.length), itemSize);
+                attr = new three.BufferAttribute(new Float32Array(arr.length), itemSize);
                 gm.setAttribute(name, attr);
             }
             attr.copyArray(arr);
@@ -5540,7 +5540,7 @@
         writeIndexAttribute(gm, arr) {
             let attr = gm.index;
             if (!attr || !attr.isBufferAttribute || attr.array.length < arr.length) {
-                attr = new THREE.BufferAttribute(new Uint16Array(arr.length), 1);
+                attr = new three.BufferAttribute(new Uint16Array(arr.length), 1);
                 gm.index = attr;
             }
             attr.copyArray(arr);
@@ -5606,9 +5606,9 @@
                 this.uvRect.x = -xScale;
                 this.uvRect.width = xScale;
             }
-            this.originalSize = texture ? new THREE.Vector2(texture.image.width, texture.image.height) : new THREE.Vector2(2, 2);
+            this.originalSize = texture ? new three.Vector2(texture.image.width, texture.image.height) : new three.Vector2(2, 2);
             this.region = new Rect(0, 0, this.originalSize.x, this.originalSize.y);
-            this.offset = new THREE.Vector2(0, 0);
+            this.offset = new three.Vector2(0, 0);
         }
         createSubTexture(region, rotated, offset, originalSize) {
             let nt = new NTexture();
@@ -5656,9 +5656,9 @@
         }
         getUV(uv) {
             uv[0] = this.uvRect.position;
-            uv[1] = new THREE.Vector2(this.uvRect.x, this.uvRect.yMax);
-            uv[2] = new THREE.Vector2(this.uvRect.xMax, this.uvRect.yMax);
-            uv[3] = new THREE.Vector2(this.uvRect.xMax, this.uvRect.y);
+            uv[1] = new three.Vector2(this.uvRect.x, this.uvRect.yMax);
+            uv[2] = new three.Vector2(this.uvRect.xMax, this.uvRect.yMax);
+            uv[3] = new three.Vector2(this.uvRect.xMax, this.uvRect.y);
             if (this.rotated) {
                 let xMin = this.uvRect.xMin;
                 let yMin = this.uvRect.yMin;
@@ -5812,7 +5812,7 @@
         6, 5, 2,
         2, 1, 6
     ];
-    var s_v3$1 = new THREE.Vector3();
+    var s_v3$1 = new three.Vector3();
     class EllipseMesh {
         constructor() {
             this.lineColor = new Color4();
@@ -5935,15 +5935,15 @@
     }
 
     var sRestIndices = [];
-    var a = new THREE.Vector2();
-    var b = new THREE.Vector2();
-    var c = new THREE.Vector2();
-    var p = new THREE.Vector2();
-    var p0 = new THREE.Vector3();
-    var p1 = new THREE.Vector3();
-    var p3 = new THREE.Vector3();
-    var lineVector = new THREE.Vector3();
-    var widthVector = new THREE.Vector3();
+    var a = new three.Vector2();
+    var b = new three.Vector2();
+    var c = new three.Vector2();
+    var p = new three.Vector2();
+    var p0 = new three.Vector3();
+    var p1 = new three.Vector3();
+    var p3 = new three.Vector3();
+    var lineVector = new three.Vector3();
+    var widthVector = new three.Vector3();
     class PolygonMesh {
         constructor() {
             this.points = new Array();
@@ -6043,7 +6043,7 @@
                 lineVector.copy(p1);
                 lineVector.sub(p0);
                 widthVector.copy(lineVector);
-                widthVector.cross(new THREE.Vector3(0, 0, 1));
+                widthVector.cross(new three.Vector3(0, 0, 1));
                 widthVector.normalize();
                 widthVector.multiplyScalar(this.lineWidth * 0.5);
                 p3.copy(p0);
@@ -6401,7 +6401,7 @@
             }
         }
     }
-    var s_vec3$1 = new THREE.Vector3();
+    var s_vec3$1 = new three.Vector3();
     var s_rect$3 = new Rect();
     function fillHorizontal(vb, vertRect, origin, amount) {
         s_rect$3.copy(vertRect);
@@ -6693,7 +6693,7 @@
             this._tileGridIndice = 0;
             this._graphics = new NGraphics(this._obj3D);
             this._graphics.meshFactory = this;
-            this._textureScale = new THREE.Vector2(1, 1);
+            this._textureScale = new three.Vector2(1, 1);
         }
         get texture() {
             return this._graphics.texture;
@@ -7485,7 +7485,7 @@
             this.advance = 0;
             this.lineHeight = 0;
             this.channel = 0;
-            this.uv = [new THREE.Vector2(), new THREE.Vector2(), new THREE.Vector2(), new THREE.Vector2()];
+            this.uv = [new three.Vector2(), new three.Vector2(), new three.Vector2(), new three.Vector2()];
         }
     }
 
@@ -7702,10 +7702,10 @@
         createTexture(size) {
             this._canvas.width = this._canvas.height = size;
             if (!this.mainTexture) {
-                this._texture = new THREE.Texture(this._canvas);
+                this._texture = new three.Texture(this._canvas);
                 this._texture.generateMipmaps = false;
-                this._texture.magFilter = THREE.LinearFilter;
-                this._texture.minFilter = THREE.LinearFilter;
+                this._texture.magFilter = three.LinearFilter;
+                this._texture.minFilter = three.LinearFilter;
                 this.mainTexture = new NTexture(this._texture);
             }
             else {
@@ -7990,7 +7990,7 @@
                     return;
                 }
                 let url = resKey + "." + UIConfig.packageFileExtension;
-                var loader = new THREE.FileLoader();
+                var loader = new three.FileLoader();
                 loader.setResponseType("arraybuffer");
                 loader.load(url, asset => {
                     pkg = new UIPackage();
@@ -8382,7 +8382,7 @@
                 spriteId = buffer.readS();
                 if (spriteId != null && (sprite = this._sprites[spriteId]) != null) {
                     var atlasTexture = (this.getItemAsset(sprite.atlas));
-                    frame.texture = atlasTexture.createSubTexture(sprite.rect, sprite.rotated, new THREE.Vector2(fx, fy), new THREE.Vector2(item.width, item.height));
+                    frame.texture = atlasTexture.createSubTexture(sprite.rect, sprite.rotated, new three.Vector2(fx, fy), new three.Vector2(item.width, item.height));
                 }
                 item.frames[i] = frame;
                 buffer.pos = nextPos;
@@ -8499,8 +8499,8 @@
     class AtlasSprite {
         constructor() {
             this.rect = new Rect();
-            this.offset = new THREE.Vector2;
-            this.originalSize = new THREE.Vector2;
+            this.offset = new three.Vector2;
+            this.originalSize = new three.Vector2;
         }
     }
     var _instById = {};
@@ -8510,10 +8510,10 @@
     FontManager.packageFontGetter = name => UIPackage.getItemAssetByURL(name);
     function loadTexture(pi, onProgress) {
         return new Promise((resolve, reject) => {
-            new THREE.TextureLoader().load(pi.file, texture => {
+            new three.TextureLoader().load(pi.file, texture => {
                 texture.generateMipmaps = false;
-                texture.magFilter = THREE.LinearFilter;
-                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = three.LinearFilter;
+                texture.minFilter = three.LinearFilter;
                 pi.texture = new NTexture(texture);
                 resolve();
             }, onProgress, ev => {
@@ -8523,7 +8523,7 @@
     }
     function loadSound(pi, onProgress) {
         return new Promise((resolve, reject) => {
-            new THREE.AudioLoader().load(pi.file, buffer => {
+            new three.AudioLoader().load(pi.file, buffer => {
                 pi.audioBuffer = buffer;
                 resolve();
             }, onProgress, ev => {
@@ -8875,10 +8875,10 @@
         }
     }
 
-    var s_vec2$3 = new THREE.Vector2();
+    var s_vec2$3 = new three.Vector2();
     var s_rect$6 = new Rect();
-    var s_endPos = new THREE.Vector2();
-    var s_oldChange = new THREE.Vector2();
+    var s_endPos = new three.Vector2();
+    var s_oldChange = new three.Vector2();
     var s_gestureFlag = 0;
     const TWEEN_TIME_GO = 0.5; //调用SetPos(ani)时使用的缓动时间
     const TWEEN_TIME_DEFAULT = 0.3; //惯性滚动的最小缓动时间
@@ -8900,19 +8900,19 @@
             this._footerLockedSize = 0;
             this._headerLockedSize = 0;
             this._scrollBarMargin = new Margin();
-            this._viewSize = new THREE.Vector2();
-            this._contentSize = new THREE.Vector2();
-            this._pageSize = new THREE.Vector2(1, 1);
-            this._overlapSize = new THREE.Vector2();
-            this._tweenTime = new THREE.Vector2();
-            this._tweenStart = new THREE.Vector2();
-            this._tweenDuration = new THREE.Vector2();
-            this._tweenChange = new THREE.Vector2();
-            this._velocity = new THREE.Vector2();
-            this._containerPos = new THREE.Vector2();
-            this._beginTouchPos = new THREE.Vector2();
-            this._lastTouchPos = new THREE.Vector2();
-            this._lastTouchGlobalPos = new THREE.Vector2();
+            this._viewSize = new three.Vector2();
+            this._contentSize = new three.Vector2();
+            this._pageSize = new three.Vector2(1, 1);
+            this._overlapSize = new three.Vector2();
+            this._tweenTime = new three.Vector2();
+            this._tweenStart = new three.Vector2();
+            this._tweenDuration = new three.Vector2();
+            this._tweenChange = new three.Vector2();
+            this._velocity = new three.Vector2();
+            this._containerPos = new three.Vector2();
+            this._beginTouchPos = new three.Vector2();
+            this._lastTouchPos = new three.Vector2();
+            this._lastTouchGlobalPos = new three.Vector2();
             this._scrollStep = UIConfig.defaultScrollStep;
             this._decelerationRate = UIConfig.defaultScrollDecelerationRate;
             this._owner.on("touch_begin", this.__touchBegin, this);
@@ -8989,12 +8989,12 @@
                 this._mouseWheelEnabled = false;
             if (headerRes) {
                 this._header = UIPackage.createObjectFromURL(headerRes);
-                if (this._header == null)
+                if (!this._header)
                     throw new Error("cannot create scrollPane header from " + headerRes);
             }
             if (footerRes) {
                 this._footer = UIPackage.createObjectFromURL(footerRes);
-                if (this._footer == null)
+                if (!this._footer)
                     throw new Error("cannot create scrollPane footer from " + footerRes);
             }
             if (this._header || this._footer)
@@ -10383,7 +10383,7 @@
             var splinePoints = [];
             var prev = points[0];
             if (prev.curveType == CurveType.CRSpline)
-                splinePoints.push(new THREE.Vector2(prev.x, prev.y));
+                splinePoints.push(new three.Vector2(prev.x, prev.y));
             for (var i = 1; i < cnt; i++) {
                 var current = points[i];
                 if (prev.curveType != CurveType.CRSpline) {
@@ -10392,21 +10392,21 @@
                     seg.ptStart = this._points.length;
                     if (prev.curveType == CurveType.Straight) {
                         seg.ptCount = 2;
-                        this._points.push(new THREE.Vector2(prev.x, prev.y));
-                        this._points.push(new THREE.Vector2(current.x, current.y));
+                        this._points.push(new three.Vector2(prev.x, prev.y));
+                        this._points.push(new three.Vector2(current.x, current.y));
                     }
                     else if (prev.curveType == CurveType.Bezier) {
                         seg.ptCount = 3;
-                        this._points.push(new THREE.Vector2(prev.x, prev.y));
-                        this._points.push(new THREE.Vector2(current.x, current.y));
-                        this._points.push(new THREE.Vector2(prev.control1_x, prev.control1_y));
+                        this._points.push(new three.Vector2(prev.x, prev.y));
+                        this._points.push(new three.Vector2(current.x, current.y));
+                        this._points.push(new three.Vector2(prev.control1_x, prev.control1_y));
                     }
                     else if (prev.curveType == CurveType.CubicBezier) {
                         seg.ptCount = 4;
-                        this._points.push(new THREE.Vector2(prev.x, prev.y));
-                        this._points.push(new THREE.Vector2(current.x, current.y));
-                        this._points.push(new THREE.Vector2(prev.control1_x, prev.control1_y));
-                        this._points.push(new THREE.Vector2(prev.control2_x, prev.control2_y));
+                        this._points.push(new three.Vector2(prev.x, prev.y));
+                        this._points.push(new three.Vector2(current.x, current.y));
+                        this._points.push(new three.Vector2(prev.control1_x, prev.control1_y));
+                        this._points.push(new three.Vector2(prev.control2_x, prev.control2_y));
                     }
                     seg.length = distance(prev.x, prev.y, current.x, current.y);
                     this._fullLength += seg.length;
@@ -10414,12 +10414,12 @@
                 }
                 if (current.curveType != CurveType.CRSpline) {
                     if (splinePoints.length > 0) {
-                        splinePoints.push(new THREE.Vector2(current.x, current.y));
+                        splinePoints.push(new three.Vector2(current.x, current.y));
                         this.createSplineSegment(splinePoints);
                     }
                 }
                 else
-                    splinePoints.push(new THREE.Vector2(current.x, current.y));
+                    splinePoints.push(new three.Vector2(current.x, current.y));
                 prev = current;
             }
             if (splinePoints.length > 1)
@@ -10450,7 +10450,7 @@
         }
         getPointAt(t, result) {
             if (!result)
-                result = new THREE.Vector2();
+                result = new three.Vector2();
             else
                 result.set(0, 0);
             t = clamp01(t);
@@ -10498,7 +10498,7 @@
                 points = new Array();
             var seg = this._segments[segmentIndex];
             for (var i = 0; i < seg.ptCount; i++)
-                points.push(new THREE.Vector2(this._points[seg.ptStart + i].x, this._points[seg.ptStart + i].y));
+                points.push(new three.Vector2(this._points[seg.ptStart + i].x, this._points[seg.ptStart + i].y));
             return points;
         }
         getPointsInSegment(segmentIndex, t0, t1, points, ts, pointDensity) {
@@ -10510,8 +10510,8 @@
                 ts.push(t0);
             var seg = this._segments[segmentIndex];
             if (seg.type == CurveType.Straight) {
-                points.push(new THREE.Vector2(lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t0), lerp(this._points[seg.ptStart].y, this._points[seg.ptStart + 1].y, t0)));
-                points.push(new THREE.Vector2(lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t1), lerp(this._points[seg.ptStart].y, this._points[seg.ptStart + 1].y, t1)));
+                points.push(new three.Vector2(lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t0), lerp(this._points[seg.ptStart].y, this._points[seg.ptStart + 1].y, t0)));
+                points.push(new three.Vector2(lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t1), lerp(this._points[seg.ptStart].y, this._points[seg.ptStart + 1].y, t1)));
             }
             else {
                 var func;
@@ -10519,17 +10519,17 @@
                     func = this.onBezierCurve;
                 else
                     func = this.onCRSplineCurve;
-                points.push(func.call(this, seg.ptStart, seg.ptCount, t0, new THREE.Vector2()));
+                points.push(func.call(this, seg.ptStart, seg.ptCount, t0, new three.Vector2()));
                 var SmoothAmount = Math.min(seg.length * pointDensity, 50);
                 for (var j = 0; j <= SmoothAmount; j++) {
                     var t = j / SmoothAmount;
                     if (t > t0 && t < t1) {
-                        points.push(func.call(this, seg.ptStart, seg.ptCount, t, new THREE.Vector2()));
+                        points.push(func.call(this, seg.ptStart, seg.ptCount, t, new three.Vector2()));
                         if (ts)
                             ts.push(t);
                     }
                 }
-                points.push(func.call(this, seg.ptStart, seg.ptCount, t1, new THREE.Vector2()));
+                points.push(func.call(this, seg.ptStart, seg.ptCount, t1, new three.Vector2()));
             }
             if (ts)
                 ts.push(t1);
@@ -11806,7 +11806,7 @@
         }
     }
 
-    var s_vec2$4 = new THREE.Vector2();
+    var s_vec2$4 = new three.Vector2();
     class ShapeHitTest {
         constructor(obj) {
             this.shape = obj;
@@ -11837,7 +11837,7 @@
             this._controllers = [];
             this._transitions = [];
             this._margin = new Margin();
-            this._alignOffset = new THREE.Vector2();
+            this._alignOffset = new three.Vector2();
             this._childrenRenderOrder = 0;
             this._apexIndex = 0;
         }
@@ -12493,7 +12493,7 @@
          */
         getSnappingPositionWithDir(xValue, yValue, xDir, yDir, resultPoint) {
             if (!resultPoint)
-                resultPoint = new THREE.Vector2();
+                resultPoint = new three.Vector2();
             var cnt = this._children.length;
             if (cnt == 0) {
                 resultPoint.x = 0;
@@ -13252,7 +13252,7 @@
             let pi = UIPackage.getItemByURL(url);
             if (pi && pi.audioBuffer) {
                 if (!pi.sound) {
-                    pi.sound = new THREE.Audio(Stage.audioListener);
+                    pi.sound = new three.Audio(Stage.audioListener);
                     pi.sound.setBuffer(pi.audioBuffer);
                     pi.sound.setLoop(false);
                 }
@@ -13326,7 +13326,7 @@
             this.letterSpacing = 0;
             this.outline = 0;
             this.outlineColor = 0;
-            this.shadowOffset = new THREE.Vector2();
+            this.shadowOffset = new three.Vector2();
             this.shadowColor = 0;
         }
         copy(source) {
@@ -13771,7 +13771,7 @@
     class HtmlElement {
         constructor() {
             this.format = new TextFormat();
-            this.position = new THREE.Vector2();
+            this.position = new three.Vector2();
         }
         getAttr(attrName) {
             if (this._attributes == null)
@@ -14747,7 +14747,7 @@
                                     element.status |= 1;
                                 else
                                     element.status &= 254;
-                                element.position = new THREE.Vector2(posx + 1, line.y + line.baseline - htmlObj.height * IMAGE_BASELINE);
+                                element.position = new three.Vector2(posx + 1, line.y + line.baseline - htmlObj.height * IMAGE_BASELINE);
                                 htmlObj.setPosition(element.position.x, element.position.y);
                                 posx += htmlObj.width + letterSpacing + 2;
                             }
@@ -16557,7 +16557,7 @@
         set virtualItemSize(value) {
             if (this._virtual) {
                 if (this._itemSize == null)
-                    this._itemSize = new THREE.Vector2();
+                    this._itemSize = new three.Vector2();
                 this._itemSize.set(value.x, value.y);
                 this.setVirtualListChangedFlag(true);
             }
@@ -17132,7 +17132,7 @@
         getSnappingPositionWithDir(xValue, yValue, xDir, yDir, resultPoint) {
             if (this._virtual) {
                 if (!resultPoint)
-                    resultPoint = new THREE.Vector2();
+                    resultPoint = new three.Vector2();
                 var saved;
                 var index;
                 var size;
@@ -17280,7 +17280,7 @@
                 this._virtualItems = new Array();
                 this.removeChildrenToPool();
                 if (this._itemSize == null) {
-                    this._itemSize = new THREE.Vector2();
+                    this._itemSize = new three.Vector2();
                     var obj = this.getFromPool(null);
                     if (obj == null) {
                         throw new Error("Virtual List must have a default list item resource.");
@@ -18678,7 +18678,7 @@
         }
         loadExternal() {
             let url = this._url;
-            new THREE.TextureLoader().load(this._url, tex => {
+            new three.TextureLoader().load(this._url, tex => {
                 if (url == this._url)
                     this.onExternalLoadSuccess(new NTexture(tex));
             });
@@ -19032,11 +19032,11 @@
         }
     }
 
-    var s_vec2$5 = new THREE.Vector2();
+    var s_vec2$5 = new three.Vector2();
     class GScrollBar extends GComponent {
         constructor() {
             super();
-            this._dragOffset = new THREE.Vector2();
+            this._dragOffset = new three.Vector2();
             this._scrollPerc = 0;
         }
         setScrollPane(target, vertical) {
@@ -19163,7 +19163,7 @@
         }
     }
 
-    let s_vec2$6 = new THREE.Vector2();
+    let s_vec2$6 = new three.Vector2();
     class GSlider extends GComponent {
         constructor() {
             super();
@@ -19182,7 +19182,7 @@
             this._titleType = exports.ProgressTitleType.Percent;
             this._value = 50;
             this._max = 100;
-            this._clickPos = new THREE.Vector2();
+            this._clickPos = new three.Vector2();
         }
         get titleType() {
             return this._titleType;

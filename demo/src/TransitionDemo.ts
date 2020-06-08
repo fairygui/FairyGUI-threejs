@@ -32,15 +32,14 @@ export default class TransitionDemo {
         this._g5 = fgui.UIPackage.createObject("Transition", "PowerUp").asCom;
         this._g6 = fgui.UIPackage.createObject("Transition", "PathDemo").asCom;
 
-        //play_num_now是在编辑器里设定的名称，这里表示播放到'play_num_now'这个位置时才开始播放数字变化效果
         this._g5.getTransition("t0").setHook("play_num_now", this.__playNum.bind(this));
 
-        this._view.getChild("btn0").onClick(function (): void { this.__play(this._g1); }, this);
-        this._view.getChild("btn1").onClick(function (): void { this.__play(this._g2); }, this);
-        this._view.getChild("btn2").onClick(function (): void { this.__play(this._g3); }, this);
+        this._view.getChild("btn0").onClick(() => { this.__play(this._g1); }, this);
+        this._view.getChild("btn1").onClick(() => { this.__play(this._g2); }, this);
+        this._view.getChild("btn2").onClick(() => { this.__play(this._g3); }, this);
         this._view.getChild("btn3").onClick(this.__play4, this);
         this._view.getChild("btn4").onClick(this.__play5, this);
-        this._view.getChild("btn5").onClick(function (): void { this.__play(this._g6); }, this);
+        this._view.getChild("btn5").onClick(() => { this.__play(this._g6); }, this);
     }
 
     private __play(target: fgui.GComponent): void {
@@ -59,7 +58,6 @@ export default class TransitionDemo {
         this._g4.y = 100;
         fgui.GRoot.inst.addChild(this._g4);
         var t: fgui.Transition = this._g4.getTransition("t0");
-        //播放3次
         t.play(() => {
             this._btnGroup.visible = true;
             fgui.GRoot.inst.removeChild(this._g4);
@@ -84,7 +82,6 @@ export default class TransitionDemo {
     }
 
     private __playNum(): void {
-        //这里演示了一个数字变化的过程
         fgui.GTween.to(this._startValue, this._endValue, 0.3)
             .setEase(fgui.EaseType.Linear)
             .onUpdate(function (tweener): void {

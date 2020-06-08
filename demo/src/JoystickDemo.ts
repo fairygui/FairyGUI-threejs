@@ -1,4 +1,4 @@
-import JoystickModule from "./JoystickModule"
+import JoystickModule, { JoystickMoving, JoystickUp } from "./JoystickModule"
 import * as fgui from "../../build/FairyGUI"
 
 export default class JoystickDemo {
@@ -12,14 +12,14 @@ export default class JoystickDemo {
 
     onUILoaded() {
         this._view = fgui.UIPackage.createObject("Joystick", "Main").asCom;
-        this._view.setSize(fgui.GRoot.inst.width, fgui.GRoot.inst.height);
+        this._view.makeFullScreen();
         fgui.GRoot.inst.addChild(this._view);
 
         this._text = <fgui.GTextField>this._view.getChild("n9");
 
         this._joystick = new JoystickModule(this._view);
-        this._joystick.on(JoystickModule.JoystickMoving, this.onJoystickMoving, this);
-        this._joystick.on(JoystickModule.JoystickUp, this.onJoystickUp, this);
+        this._joystick.on(JoystickMoving, this.onJoystickMoving, this);
+        this._joystick.on(JoystickUp, this.onJoystickUp, this);
     }
 
     private onJoystickMoving(evt: fgui.Event): void {

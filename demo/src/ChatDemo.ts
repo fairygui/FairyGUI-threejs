@@ -1,4 +1,3 @@
-import HitTestDemo from "./HitTestDemo";
 import EmojiParser from "./EmojiParser";
 import * as fgui from "../../build/FairyGUI"
 

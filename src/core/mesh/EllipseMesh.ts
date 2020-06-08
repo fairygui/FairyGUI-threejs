@@ -1,4 +1,4 @@
-import { Vector2, Vector3 } from "three";
+import { Vector3 } from "three";
 import { Color4 } from "../../utils/Color";
 import { Rect } from "../../utils/Rect";
 import { clamp } from "../../utils/ToolSet";

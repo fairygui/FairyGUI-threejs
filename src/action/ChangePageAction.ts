@@ -1,7 +1,7 @@
-import { GComponent } from "../ui/GComponent"
-import { Controller } from "../ui/Controller"
-import { ByteBuffer } from "../utils/ByteBuffer"
-import { ControllerAction } from "./ControllerAction"
+import { GComponent } from "../ui/GComponent";
+import { Controller } from "../ui/Controller";
+import { ByteBuffer } from "../utils/ByteBuffer";
+import { ControllerAction } from "./ControllerAction";
 
 export class ChangePageAction extends ControllerAction {
     public objectId: string;
@@ -18,7 +18,7 @@ export class ChangePageAction extends ControllerAction {
 
         var gcom: GComponent;
         if (this.objectId)
-            gcom = controller.parent.getChildById(this.objectId) as GComponent;
+            gcom = <GComponent>controller.parent.getChildById(this.objectId);
         else
             gcom = controller.parent;
         if (gcom) {

@@ -41,7 +41,7 @@ export default class ScrollPaneDemo {
                 }
                 item.scrollPane.setPosX(0, true);
 
-                //取消滚动面板可能发生的拉动。
+                //cancel scroll pane default behavior
                 item.scrollPane.cancelDragging();
                 this._list.scrollPane.cancelDragging();
                 break;
