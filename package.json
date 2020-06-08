@@ -1,0 +1,62 @@
+{
+  "name": "fairygui-threejs",
+  "version": "1.0.0",
+  "description": "A GUI Editor&framework for three.js",
+  "main": "dist/fairygui.js",
+  "module": "dist/fairygui.module.js",
+  "types": "build/FairyGUI.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fairygui/FairyGUI-threejs"
+  },
+  "directories": {
+    "demo":"demo"
+  },
+  "scripts": {
+    "build": "gulp build",
+    "build-demo": "webpack --config demo/webpack.config.js"
+  },
+  "keywords": [
+    "three",
+    "three.js",
+    "fairygui",
+    "gui"
+  ],
+  "author": "guzhu",
+  "license": "MIT",
+  "homepage": "https://fairygui.com/",
+  "dependencies": {
+    "@types/node": "^14.0.1",
+    "lodash": "^4.17.15",
+    "three": "^0.116.1"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.150",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "css-loader": "^3.5.3",
+    "csv-loader": "^3.0.3",
+    "expose-loader": "^0.7.5",
+    "file-loader": "^6.0.0",
+    "html-webpack-plugin": "^4.3.0",
+    "style-loader": "^1.2.1",
+    "ts-loader": "^7.0.4",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0",
+    "xml-loader": "^1.2.1",
+    "@rollup/plugin-node-resolve": "^8.0.1",
+    "@types/node": "^14.0.1",
+    "gulp": "^4.0.2",
+    "gulp-clean": "^0.4.0",
+    "gulp-minify": "^3.1.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-typescript": "^3.1.6",
+    "gulp-uglify": "^3.0.2",
+    "gulp-uglify-es": "^2.0.0",
+    "gulp-concat": "^2.6.1",
+    "rollup": "^1.27.5",
+    "three": "^0.116.1",
+    "typescript": "^3.9.2"
+  }
+}
