@@ -14,7 +14,7 @@ export default class ModalWaitingDemo {
 
     onUILoaded() {
         this._view = fgui.UIPackage.createObject("ModalWaiting", "Main").asCom;
-        this._view.setSize(fgui.GRoot.inst.width, fgui.GRoot.inst.height);
+        this._view.makeFullScreen();
         fgui.GRoot.inst.addChild(this._view);
 
         this._testWin = new TestWin();

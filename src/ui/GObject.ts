@@ -117,12 +117,22 @@ export class GObject {
         this.setPosition(this._x, value);
     }
 
-    public setPosition(xv: number, yv: number, z?: number): void {
+    public get z(): number {
+        return this._z;
+    }
+
+    public set z(value: number) {
+        this.setPosition(this._x, this._y, value);
+    }
+
+    public setPosition(xv: number, yv: number, zv?: number): void {
         if (this._x != xv || this._y != yv) {
             var dx: number = xv - this._x;
             var dy: number = yv - this._y;
             this._x = xv;
             this._y = yv;
+            if (zv != null)
+                this._z = zv;
 
             this.handlePositionChanged();
             if (this instanceof GGroup)

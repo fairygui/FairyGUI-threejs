@@ -1,6 +1,6 @@
 
-import { Controller } from "../ui/Controller"
-import { ByteBuffer } from "../utils/ByteBuffer"
+import { Controller } from "../ui/Controller";
+import { ByteBuffer } from "../utils/ByteBuffer";
 
 export class ControllerAction {
     public fromPage: any[];

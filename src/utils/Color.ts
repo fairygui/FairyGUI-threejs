@@ -1,6 +1,6 @@
-import * as THREE from "three";
+import { Color } from "three";
 
-export class Color4 extends THREE.Color {
+export class Color4 extends Color {
     public a: number;
 
     public constructor(rgb?: number, a?: number) {

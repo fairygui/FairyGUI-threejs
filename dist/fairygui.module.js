@@ -5093,7 +5093,7 @@ function distance(x1, y1, x2, y2) {
  * 1---2
  * | / |
  * 0---3
- * threejs要求逆时针顶点顺序，即 0-2-1， 0-3-2
+ * threejs anti-clockwise vertex order. ie 0-2-1， 0-3-2
  */
 class VertexBuffer {
     constructor() {
@@ -9010,12 +9010,12 @@ class ScrollPane {
             this._mouseWheelEnabled = false;
         if (headerRes) {
             this._header = UIPackage.createObjectFromURL(headerRes);
-            if (this._header == null)
+            if (!this._header)
                 throw new Error("cannot create scrollPane header from " + headerRes);
         }
         if (footerRes) {
             this._footer = UIPackage.createObjectFromURL(footerRes);
-            if (this._footer == null)
+            if (!this._footer)
                 throw new Error("cannot create scrollPane footer from " + footerRes);
         }
         if (this._header || this._footer)

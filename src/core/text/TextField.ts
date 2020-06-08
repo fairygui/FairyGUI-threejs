@@ -1,7 +1,6 @@
 import { Vector2 } from "three";
 import { AlignType, AutoSizeType, VertAlignType } from "../../ui/FieldTypes";
 import { UIConfig } from "../../ui/UIConfig";
-import { UIContentScaler } from "../../ui/UIContentScaler";
 import { HtmlElement, HtmlElementType, elementPool } from "../../utils/html/HtmlElement";
 import { HtmlLink } from "../../utils/html/HtmlLink";
 import { defaultParser } from "../../utils/html/HtmlParser";

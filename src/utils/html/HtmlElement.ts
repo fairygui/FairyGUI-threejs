@@ -29,7 +29,7 @@ export class HtmlElement {
     public space: number;
     public position: Vector2;
 
-    private _attributes: { [index: string]: any };
+    public _attributes: { [index: string]: any };
 
     public constructor() {
         this.format = new TextFormat();

@@ -2,7 +2,6 @@ import { IMeshFactory } from "./MeshFactory";
 import { IHitTest } from "../hittest/IHitTest";
 import { VertexBuffer } from "./VertexBuffer";
 import { Rect } from "../../utils/Rect";
-import { Vector2 } from "three";
 
 export class CompositeMesh implements IMeshFactory, IHitTest {
     public readonly elements: Array<IMeshFactory>;

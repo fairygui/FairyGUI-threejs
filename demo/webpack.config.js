@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
     mode: 'development',
@@ -69,14 +70,14 @@ module.exports = {
     },
 
     optimization: {
-        //minimize: true,
-        //minimizer: [new UglifyJsPlugin({ sourceMap: true })],
+        minimize: true,
+        minimizer: [new TerserPlugin({ sourceMap: true })],
         splitChunks: {
-            chunks: 'all',//同时分割同步和异步代码,推荐。
-            automaticNameDelimiter: '_',//名称分隔符，默认是~
+            chunks: 'all',
+            automaticNameDelimiter: '_',
             name: true,
-            cacheGroups: {  //默认的规则不会打包,需要单独定义
-                three: { // 将three抽出来
+            cacheGroups: {
+                three: {
                     name: 'three',
                     chunks: 'all',
                     test: /[\\/]node_modules[\\/](three)[\\/]/,

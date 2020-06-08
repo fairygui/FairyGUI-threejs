@@ -292,7 +292,7 @@ export default class BasicDemo {
         var obj: fgui.GComponent = this._demoObjects["Grid"];
         var list1: fgui.GList = <fgui.GList>obj.getChild("list1");
         list1.removeChildrenToPool();
-        var testNames: Array<string> = ["苹果手机操作系统", "安卓手机操作系统", "微软手机操作系统", "微软桌面操作系统", "苹果桌面操作系统", "未知操作系统"];
+        var testNames: Array<string> = ["Apple", "Orange", "Banana", "Watermelon", "Lemon", "Pear"];
         var testColors: Array<number> = [0xFFFF00, 0xFF0000, 0xFFFFFF, 0x0000FF];
         var cnt: number = testNames.length;
         for (var i: number = 0; i < cnt; i++) {
@@ -327,8 +327,8 @@ export default class BasicDemo {
         var obj: fgui.GComponent = this._demoObjects["ProgressBar"];
         var cnt: number = obj.numChildren;
         for (var i: number = 0; i < cnt; i++) {
-            var child: fgui.GProgressBar = obj.getChildAt(i) as fgui.GProgressBar;
-            if (child != null) {
+            var child: fgui.GProgressBar = <fgui.GProgressBar>obj.getChildAt(i);
+            if (child) {
                 child.value += 1;
                 if (child.value > child.max)
                     child.value = 0;

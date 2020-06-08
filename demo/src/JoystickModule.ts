@@ -1,6 +1,9 @@
 import * as fgui from "../../build/FairyGUI"
 import { Vector2 } from "three";
 
+export const JoystickMoving: string = "JoystickMoving";
+export const JoystickUp: string = "JoystickUp";
+
 export default class JoystickModule extends fgui.EventDispatcher {
     private _InitX: number;
     private _InitY: number;
@@ -15,9 +18,6 @@ export default class JoystickModule extends fgui.EventDispatcher {
     private _touchId: number;
     private _tweener: fgui.GTweener;
     private _curPos: Vector2;
-
-    public static JoystickMoving: string = "JoystickMoving";
-    public static JoystickUp: string = "JoystickUp";
 
     public radius: number;
 
@@ -76,10 +76,8 @@ export default class JoystickModule extends fgui.EventDispatcher {
             this._startStageY = by;
 
             this._center.visible = true;
-            this._center.x = bx - this._center.width / 2;
-            this._center.y = by - this._center.height / 2;
-            this._button.x = bx - this._button.width / 2;
-            this._button.y = by - this._button.height / 2;
+            this._center.setPosition(bx - this._center.width / 2, by - this._center.height / 2);
+            this._button.setPosition(bx - this._button.width / 2, by - this._button.height / 2);
 
             var deltaX: number = bx - this._InitX;
             var deltaY: number = by - this._InitY;
@@ -92,17 +90,18 @@ export default class JoystickModule extends fgui.EventDispatcher {
 
     private onTouchMove(evt: fgui.Event): void {
         if (this._touchId != -1 && evt.input.touchId == this._touchId) {
-            var bx: number = evt.input.x;
-            var by: number = evt.input.y;
+            fgui.GRoot.inst.globalToLocal(evt.input.x, evt.input.y, this._curPos);
+            var bx: number = this._curPos.x;
+            var by: number = this._curPos.y;
             var moveX: number = bx - this._lastStageX;
             var moveY: number = by - this._lastStageY;
             this._lastStageX = bx;
             this._lastStageY = by;
-            var buttonX: number = this._button.x + moveX;
-            var buttonY: number = this._button.y + moveY;
+            var bx: number = this._button.x + moveX;
+            var by: number = this._button.y + moveY;
 
-            var offsetX: number = buttonX + this._button.width / 2 - this._startStageX;
-            var offsetY: number = buttonY + this._button.height / 2 - this._startStageY;
+            var offsetX: number = bx + this._button.width / 2 - this._startStageX;
+            var offsetY: number = by + this._button.height / 2 - this._startStageY;
 
             var rad: number = Math.atan2(offsetY, offsetX);
             var degree: number = rad * 180 / Math.PI;
@@ -115,17 +114,16 @@ export default class JoystickModule extends fgui.EventDispatcher {
             if (Math.abs(offsetY) > Math.abs(maxY))
                 offsetY = maxY;
 
-            buttonX = this._startStageX + offsetX;
-            buttonY = this._startStageY + offsetY;
-            if (buttonX < 0)
-                buttonX = 0;
-            if (buttonY > fgui.GRoot.inst.height)
-                buttonY = fgui.GRoot.inst.height;
+            bx = this._startStageX + offsetX;
+            by = this._startStageY + offsetY;
+            if (bx < 0)
+                bx = 0;
+            if (by > fgui.GRoot.inst.height)
+                by = fgui.GRoot.inst.height;
 
-            this._button.x = buttonX - this._button.width / 2;
-            this._button.y = buttonY - this._button.height / 2;
+            this._button.setPosition(bx - this._button.width / 2, by - this._button.height / 2);
 
-            this.dispatchEvent(JoystickModule.JoystickMoving, degree);
+            this.dispatchEvent(JoystickMoving, degree);
         }
     }
 
@@ -139,7 +137,7 @@ export default class JoystickModule extends fgui.EventDispatcher {
                 .setEase(fgui.EaseType.CircOut)
                 .onComplete(this.onTweenComplete, this);
 
-            this.dispatchEvent(JoystickModule.JoystickUp);
+            this.dispatchEvent(JoystickUp);
         }
     }
 

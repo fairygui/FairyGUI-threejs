@@ -118,7 +118,7 @@ export class GTree extends GList {
     }
 
     private createCell(node: GTreeNode): void {
-        var child: GComponent = this.getFromPool(node._resURL ? node._resURL : this.defaultItem) as GComponent;
+        var child: GComponent = <GComponent>this.getFromPool(node._resURL ? node._resURL : this.defaultItem);
         if (!child)
             throw new Error("cannot create tree node object.");
 

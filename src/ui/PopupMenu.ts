@@ -116,7 +116,7 @@ export class PopupMenu {
     }
 
     public removeItem(name: string): boolean {
-        var item: GButton = this._list.getChild(name) as GButton;
+        var item: GButton = <GButton>this._list.getChild(name);
         if (item) {
             var index: number = this._list.getChildIndex(item);
             this._list.removeChildToPoolAt(index);
