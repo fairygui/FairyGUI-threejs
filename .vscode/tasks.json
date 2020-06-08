@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "build",
+			"path": "/",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "build source"
+		},
+
+		{
+			"type": "npm",
+			"script": "build-demo",
+			"path": "/demo",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "build demo"
+		}
+	]
+}
