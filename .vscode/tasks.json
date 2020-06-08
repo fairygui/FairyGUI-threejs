@@ -12,11 +12,11 @@
 
 		{
 			"type": "npm",
-			"script": "build-demo",
-			"path": "/demo",
+			"script": "test",
+			"path": "/",
 			"group": "build",
 			"problemMatcher": [],
-			"label": "build demo"
+			"label": "build test"
 		}
 	]
 }

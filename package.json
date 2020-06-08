@@ -10,12 +10,12 @@
     "url": "https://github.com/fairygui/FairyGUI-threejs"
   },
   "directories": {
-    "demo":"demo",
+    "test":"test",
     "build":"build"
   },
   "scripts": {
     "build": "gulp build",
-    "build-demo": "webpack --config demo/webpack.config.js"
+    "test": "webpack --config test/webpack.config.js"
   },
   "keywords": [
     "three",
