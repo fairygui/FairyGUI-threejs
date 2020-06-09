@@ -7,8 +7,9 @@ import { RoundedRectMesh } from "./mesh/RoundedRectMesh";
 import { EllipseMesh } from "./mesh/EllipseMesh";
 import { PolygonMesh } from "./mesh/PolygonMesh";
 import { RegularPolygonMesh } from "./mesh/RegularPolygonMesh";
-import { HitTestContext, IHitTest } from "./hittest/IHitTest";
+import { IHitTest } from "./hittest/IHitTest";
 import { Vector2 } from "three";
+import { HitTestContext } from "./Stage";
 
 export class Shape extends DisplayObject {
     public constructor() {

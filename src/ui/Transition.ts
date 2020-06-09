@@ -1,6 +1,6 @@
 import { ObjectPropID } from "./FieldTypes";
 import { GComponent } from "./GComponent";
-import { GObject, Forwards } from "./GObject";
+import { GObject, Decls } from "./GObject";
 import { PackageItem } from "./PackageItem";
 import { EaseType } from "../tween/EaseType";
 import { GPath } from "../tween/GPath";
@@ -1008,7 +1008,7 @@ export class Transition {
                             value.audioClip = value.sound;
                     }
                     if (value.audioClip)
-                        Forwards.GRootType.inst.playOneShotSound(value.audioClip, value.volume);
+                        Decls.GRoot.inst.playOneShotSound(value.audioClip, value.volume);
                 }
                 break;
 

@@ -184,105 +184,6 @@
         ObjectPropID[ObjectPropID["Selected"] = 9] = "Selected";
     })(exports.ObjectPropID || (exports.ObjectPropID = {}));
 
-    class Rect {
-        constructor(x, y, width, height) {
-            this.x = x || 0;
-            this.y = y || 0;
-            this.width = width || 0;
-            this.height = height || 0;
-        }
-        set(x, y, width, height) {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-        }
-        setMinMax(xMin, yMin, xMax, yMax) {
-            this.x = xMin;
-            this.y = yMin;
-            this.width = xMax - xMin;
-            this.height = yMax - yMin;
-        }
-        get position() {
-            return new three.Vector2(this.x, this.y);
-        }
-        get size() {
-            return new three.Vector2(this.width, this.height);
-        }
-        get xMin() {
-            return this.x;
-        }
-        set xMin(value) {
-            let d = value - this.x;
-            this.x = value;
-            this.width -= d;
-        }
-        get xMax() {
-            return this.x + this.width;
-        }
-        set xMax(value) {
-            this.width = value - this.x;
-        }
-        get yMin() {
-            return this.y;
-        }
-        set yMin(value) {
-            let d = value - this.y;
-            this.y = value;
-            this.height -= d;
-        }
-        get yMax() {
-            return this.y + this.height;
-        }
-        set yMax(value) {
-            this.height = value - this.y;
-        }
-        intersection(another) {
-            if (this.width == 0 || this.height == 0 || another.width == 0 || another.height == 0)
-                return new Rect(0, 0, 0, 0);
-            let left = this.x > another.x ? this.x : another.x;
-            let right = this.xMax < another.xMax ? this.xMax : another.xMax;
-            let top = this.y > another.y ? this.y : another.y;
-            let bottom = this.yMax < another.yMax ? this.yMax : another.yMax;
-            if (left > right || top > bottom)
-                this.set(0, 0, 0, 0);
-            else
-                this.setMinMax(left, top, right, bottom);
-            return this;
-        }
-        union(another) {
-            if (another.width == 0 || another.height == 0)
-                return this;
-            if (this.width == 0 || this.height == 0) {
-                this.copy(another);
-                return this;
-            }
-            let x = Math.min(this.x, another.x);
-            let y = Math.min(this.y, another.y);
-            this.setMinMax(x, y, Math.max(this.xMax, another.xMax), Math.max(this.yMax, another.yMax));
-            return this;
-        }
-        extend(x, y) {
-            this.x -= x;
-            this.y -= y;
-            this.width += x * 2;
-            this.height += y * 2;
-        }
-        contains(x, y) {
-            if (x instanceof three.Vector2) {
-                y = x.y;
-                x = x.x;
-            }
-            return x >= this.x && x < this.x + this.width && y >= this.y && y < this.y + this.height;
-        }
-        copy(source) {
-            this.set(source.x, source.y, source.width, source.height);
-        }
-        clone() {
-            return new Rect(this.x, this.y, this.width, this.height);
-        }
-    }
-
     class Pool {
         constructor(type, init, reset) {
             this.pool = [];
@@ -468,6 +369,105 @@
         }
     }
 
+    class Rect {
+        constructor(x, y, width, height) {
+            this.x = x || 0;
+            this.y = y || 0;
+            this.width = width || 0;
+            this.height = height || 0;
+        }
+        set(x, y, width, height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        }
+        setMinMax(xMin, yMin, xMax, yMax) {
+            this.x = xMin;
+            this.y = yMin;
+            this.width = xMax - xMin;
+            this.height = yMax - yMin;
+        }
+        get position() {
+            return new three.Vector2(this.x, this.y);
+        }
+        get size() {
+            return new three.Vector2(this.width, this.height);
+        }
+        get xMin() {
+            return this.x;
+        }
+        set xMin(value) {
+            let d = value - this.x;
+            this.x = value;
+            this.width -= d;
+        }
+        get xMax() {
+            return this.x + this.width;
+        }
+        set xMax(value) {
+            this.width = value - this.x;
+        }
+        get yMin() {
+            return this.y;
+        }
+        set yMin(value) {
+            let d = value - this.y;
+            this.y = value;
+            this.height -= d;
+        }
+        get yMax() {
+            return this.y + this.height;
+        }
+        set yMax(value) {
+            this.height = value - this.y;
+        }
+        intersection(another) {
+            if (this.width == 0 || this.height == 0 || another.width == 0 || another.height == 0)
+                return new Rect(0, 0, 0, 0);
+            let left = this.x > another.x ? this.x : another.x;
+            let right = this.xMax < another.xMax ? this.xMax : another.xMax;
+            let top = this.y > another.y ? this.y : another.y;
+            let bottom = this.yMax < another.yMax ? this.yMax : another.yMax;
+            if (left > right || top > bottom)
+                this.set(0, 0, 0, 0);
+            else
+                this.setMinMax(left, top, right, bottom);
+            return this;
+        }
+        union(another) {
+            if (another.width == 0 || another.height == 0)
+                return this;
+            if (this.width == 0 || this.height == 0) {
+                this.copy(another);
+                return this;
+            }
+            let x = Math.min(this.x, another.x);
+            let y = Math.min(this.y, another.y);
+            this.setMinMax(x, y, Math.max(this.xMax, another.xMax), Math.max(this.yMax, another.yMax));
+            return this;
+        }
+        extend(x, y) {
+            this.x -= x;
+            this.y -= y;
+            this.width += x * 2;
+            this.height += y * 2;
+        }
+        contains(x, y) {
+            if (x instanceof three.Vector2) {
+                y = x.y;
+                x = x.x;
+            }
+            return x >= this.x && x < this.x + this.width && y >= this.y && y < this.y + this.height;
+        }
+        copy(source) {
+            this.set(source.x, source.y, source.width, source.height);
+        }
+        clone() {
+            return new Rect(this.x, this.y, this.width, this.height);
+        }
+    }
+
     class Timers {
         static add(delayInMiniseconds, repeat, callback, target, callbackParam) {
             let item;
@@ -573,21 +573,6 @@
         return false;
     }
 
-    class HitTestContext {
-        constructor() {
-            this.screenPt = new three.Vector3();
-            this.worldPt = new three.Vector3();
-        }
-        getLocal(obj) {
-            s_vec3.copy(this.worldPt);
-            obj.worldToLocal(s_vec3);
-            s_vec2.set(s_vec3.x, s_vec3.y);
-            return s_vec2;
-        }
-    }
-    var s_vec3 = new three.Vector3();
-    var s_vec2 = new three.Vector2();
-
     (function (ScaleMode) {
         ScaleMode[ScaleMode["ConstantPixelSize"] = 0] = "ConstantPixelSize";
         ScaleMode[ScaleMode["ScaleWithScreenSize"] = 1] = "ScaleWithScreenSize";
@@ -680,6 +665,9 @@
         static get camera() {
             return _camera;
         }
+        static set camera(value) {
+            _camera = value;
+        }
         static get width() {
             return _width;
         }
@@ -743,16 +731,36 @@
             this.disableMatrixValidation = false;
         }
         static hitTest(x, y, forTouch) {
-            this.disableMatrixValidation = true;
-            _hitTest.screenPt.set(x, y, 0);
-            _hitTest.worldPt.set((x / _width) * 2 - 1, -(y / _height) * 2 + 1, 0);
-            _hitTest.worldPt.unproject(_camera);
-            _hitTest.forTouch = forTouch;
-            let ret = traverseHitTest(_scene, _hitTest);
-            this.disableMatrixValidation = false;
-            return ret;
+            return hitTest(x, y, forTouch);
         }
         static setFocus(newFocus) {
+        }
+    }
+    class HitTestContext {
+        constructor() {
+            this.screenPt = new three.Vector3();
+        }
+        get camera() {
+            return this._camera;
+        }
+        set camera(value) {
+            this._camera = value;
+            this._ray = this._camera["$hitTestRay"];
+            if (!this._ray)
+                this._camera["$hitTestRay"] = this._ray = { origin: new three.Vector3(), direction: new three.Vector3() };
+            screenToWorld(this._camera, this.screenPt.x, this.screenPt.y, this._ray.origin, this._ray.direction);
+        }
+        get ray() {
+            return this._ray;
+        }
+        set ray(value) {
+            this._ray = value;
+        }
+        getLocal(obj) {
+            hit_tmp.copy(this._ray.origin);
+            obj.worldToLocal(hit_tmp, this._ray.direction);
+            hit_tmp2.set(hit_tmp.x, hit_tmp.y);
+            return hit_tmp2;
         }
     }
     const clickTestThreshold = 10;
@@ -764,13 +772,15 @@
     var _touchCount;
     var _rollOverChain = [];
     var _rollOutChain = [];
-    var _hitTest = new HitTestContext();
+    var _hitTestContext = new HitTestContext();
     var _canvas;
     var _width;
     var _height;
     var _offsetX;
     var _offsetY;
     var _touchscreen;
+    var hit_tmp = new three.Vector3();
+    var hit_tmp2 = new three.Vector2();
     function init(renderer) {
         _canvas = renderer.domElement;
         _camera = new three.OrthographicCamera(-1, 1, 1, -1, 0, 1000);
@@ -797,7 +807,7 @@
         document.addEventListener('wheel', ev => handleWheel(ev), { passive: false });
         window.addEventListener('resize', onWindowResize, false);
         _offsetX = _offsetY = 0;
-        var element = renderer.domElement;
+        var element = _canvas;
         var style = getComputedStyle(element, null);
         _offsetY += parseInt(style.getPropertyValue("padding-top"), 10);
         _offsetX += parseInt(style.getPropertyValue("padding-left"), 10);
@@ -814,15 +824,21 @@
         _width = _canvas.clientWidth;
         _height = _canvas.clientHeight;
         let aspectRatio = _width / _height;
-        let cameraSize = _height / 2;
-        _camera.left = -cameraSize * aspectRatio;
-        _camera.right = cameraSize * aspectRatio;
-        _camera.top = cameraSize;
-        _camera.bottom = -cameraSize;
-        _camera.position.x = cameraSize * aspectRatio;
-        _camera.position.y = -cameraSize;
-        _camera.position.z = 0;
-        _camera.updateProjectionMatrix();
+        if (_camera instanceof three.OrthographicCamera) {
+            let cameraSize = _height / 2;
+            _camera.left = -cameraSize * aspectRatio;
+            _camera.right = cameraSize * aspectRatio;
+            _camera.top = cameraSize;
+            _camera.bottom = -cameraSize;
+            _camera.position.x = cameraSize * aspectRatio;
+            _camera.position.y = -cameraSize;
+            _camera.position.z = 0;
+            _camera.updateProjectionMatrix();
+        }
+        else if (_camera instanceof three.PerspectiveCamera) {
+            _camera.aspect = window.innerWidth / window.innerHeight;
+            _camera.updateProjectionMatrix();
+        }
         if (evt)
             UIContentScaler._refresh();
     }
@@ -837,7 +853,7 @@
         let touch = _touches[0];
         touch.shiftKey = ev.shiftKey;
         touch.ctrlKey = ev.ctrlKey;
-        touch.target = _touchTarget = Stage.hitTest(_touchPos.x, _touchPos.y, true);
+        touch.target = _touchTarget = hitTest(_touchPos.x, _touchPos.y, true);
         if (_touchPos.x != touch.x || _touchPos.y != touch.y) {
             touch.x = _touchPos.x;
             touch.y = _touchPos.y;
@@ -879,7 +895,7 @@
         if (_touchscreen) {
             touch.shiftKey = ev.shiftKey;
             touch.ctrlKey = ev.ctrlKey;
-            touch.target = _touchTarget = Stage.hitTest(_touchPos.x, _touchPos.y, true);
+            touch.target = _touchTarget = hitTest(_touchPos.x, _touchPos.y, true);
         }
         if (_touchTarget != null) {
             touch.mouseWheelDelta = ev.deltaY;
@@ -921,7 +937,7 @@
             }
             touch.shiftKey = ev.shiftKey;
             touch.ctrlKey = ev.ctrlKey;
-            touch.target = _touchTarget = Stage.hitTest(_touchPos.x, _touchPos.y, true);
+            touch.target = _touchTarget = hitTest(_touchPos.x, _touchPos.y, true);
             if (touch.x != _touchPos.x || touch.y != _touchPos.y) {
                 touch.x = _touchPos.x;
                 touch.y = _touchPos.y;
@@ -1004,6 +1020,34 @@
             }
             _rollOverChain.length = 0;
         }
+    }
+    function hitTest(x, y, forTouch) {
+        if (!_hitTestContext)
+            _hitTestContext = new HitTestContext();
+        Stage.disableMatrixValidation = true;
+        _hitTestContext.screenPt.set(x, y, 0);
+        _hitTestContext.camera = _camera;
+        _hitTestContext.forTouch = forTouch != null ? forTouch : true;
+        let ret = traverseHitTest(_scene, _hitTestContext);
+        Stage.disableMatrixValidation = false;
+        return ret;
+    }
+    var s_v3 = new three.Vector3();
+    function screenToWorld(camera, x, y, outPt, outDir) {
+        outPt.set((x / _width) * 2 - 1, -(y / _height) * 2 + 1, 0);
+        outPt.unproject(camera);
+        if (camera["isPerspectiveCamera"]) {
+            s_v3.setFromMatrixPosition(camera.matrixWorld);
+            outDir.copy(outPt).sub(s_v3).normalize();
+            outDir.multiplyScalar(-1);
+        }
+        else
+            outDir.set(0, 0, 1);
+    }
+    function worldToScreen(camera, input, output) {
+        s_v3.copy(input);
+        s_v3.project(camera);
+        output.set((s_v3.x + 1) / 2 * _width, (1 - s_v3.y) / 2 * _height);
     }
     function setLastInput(touch) {
         lastInput.touchId = touch.touchId;
@@ -1323,12 +1367,12 @@
             if (this._pivot.x != xv || this._pivot.y != yv) {
                 let dpx = (xv - this._pivot.x) * this._contentRect.width;
                 let dpy = (this._pivot.y - yv) * this._contentRect.height;
-                s_v3.copy(this._pivotOffset);
+                s_v3$1.copy(this._pivotOffset);
                 this._pivot.set(xv, yv);
                 this.updatePivotOffset();
-                this._pos.x += s_v3.x - this._pivotOffset.x + dpx;
-                this._pos.y += s_v3.y - this._pivotOffset.y + dpy;
-                this._pos.y += s_v3.z - this._pivotOffset.z;
+                this._pos.x += s_v3$1.x - this._pivotOffset.x + dpx;
+                this._pos.y += s_v3$1.y - this._pivotOffset.y + dpy;
+                this._pos.y += s_v3$1.z - this._pivotOffset.z;
                 this._matrixDirty = true;
             }
         }
@@ -1336,16 +1380,16 @@
             let px = this._pivot.x * this._contentRect.width;
             let py = this._pivot.y * this._contentRect.height;
             s_quaternion.setFromEuler(this._rot);
-            s_mat.compose(s_v3_0, s_quaternion, this._obj3D.scale);
+            s_mat.compose(s_v3_2, s_quaternion, this._obj3D.scale);
             this._pivotOffset.set(px, -py, 0);
             this._pivotOffset.applyMatrix4(s_mat);
         }
         applyPivot() {
             if (this._pivot.x != 0 || this._pivot.y != 0) {
-                s_v3.copy(this._pivotOffset);
+                s_v3$1.copy(this._pivotOffset);
                 this.updatePivotOffset();
-                this._pos.x += s_v3.x - this._pivotOffset.x;
-                this._pos.y += s_v3.y - this._pivotOffset.y;
+                this._pos.x += s_v3$1.x - this._pivotOffset.x;
+                this._pos.y += s_v3$1.y - this._pivotOffset.y;
                 this._matrixDirty = true;
             }
         }
@@ -1434,6 +1478,9 @@
             if (this._graphics)
                 this._graphics.material.blending = value;
         }
+        setLayer(layer) {
+            this._obj3D.traverse(obj => obj.layers.set(layer));
+        }
         validateMatrix() {
             this._obj3D.traverseAncestors(e => {
                 let dobj = e["$owner"];
@@ -1447,10 +1494,26 @@
                 this._obj3D.updateMatrixWorld(true);
             }
         }
-        worldToLocal(pt, validate) {
+        _getRenderCamera() {
+            let p = this._obj3D;
+            while (p) {
+                let dobj = p["$owner"];
+                if (dobj && dobj.camera)
+                    return dobj.camera;
+                p = p.parent;
+            }
+            return Stage.camera;
+        }
+        worldToLocal(pt, direction, validate) {
             if (validate)
                 this.validateMatrix();
             pt = this._obj3D.worldToLocal(pt);
+            if (pt.z != 0) {
+                s_dir.copy(direction || s_forward);
+                s_dir.applyQuaternion(this._obj3D.getWorldQuaternion(s_quaternion).inverse()).normalize();
+                let distOnLine = -pt.dot(s_forward) / s_dir.dot(s_forward);
+                pt.add(s_dir.multiplyScalar(distOnLine));
+            }
             pt.y = -pt.y;
             return pt;
         }
@@ -1464,23 +1527,21 @@
         globalToLocal(x, y, result) {
             if (!Stage.disableMatrixValidation)
                 this.validateMatrix();
-            s_v3.set((x / Stage.width) * 2 - 1, -(y / Stage.height) * 2 + 1, 0);
-            s_v3.unproject(Stage.camera);
-            this._obj3D.worldToLocal(s_v3);
+            screenToWorld(this._getRenderCamera(), x, y, s_v3$1, s_dir);
+            this.worldToLocal(s_v3$1, s_dir);
             if (!result)
                 result = new three.Vector2();
-            result.set(s_v3.x, -s_v3.y);
+            result.set(s_v3$1.x, s_v3$1.y);
             return result;
         }
         localToGlobal(x, y, result) {
             if (!Stage.disableMatrixValidation)
                 this.validateMatrix();
-            s_v3.set(x, -y, 0);
-            this._obj3D.localToWorld(s_v3);
-            s_v3.project(Stage.camera);
+            s_v3$1.set(x, -y, 0);
+            this._obj3D.localToWorld(s_v3$1);
             if (!result)
                 result = new three.Vector2();
-            result.set((s_v3.x + 1) / 2 * Stage.width, (1 - s_v3.y) / 2 * Stage.height);
+            worldToScreen(this._getRenderCamera(), s_v3$1, result);
             return result;
         }
         getBounds(targetSpace, result) {
@@ -1503,11 +1564,11 @@
             else {
                 if (!Stage.disableMatrixValidation)
                     this.validateMatrix();
-                s_v3.set(x, -y, 0);
-                this._obj3D.localToWorld(s_v3);
+                s_v3$1.set(x, -y, 0);
+                this._obj3D.localToWorld(s_v3$1);
                 if (targetSpace)
-                    targetSpace.worldToLocal(s_v3);
-                result.set(s_v3.x, -s_v3.y);
+                    targetSpace.worldToLocal(s_v3$1);
+                result.set(s_v3$1.x, -s_v3$1.y);
             }
             return result;
         }
@@ -1535,18 +1596,18 @@
             return result;
         }
         transformRectPoint(x, y, targetSpace) {
-            s_v3.set(x, y, 0);
-            this.localToWorld(s_v3);
+            s_v3$1.set(x, y, 0);
+            this.localToWorld(s_v3$1);
             if (targetSpace)
-                targetSpace.worldToLocal(s_v3);
-            if (s_v4.x > s_v3.x)
-                s_v4.x = s_v3.x;
-            if (s_v4.z < s_v3.x)
-                s_v4.z = s_v3.x;
-            if (s_v4.y > s_v3.y)
-                s_v4.y = s_v3.y;
-            if (s_v4.w < s_v3.y)
-                s_v4.w = s_v3.y;
+                targetSpace.worldToLocal(s_v3$1);
+            if (s_v4.x > s_v3$1.x)
+                s_v4.x = s_v3$1.x;
+            if (s_v4.z < s_v3$1.x)
+                s_v4.z = s_v3$1.x;
+            if (s_v4.y > s_v3$1.y)
+                s_v4.y = s_v3$1.y;
+            if (s_v4.w < s_v3$1.y)
+                s_v4.w = s_v3$1.y;
         }
         addChild(child) {
             this.addChildAt(child, Number.POSITIVE_INFINITY);
@@ -1561,6 +1622,7 @@
             else
                 this._obj3D.children.splice(index, 0, child._obj3D);
             child._obj3D.parent = this._obj3D;
+            child._obj3D.layers.mask = this._obj3D.layers.mask;
             if (this.stage)
                 broadcastEvent(child.obj3D, "added_to_stage");
         }
@@ -1628,6 +1690,11 @@
         hitTest(context) {
             if (this._obj3D.scale.x == 0 || this._obj3D.scale.y == 0)
                 return null;
+            let backupRay;
+            if (this.camera) {
+                backupRay = context.ray;
+                context.camera = this.camera;
+            }
             let target;
             let pt = context.getLocal(this);
             let lx = pt.x;
@@ -1648,18 +1715,22 @@
             target = traverseHitTest(this._obj3D, context, this.mask);
             if (!target && this.opaque && (this.hitArea || this._contentRect.contains(lx, ly)))
                 target = this;
+            if (backupRay)
+                context.ray = backupRay;
             return target;
         }
         dispose() {
         }
     }
-    var s_v3 = new three.Vector3();
-    var s_v3_0 = new three.Vector3();
+    var s_v3$1 = new three.Vector3();
+    var s_v3_2 = new three.Vector3();
     var s_v4 = new three.Vector4();
     var s_rect = new Rect();
     var s_rect2 = new Rect();
     var s_mat = new three.Matrix4();
     var s_quaternion = new three.Quaternion();
+    var s_dir = new three.Vector3();
+    const s_forward = new three.Vector3(0, 0, 1);
     function traverseUpdate(p, clippingPlanes, alpha) {
         let children = p.children;
         let cnt = children.length;
@@ -2225,7 +2296,7 @@
         return bounce_easeOut(time * 2 - duration, duration) * 0.5 + 0.5;
     }
 
-    var s_vec2$1 = new three.Vector2();
+    var s_vec2 = new three.Vector2();
     class GTweener {
         constructor() {
             this._startValue = new TweenValue();
@@ -2541,7 +2612,7 @@
                 }
             }
             else if (this._path) {
-                let pt = this._path.getPointAt(this._normalizedTime, s_vec2$1);
+                let pt = this._path.getPointAt(this._normalizedTime, s_vec2);
                 if (this._snapping) {
                     pt.x = Math.round(pt.x);
                     pt.y = Math.round(pt.y);
@@ -3873,12 +3944,20 @@
         set y(value) {
             this.setPosition(this._x, value);
         }
-        setPosition(xv, yv, z) {
+        get z() {
+            return this._z;
+        }
+        set z(value) {
+            this.setPosition(this._x, this._y, value);
+        }
+        setPosition(xv, yv, zv) {
             if (this._x != xv || this._y != yv) {
                 var dx = xv - this._x;
                 var dy = yv - this._y;
                 this._x = xv;
                 this._y = yv;
+                if (zv != null)
+                    this._z = zv;
                 this.handlePositionChanged();
                 if (this instanceof GGroup)
                     (this).moveChildren(dx, dy);
@@ -3916,7 +3995,7 @@
             if (this._parent)
                 r = this.parent;
             else
-                r = Forwards.GRootType.inst;
+                r = Decls.GRoot.inst;
             this.setPosition(Math.floor((r.width - this.width) / 2), Math.floor((r.height - this.height) / 2));
             if (restraint) {
                 this.addRelation(r, exports.RelationType.Center_Center);
@@ -3985,7 +4064,7 @@
             this._height = hv;
         }
         makeFullScreen() {
-            this.setSize(Forwards.GRootType.inst.width, Forwards.GRootType.inst.height);
+            this.setSize(Decls.GRoot.inst.width, Decls.GRoot.inst.height);
         }
         get actualWidth() {
             return this.width * Math.abs(this._scaleX);
@@ -4093,6 +4172,18 @@
                 this.updateGear(3);
             }
         }
+        get rotationX() {
+            return this._displayObject.rotationX;
+        }
+        set rotationX(value) {
+            this._displayObject.rotationX = value;
+        }
+        get rotationY() {
+            return this._displayObject.rotationY;
+        }
+        set rotationY(value) {
+            this._displayObject.rotationY = value;
+        }
         get alpha() {
             return this._alpha;
         }
@@ -4156,11 +4247,11 @@
             Timers.callDelay(100, this.__doShowTooltips, this);
         }
         __doShowTooltips() {
-            Forwards.GRootType.findFor(this).showTooltips(this._tooltips);
+            Decls.GRoot.findFor(this).showTooltips(this._tooltips);
         }
         __rollOut() {
             Timers.remove(this.__doShowTooltips, this);
-            Forwards.GRootType.findFor(this).hideTooltips();
+            Decls.GRoot.findFor(this).hideTooltips();
         }
         get blendMode() {
             return this._displayObject.blendMode;
@@ -4252,6 +4343,9 @@
         }
         get displayObject() {
             return this._displayObject;
+        }
+        get obj3D() {
+            return this._displayObject.obj3D;
         }
         get parent() {
             return this._parent;
@@ -4365,22 +4459,22 @@
             return result;
         }
         localToRoot(ax, ay, result) {
-            let r = Forwards.GRootType.findFor(this);
+            let r = Decls.GRoot.findFor(this);
             let pt = this.localToGlobal(ax, ay, result);
             return r.globalToLocal(pt.x, pt.y, pt);
         }
         rootToLocal(ax, ay, result) {
-            let r = Forwards.GRootType.findFor(this);
+            let r = Decls.GRoot.findFor(this);
             let pt = r.localToGlobal(ax, ay, result);
             return this.globalToLocal(pt.x, pt.y, pt);
         }
         localToGlobalRect(ax, ay, aWidth, aHeight, result) {
             if (!result)
                 result = new Rect();
-            var pt = this.localToGlobal(ax, ay, s_vec2$2);
+            var pt = this.localToGlobal(ax, ay, s_vec2$1);
             result.x = pt.x;
             result.y = pt.y;
-            pt = this.localToGlobal(ax + aWidth, ay + aHeight, s_vec2$2);
+            pt = this.localToGlobal(ax + aWidth, ay + aHeight, s_vec2$1);
             result.width = pt.x - result.x;
             result.height = pt.y - result.y;
             return result;
@@ -4388,10 +4482,10 @@
         globalToLocalRect(ax, ay, aWidth, aHeight, result) {
             if (!result)
                 result = new Rect();
-            var pt = this.globalToLocal(ax, ay, s_vec2$2);
+            var pt = this.globalToLocal(ax, ay, s_vec2$1);
             result.x = pt.x;
             result.y = pt.y;
-            pt = this.globalToLocal(ax + aWidth, ay + aHeight, s_vec2$2);
+            pt = this.globalToLocal(ax + aWidth, ay + aHeight, s_vec2$1);
             result.width = pt.x - result.x;
             result.height = pt.y - result.y;
             return result;
@@ -4603,7 +4697,7 @@
                 let xx = evt.input.x - sGlobalDragStart.x + sGlobalRect.x;
                 let yy = evt.input.y - sGlobalDragStart.y + sGlobalRect.y;
                 if (this._dragBounds) {
-                    let rect = Forwards.GRootType.findFor(this).localToGlobalRect(this._dragBounds.x, this._dragBounds.y, this._dragBounds.width, this._dragBounds.height, s_rect$1);
+                    let rect = Decls.GRoot.findFor(this).localToGlobalRect(this._dragBounds.x, this._dragBounds.y, this._dragBounds.width, this._dragBounds.height, s_rect$1);
                     if (xx < rect.x)
                         xx = rect.x;
                     else if (xx + sGlobalRect.width > rect.xMax) {
@@ -4619,7 +4713,7 @@
                             yy = rect.y;
                     }
                 }
-                let pt = this.parent.globalToLocal(xx, yy, s_vec2$2);
+                let pt = this.parent.globalToLocal(xx, yy, s_vec2$1);
                 s_dragging = true;
                 this.setPosition(Math.round(pt.x), Math.round(pt.y));
                 s_dragging = false;
@@ -4651,7 +4745,7 @@
     function createGear(owner, index) {
         return new (GearClasses[index])(owner);
     }
-    var s_vec2$2 = new three.Vector2();
+    var s_vec2$1 = new three.Vector2();
     var s_rect$1 = new Rect();
     var sGlobalDragStart = new three.Vector2();
     var sGlobalRect = new Rect();
@@ -4663,7 +4757,7 @@
         3: three.MultiplyBlending,
         4: three.SubtractiveBlending,
     };
-    var Forwards = {};
+    var Decls = {};
     var gInstanceCounter = 0;
     var constructingDepth = { n: 0 };
 
@@ -5030,6 +5124,25 @@
         }
     }
 
+    function convertToHtmlColor(argb, hasAlpha) {
+        var alpha;
+        if (hasAlpha)
+            alpha = (argb >> 24 & 0xFF).toString(16);
+        else
+            alpha = "";
+        var red = (argb >> 16 & 0xFF).toString(16);
+        var green = (argb >> 8 & 0xFF).toString(16);
+        var blue = (argb & 0xFF).toString(16);
+        if (alpha.length == 1)
+            alpha = "0" + alpha;
+        if (red.length == 1)
+            red = "0" + red;
+        if (green.length == 1)
+            green = "0" + green;
+        if (blue.length == 1)
+            blue = "0" + blue;
+        return "#" + alpha + red + green + blue;
+    }
     function convertFromHtmlColor(str, hasAlpha) {
         if (str.length < 1)
             return 0;
@@ -5345,7 +5458,8 @@
             this.name = "ui-material";
             this.lights = false;
             this.transparent = true;
-            //this.side = DoubleSide;
+            this.depthTest = false;
+            this.side = three.DoubleSide;
             //this.wireframe = true;
             this["isMeshBasicMaterial"] = true;
         }
@@ -5812,7 +5926,7 @@
         6, 5, 2,
         2, 1, 6
     ];
-    var s_v3$1 = new three.Vector3();
+    var s_v3$2 = new three.Vector3();
     class EllipseMesh {
         constructor() {
             this.lineColor = new Color4();
@@ -5900,15 +6014,15 @@
                 angle -= Math.PI;
                 vb.addVert(Math.cos(angle) * centerRadius + radiusX, Math.sin(angle) * centerRadius + radiusY, 0, lineColor);
                 vb.addVert(Math.cos(sectionStart) * radiusX + radiusX, Math.sin(sectionStart) * radiusY + radiusY, 0, lineColor);
-                vb.getPosition(vpos + 3, s_v3$1);
-                vb.addVert(s_v3$1.x, s_v3$1.y, s_v3$1.z, lineColor);
+                vb.getPosition(vpos + 3, s_v3$2);
+                vb.addVert(s_v3$2.x, s_v3$2.y, s_v3$2.z, lineColor);
                 sectionEnd += lineAngle;
                 angle = sectionEnd - lineAngle * 0.5 + Math.PI * 0.5;
                 vb.addVert(Math.cos(angle) * centerRadius + radiusX, Math.sin(angle) * centerRadius + radiusY, 0, lineColor);
                 angle -= Math.PI;
                 vb.addVert(Math.cos(angle) * centerRadius + radiusX, Math.sin(angle) * centerRadius + radiusY, 0, lineColor);
-                vb.getPosition(vpos + sides * 3, s_v3$1);
-                vb.addVert(s_v3$1.x, s_v3$1.y, s_v3$1.z, lineColor);
+                vb.getPosition(vpos + sides * 3, s_v3$2);
+                vb.addVert(s_v3$2.x, s_v3$2.y, s_v3$2.z, lineColor);
                 vb.addVert(Math.cos(sectionEnd) * radiusX + radiusX, Math.sin(sectionEnd) * radiusY + radiusY, 0, lineColor);
                 vb.addTriangles(sides * 3 + 1, SECTOR_CENTER_TRIANGLES);
             }
@@ -6401,7 +6515,7 @@
             }
         }
     }
-    var s_vec3$1 = new three.Vector3();
+    var s_vec3 = new three.Vector3();
     var s_rect$3 = new Rect();
     function fillHorizontal(vb, vertRect, origin, amount) {
         s_rect$3.copy(vertRect);
@@ -6490,7 +6604,7 @@
                     if (clockwise)
                         vertRect.x += vertRect.width;
                     fillRadial90(vb, vertRect, clockwise ? exports.FillOrigin.TopLeft : exports.FillOrigin.TopRight, amount / 0.5, clockwise);
-                    let vec = vb.getPosition(-4, s_vec3$1);
+                    let vec = vb.getPosition(-4, s_vec3);
                     s_rect$3.set(vec.x, vec.y, 0, 0);
                     vb.addQuad(s_rect$3);
                     vb.addTriangles(-4);
@@ -6514,7 +6628,7 @@
                     if (!clockwise)
                         vertRect.x += vertRect.width;
                     fillRadial90(vb, vertRect, clockwise ? exports.FillOrigin.BottomRight : exports.FillOrigin.BottomLeft, amount / 0.5, clockwise);
-                    let vec = vb.getPosition(-4, s_vec3$1);
+                    let vec = vb.getPosition(-4, s_vec3);
                     s_rect$3.set(vec.x, vec.y, 0, 0);
                     vb.addQuad(s_rect$3);
                     vb.addTriangles(-4);
@@ -6538,7 +6652,7 @@
                     if (!clockwise)
                         vertRect.y += vertRect.height;
                     fillRadial90(vb, vertRect, clockwise ? exports.FillOrigin.BottomLeft : exports.FillOrigin.TopLeft, amount / 0.5, clockwise);
-                    let vec = vb.getPosition(-4, s_vec3$1);
+                    let vec = vb.getPosition(-4, s_vec3);
                     s_rect$3.set(vec.x, vec.y, 0, 0);
                     vb.addQuad(s_rect$3);
                     vb.addTriangles(-4);
@@ -6562,7 +6676,7 @@
                     if (clockwise)
                         vertRect.y += vertRect.height;
                     fillRadial90(vb, vertRect, clockwise ? exports.FillOrigin.TopRight : exports.FillOrigin.BottomRight, amount / 0.5, clockwise);
-                    let vec = vb.getPosition(-4, s_vec3$1);
+                    let vec = vb.getPosition(-4, s_vec3);
                     s_rect$3.set(vec.x, vec.y, 0, 0);
                     vb.addQuad(s_rect$3);
                     vb.addTriangles(-4);
@@ -6594,7 +6708,7 @@
                     if (clockwise)
                         vertRect.x += vertRect.width;
                     fillRadial180(vb, vertRect, clockwise ? exports.FillOrigin.Left : exports.FillOrigin.Right, amount / 0.5, clockwise);
-                    let vec = vb.getPosition(-8, s_vec3$1);
+                    let vec = vb.getPosition(-8, s_vec3);
                     s_rect$3.set(vec.x, vec.y, 0, 0);
                     vb.addQuad(s_rect$3);
                     vb.addTriangles(-4);
@@ -6618,7 +6732,7 @@
                     if (!clockwise)
                         vertRect.x += vertRect.width;
                     fillRadial180(vb, vertRect, clockwise ? exports.FillOrigin.Right : exports.FillOrigin.Left, amount / 0.5, clockwise);
-                    let vec = vb.getPosition(-8, s_vec3$1);
+                    let vec = vb.getPosition(-8, s_vec3);
                     s_rect$3.set(vec.x, vec.y, 0, 0);
                     vb.addQuad(s_rect$3);
                     vb.addTriangles(-4);
@@ -6642,7 +6756,7 @@
                     if (!clockwise)
                         vertRect.y += vertRect.height;
                     fillRadial180(vb, vertRect, clockwise ? exports.FillOrigin.Bottom : exports.FillOrigin.Top, amount / 0.5, clockwise);
-                    let vec = vb.getPosition(-8, s_vec3$1);
+                    let vec = vb.getPosition(-8, s_vec3);
                     s_rect$3.set(vec.x, vec.y, 0, 0);
                     vb.addQuad(s_rect$3);
                     vb.addTriangles(-4);
@@ -6666,7 +6780,7 @@
                     if (clockwise)
                         vertRect.y += vertRect.height;
                     fillRadial180(vb, vertRect, clockwise ? exports.FillOrigin.Top : exports.FillOrigin.Bottom, amount / 0.5, clockwise);
-                    let vec = vb.getPosition(-8, s_vec3$1);
+                    let vec = vb.getPosition(-8, s_vec3);
                     s_rect$3.set(vec.x, vec.y, 0, 0);
                     vb.addQuad(s_rect$3);
                     vb.addTriangles(-4);
@@ -8191,7 +8305,7 @@
                             else
                                 pi.objectType = exports.ObjectType.Component;
                             pi.rawData = buffer.readBuffer();
-                            Forwards$1.UIObjectFactory.resolvePackageItemExtension(pi);
+                            Decls$1.UIObjectFactory.resolvePackageItemExtension(pi);
                             break;
                         }
                     case exports.PackageItemType.Atlas:
@@ -8301,7 +8415,7 @@
                 return null;
         }
         internalCreateObject(item, userClass) {
-            var g = Forwards$1.UIObjectFactory.newObject(item, userClass);
+            var g = Decls$1.UIObjectFactory.newObject(item, userClass);
             if (g == null)
                 return null;
             constructingDepth.n++;
@@ -8531,7 +8645,7 @@
             });
         });
     }
-    var Forwards$1 = {};
+    var Decls$1 = {};
 
     class ControllerAction {
         constructor() {
@@ -8875,7 +8989,7 @@
         }
     }
 
-    var s_vec2$3 = new three.Vector2();
+    var s_vec2$2 = new three.Vector2();
     var s_rect$6 = new Rect();
     var s_endPos = new three.Vector2();
     var s_oldChange = new three.Vector2();
@@ -9633,7 +9747,7 @@
             }
             else
                 this._dragged = false;
-            var pt = this._owner.globalToLocal(evt.input.x, evt.input.y, s_vec2$3);
+            var pt = this._owner.globalToLocal(evt.input.x, evt.input.y, s_vec2$2);
             this._containerPos.set(this._container.x, this._container.y);
             this._beginTouchPos.set(pt.x, pt.y);
             this._lastTouchPos.set(pt.x, pt.y);
@@ -10034,7 +10148,7 @@
                     xDir = pos.x - this._containerPos.x;
                     yDir = pos.y - this._containerPos.y;
                 }
-                var pt = this._owner.getSnappingPositionWithDir(-pos.x, -pos.y, xDir, yDir, s_vec2$3);
+                var pt = this._owner.getSnappingPositionWithDir(-pos.x, -pos.y, xDir, yDir, s_vec2$2);
                 if (pos.x < 0 && pos.x > -this._overlapSize.x)
                     pos.x = -pt.x;
                 if (pos.y < 0 && pos.y > -this._overlapSize.y)
@@ -10169,7 +10283,7 @@
                 if (pos > 0) {
                     if (this._header.displayObject.parent == null)
                         this._maskContainer.addChildAt(this._header.displayObject, 0);
-                    var pt = s_vec2$3;
+                    var pt = s_vec2$2;
                     pt.set(this._header.width, this._header.height);
                     pt[this._refreshBarAxis] = pos;
                     this._header.setSize(pt.x, pt.y);
@@ -10184,7 +10298,7 @@
                 if (pos < -max || max == 0 && this._footerLockedSize > 0) {
                     if (this._footer.displayObject.parent == null)
                         this._maskContainer.addChildAt(this._footer.displayObject, 0);
-                    pt = s_vec2$3;
+                    pt = s_vec2$2;
                     pt.set(this._footer.x, this._footer.y);
                     if (max > 0)
                         pt[this._refreshBarAxis] = pos + this._contentSize[this._refreshBarAxis];
@@ -11427,7 +11541,7 @@
                                 value.audioClip = value.sound;
                         }
                         if (value.audioClip)
-                            Forwards.GRootType.inst.playOneShotSound(value.audioClip, value.volume);
+                            Decls.GRoot.inst.playOneShotSound(value.audioClip, value.volume);
                     }
                     break;
                 case ActionType.Shake:
@@ -11806,7 +11920,7 @@
         }
     }
 
-    var s_vec2$4 = new three.Vector2();
+    var s_vec2$3 = new three.Vector2();
     class ShapeHitTest {
         constructor(obj) {
             this.shape = obj;
@@ -11817,9 +11931,9 @@
             if (this.shape.parent) {
                 let p = this.shape.parent["$owner"];
                 if (p) {
-                    p.transformPoint(x, y, this.shape.obj3D, s_vec2$4);
-                    x = s_vec2$4.x;
-                    y = s_vec2$4.y;
+                    p.transformPoint(x, y, this.shape.obj3D, s_vec2$3);
+                    x = s_vec2$3.x;
+                    y = s_vec2$3.y;
                 }
             }
             let ht = this.shape.graphics.meshFactory;
@@ -12658,11 +12772,11 @@
                     else
                         pi = null;
                     if (pi) {
-                        child = Forwards$1.UIObjectFactory.newObject(pi);
+                        child = Decls$1.UIObjectFactory.newObject(pi);
                         child.constructFromResource();
                     }
                     else
-                        child = Forwards$1.UIObjectFactory.newObject(type);
+                        child = Decls$1.UIObjectFactory.newObject(type);
                 }
                 child._underConstruct = true;
                 child.setup_beforeAdd(buffer, curPos);
@@ -13316,7 +13430,7 @@
             this.checkPopups();
         }
     }
-    Forwards.GRootType = GRoot;
+    Decls.GRoot = GRoot;
 
     class TextFormat {
         constructor() {
@@ -19032,7 +19146,7 @@
         }
     }
 
-    var s_vec2$5 = new three.Vector2();
+    var s_vec2$4 = new three.Vector2();
     class GScrollBar extends GComponent {
         constructor() {
             super();
@@ -19109,7 +19223,7 @@
         __gripTouchMove(evt) {
             if (!this.onStage)
                 return;
-            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
+            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$4);
             if (this._vertical) {
                 let curY = pt.y - this._dragOffset.y;
                 let diff = this._bar.height - this._grip.height;
@@ -19147,7 +19261,7 @@
         }
         __barTouchBegin(evt) {
             evt.stopPropagation();
-            var pt = this._grip.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
+            var pt = this._grip.globalToLocal(evt.input.x, evt.input.y, s_vec2$4);
             if (this._vertical) {
                 if (pt.y < 0)
                     this._target.scrollUp(4);
@@ -19163,7 +19277,7 @@
         }
     }
 
-    let s_vec2$6 = new three.Vector2();
+    let s_vec2$5 = new three.Vector2();
     class GSlider extends GComponent {
         constructor() {
             super();
@@ -19343,7 +19457,7 @@
         __gripTouchMove(evt) {
             if (!this.canDrag)
                 return;
-            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$6);
+            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
             var deltaX = pt.x - this._clickPos.x;
             var deltaY = pt.y - this._clickPos.y;
             if (this._reverse) {
@@ -19360,7 +19474,7 @@
         __barTouchBegin(evt) {
             if (!this.changeOnClick)
                 return;
-            var pt = this._gripObject.globalToLocal(evt.input.x, evt.input.y, s_vec2$6);
+            var pt = this._gripObject.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
             var percent = clamp01((this._value - this._min) / (this._max - this._min));
             var delta = 0;
             if (this._barObjectH != null)
@@ -19975,7 +20089,7 @@
         }
     }
     UIObjectFactory.extensions = {};
-    Forwards$1.UIObjectFactory = UIObjectFactory;
+    Decls$1.UIObjectFactory = UIObjectFactory;
 
     class HtmlImage {
         constructor() {
@@ -20686,6 +20800,13 @@
     exports.UIObjectFactory = UIObjectFactory;
     exports.UIPackage = UIPackage;
     exports.Window = Window;
+    exports.clamp = clamp;
+    exports.clamp01 = clamp01;
+    exports.convertFromHtmlColor = convertFromHtmlColor;
+    exports.convertToHtmlColor = convertToHtmlColor;
+    exports.distance = distance;
+    exports.lerp = lerp;
+    exports.repeat = repeat;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

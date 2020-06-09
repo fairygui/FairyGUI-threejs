@@ -326,7 +326,7 @@ export class UIPackage {
                             pi.objectType = ObjectType.Component;
                         pi.rawData = buffer.readBuffer();
 
-                        Forwards.UIObjectFactory.resolvePackageItemExtension(pi);
+                        Decls.UIObjectFactory.resolvePackageItemExtension(pi);
                         break;
                     }
 
@@ -459,7 +459,7 @@ export class UIPackage {
     }
 
     public internalCreateObject(item: PackageItem, userClass?: any): GObject {
-        var g: GObject = Forwards.UIObjectFactory.newObject(item, userClass);
+        var g: GObject = Decls.UIObjectFactory.newObject(item, userClass);
 
         if (g == null)
             return null;
@@ -755,4 +755,4 @@ function loadSound(pi: PackageItem, onProgress?: (event: ProgressEvent) => void)
     });
 }
 
-export var Forwards: { UIObjectFactory?: IObjectFactoryType } = {};
+export var Decls: { UIObjectFactory?: IObjectFactoryType } = {};

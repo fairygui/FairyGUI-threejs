@@ -2,7 +2,7 @@ import { Vector2, Object3D, Audio } from "three";
 import { RelationType, PopupDirection } from "./FieldTypes";
 import { GComponent } from "./GComponent";
 import { GGraph } from "./GGraph";
-import { GObject, Forwards } from "./GObject";
+import { GObject, Decls } from "./GObject";
 import { UIConfig } from "./UIConfig";
 import { UIPackage } from "./UIPackage";
 import { Window } from "./Window"
@@ -405,4 +405,4 @@ export class GRoot extends GComponent {
     }
 }
 
-Forwards.GRootType = GRoot;
+Decls.GRoot = GRoot;

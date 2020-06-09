@@ -1,4 +1,4 @@
-import { ShaderMaterial, ShaderLib, UniformsUtils, Uniform, Matrix4, Vector4, Texture, DoubleSide } from "three";
+import { ShaderMaterial, ShaderLib, UniformsUtils, Uniform, Matrix4, Vector4, Texture, DoubleSide, DepthModes } from "three";
 
 export class NMaterial extends ShaderMaterial {
     public map: Texture;
@@ -152,7 +152,8 @@ export class NMaterial extends ShaderMaterial {
         this.name = "ui-material";
         this.lights = false;
         this.transparent = true;
-        //this.side = DoubleSide;
+        this.depthTest = false;
+        this.side = DoubleSide;
         //this.wireframe = true;
         this["isMeshBasicMaterial"] = true;
     }

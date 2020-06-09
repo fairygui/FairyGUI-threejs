@@ -18,7 +18,7 @@ import { GTextField } from "./GTextField";
 import { GTextInput } from "./GTextInput";
 import { GTree } from "./GTree";
 import { PackageItem } from "./PackageItem";
-import { UIPackage, Forwards } from "./UIPackage";
+import { UIPackage, Decls } from "./UIPackage";
 
 export class UIObjectFactory {
     public static extensions: { [index: string]: new () => GComponent } = {};
@@ -130,4 +130,4 @@ export class UIObjectFactory {
     }
 }
 
-Forwards.UIObjectFactory = UIObjectFactory;
+Decls.UIObjectFactory = UIObjectFactory;

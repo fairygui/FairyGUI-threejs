@@ -13,7 +13,7 @@ import { PackageItem } from "./PackageItem";
 import { ScrollPane } from "./ScrollPane";
 import { Transition } from "./Transition";
 import { TranslationHelper } from "./TranslationHelper";
-import { UIPackage, Forwards } from "./UIPackage";
+import { UIPackage, Decls } from "./UIPackage";
 import { PixelHitTest } from "../core/hittest/PixelHitTest";
 import { ShapeHitTest } from "../core/hittest/ShapeHitTest";
 
@@ -1024,11 +1024,11 @@ export class GComponent extends GObject {
                     pi = null;
 
                 if (pi) {
-                    child = Forwards.UIObjectFactory.newObject(pi);
+                    child = Decls.UIObjectFactory.newObject(pi);
                     child.constructFromResource();
                 }
                 else
-                    child = Forwards.UIObjectFactory.newObject(type);
+                    child = Decls.UIObjectFactory.newObject(type);
             }
 
             child._underConstruct = true;
