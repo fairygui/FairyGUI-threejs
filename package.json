@@ -1,6 +1,6 @@
 {
   "name": "fairygui-three",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A GUI Editor & framework for three.js",
   "main": "dist/fairygui.js",
   "module": "dist/fairygui.module.js",
@@ -9,10 +9,10 @@
     "type": "git",
     "url": "https://github.com/fairygui/FairyGUI-threejs"
   },
-  "directories": {
-    "test":"test",
-    "build":"build"
-  },
+  "files": [
+    "test",
+    "build"
+  ],
   "scripts": {
     "build": "gulp build",
     "test": "webpack --config test/webpack.config.js"
