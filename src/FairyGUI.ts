@@ -8,6 +8,7 @@ export { GTextField } from "./ui/GTextField";
 export { GRichTextField } from "./ui/GRichTextField";
 export { GTextInput } from "./ui/GTextInput";
 export { GLoader } from "./ui/GLoader";
+export { GLoader3D } from "./ui/GLoader3D";
 export { GComponent } from "./ui/GComponent";
 export { GLabel } from "./ui/GLabel";
 export { GButton } from "./ui/GButton";

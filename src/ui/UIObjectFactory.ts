@@ -19,6 +19,7 @@ import { GTextInput } from "./GTextInput";
 import { GTree } from "./GTree";
 import { PackageItem } from "./PackageItem";
 import { UIPackage, Decls } from "./UIPackage";
+import { GLoader3D } from "./GLoader3D";
 
 export class UIObjectFactory {
     public static extensions: { [index: string]: new () => GComponent } = {};
@@ -105,6 +106,9 @@ export class UIObjectFactory {
 
                 case ObjectType.Tree:
                     return new GTree();
+
+                case ObjectType.Loader3D:
+                    return new GLoader3D();
 
                 default:
                     return null;
