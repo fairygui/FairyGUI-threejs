@@ -1,9 +1,5 @@
 # FairyGUI-three
 
-[![NPM Package][npm]][npm-url]
-[![Build Size][build-size]][build-size-url]
-[![NPM Downloads][npm-downloads]][npmtrends-url]
-
 #### A GUI Editor&amp;framework for Three.js ####
 
 Official website: [www.fairygui.com](https://www.fairygui.com)
