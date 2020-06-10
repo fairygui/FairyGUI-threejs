@@ -75,7 +75,8 @@ export enum ObjectType {
     ProgressBar,
     Slider,
     ScrollBar,
-    Tree
+    Tree,
+    Loader3D
 }
 export enum ProgressTitleType {
     Percent,

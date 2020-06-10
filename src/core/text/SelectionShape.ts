@@ -1,11 +1,11 @@
 import { Vector2 } from "three";
 import { Rect } from "../../utils/Rect";
 import { DisplayObject } from "../DisplayObject";
-import { HitTestContext } from "../hittest/IHitTest";
 import { IMeshFactory } from "../mesh/MeshFactory";
 import { VertexBuffer } from "../mesh/VertexBuffer";
 import { NGraphics } from "../NGraphics";
 import { EmptyTexture } from "../NTexture";
+import { HitTestContext } from "../Stage";
 
 var s_rect: Rect = new Rect();
 

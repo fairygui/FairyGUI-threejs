@@ -1,15 +1,16 @@
-import { Object3D, Vector4, Vector3, Scene, Plane, Euler, Vector2, Matrix4, Quaternion, Blending, NormalBlending } from "three";
-import { NGraphics } from "./NGraphics";
-import { Rect } from "../utils/Rect";
-import { HitTestContext, IHitTest } from "./hittest/IHitTest";
+import { Blending, Camera, Euler, Matrix4, NormalBlending, Object3D, Plane, Quaternion, Scene, Vector2, Vector3, Vector4 } from "three";
 import { EventDispatcher } from "../event/EventDispatcher";
-import { UILayer, Stage, broadcastEvent } from "./Stage";
+import { Rect } from "../utils/Rect";
+import { IHitTest } from "./hittest/IHitTest";
+import { NGraphics } from "./NGraphics";
+import { broadcastEvent, HitTestContext, screenToWorld, Stage, UILayer, worldToScreen } from "./Stage";
 
 export class DisplayObject extends EventDispatcher {
     public opaque?: boolean;
     public hitArea?: IHitTest;
     public mask?: DisplayObject;
     public reversedMask?: boolean;
+    public camera?: Camera;
 
     protected _contentRect: Rect;
     protected _alpha: number;
@@ -172,7 +173,7 @@ export class DisplayObject extends EventDispatcher {
         let px = this._pivot.x * this._contentRect.width;
         let py = this._pivot.y * this._contentRect.height;
         s_quaternion.setFromEuler(this._rot);
-        s_mat.compose(s_v3_0, s_quaternion, this._obj3D.scale);
+        s_mat.compose(s_v3_2, s_quaternion, this._obj3D.scale);
         this._pivotOffset.set(px, -py, 0);
         this._pivotOffset.applyMatrix4(s_mat);
     }
@@ -294,6 +295,10 @@ export class DisplayObject extends EventDispatcher {
             this._graphics.material.blending = value;
     }
 
+    public setLayer(layer: number) {
+        this._obj3D.traverse(obj => obj.layers.set(layer));
+    }
+
     public validateMatrix(): void {
         this._obj3D.traverseAncestors(e => {
             let dobj = e["$owner"];
@@ -308,10 +313,28 @@ export class DisplayObject extends EventDispatcher {
         }
     }
 
-    public worldToLocal(pt: Vector3, validate?: boolean): Vector3 {
+    public _getRenderCamera(): Camera {
+        let p = this._obj3D;
+        while (p) {
+            let dobj = p["$owner"];
+            if (dobj && dobj.camera)
+                return dobj.camera;
+
+            p = p.parent;
+        }
+        return Stage.camera;
+    }
+
+    public worldToLocal(pt: Vector3, direction?: Vector3, validate?: boolean): Vector3 {
         if (validate)
             this.validateMatrix();
         pt = this._obj3D.worldToLocal(pt);
+        if (pt.z != 0) {
+            s_dir.copy(direction || s_forward);
+            s_dir.applyQuaternion(this._obj3D.getWorldQuaternion(s_quaternion).inverse()).normalize();
+            let distOnLine = -pt.dot(s_forward) / s_dir.dot(s_forward);
+            pt.add(s_dir.multiplyScalar(distOnLine));
+        }
         pt.y = -pt.y;
         return pt;
     }
@@ -328,13 +351,13 @@ export class DisplayObject extends EventDispatcher {
         if (!Stage.disableMatrixValidation)
             this.validateMatrix();
 
-        s_v3.set((x / Stage.width) * 2 - 1, - (y / Stage.height) * 2 + 1, 0);
-        s_v3.unproject(Stage.camera);
-        this._obj3D.worldToLocal(s_v3);
+        screenToWorld(this._getRenderCamera(), x, y, s_v3, s_dir);
+        this.worldToLocal(s_v3, s_dir);
 
         if (!result)
             result = new Vector2();
-        result.set(s_v3.x, -s_v3.y);
+        result.set(s_v3.x, s_v3.y);
+
         return result;
     }
 
@@ -344,11 +367,11 @@ export class DisplayObject extends EventDispatcher {
 
         s_v3.set(x, -y, 0);
         this._obj3D.localToWorld(s_v3);
-        s_v3.project(Stage.camera);
 
         if (!result)
             result = new Vector2();
-        result.set((s_v3.x + 1) / 2 * Stage.width, (1 - s_v3.y) / 2 * Stage.height);
+        worldToScreen(this._getRenderCamera(), s_v3, result);
+
         return result;
     }
 
@@ -445,6 +468,7 @@ export class DisplayObject extends EventDispatcher {
         else
             this._obj3D.children.splice(index, 0, child._obj3D);
         child._obj3D.parent = this._obj3D;
+        child._obj3D.layers.mask = this._obj3D.layers.mask;
 
         if (this.stage)
             broadcastEvent(child.obj3D, "added_to_stage");
@@ -527,6 +551,12 @@ export class DisplayObject extends EventDispatcher {
         if (this._obj3D.scale.x == 0 || this._obj3D.scale.y == 0)
             return null;
 
+        let backupRay: any;
+        if (this.camera) {
+            backupRay = context.ray;
+            context.camera = this.camera;
+        }
+
         let target: DisplayObject;
         let pt: Vector2 = context.getLocal(this);
         let lx: number = pt.x;
@@ -552,6 +582,9 @@ export class DisplayObject extends EventDispatcher {
         if (!target && this.opaque && (this.hitArea || this._contentRect.contains(lx, ly)))
             target = this;
 
+        if (backupRay)
+            context.ray = backupRay;
+
         return target;
     }
 
@@ -560,12 +593,15 @@ export class DisplayObject extends EventDispatcher {
 }
 
 var s_v3: Vector3 = new Vector3();
-var s_v3_0: Vector3 = new Vector3();
+var s_v3_2: Vector3 = new Vector3();
 var s_v4: Vector4 = new Vector4();
 var s_rect: Rect = new Rect();
 var s_rect2: Rect = new Rect();
 var s_mat: Matrix4 = new Matrix4();
 var s_quaternion: Quaternion = new Quaternion();
+
+var s_dir: Vector3 = new Vector3();
+const s_forward = new Vector3(0, 0, 1);
 
 export function traverseUpdate(p: Object3D, clippingPlanes: any, alpha: number): void {
     let children = p.children;

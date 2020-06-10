@@ -8,6 +8,7 @@ export { GTextField } from "./ui/GTextField";
 export { GRichTextField } from "./ui/GRichTextField";
 export { GTextInput } from "./ui/GTextInput";
 export { GLoader } from "./ui/GLoader";
+export { GLoader3D } from "./ui/GLoader3D";
 export { GComponent } from "./ui/GComponent";
 export { GLabel } from "./ui/GLabel";
 export { GButton } from "./ui/GButton";
@@ -37,7 +38,7 @@ export * from "./ui/FieldTypes"
 
 export { DisplayObject } from "./core/DisplayObject";
 export { Image } from "./core/Image";
-export { MovieClip } from "./core/MovieClip";
+export { MovieClip, Frame } from "./core/MovieClip";
 export { Shape } from "./core/Shape";
 export { Stage } from "./core/Stage";
 export { NTexture } from "./core/NTexture";
@@ -62,3 +63,4 @@ export { ByteBuffer } from "./utils/ByteBuffer";
 export { Rect } from "./utils/Rect";
 export { Color4 } from "./utils/Color";
 export { Timers } from "./utils/Timers";
+export * from "./utils/ToolSet"

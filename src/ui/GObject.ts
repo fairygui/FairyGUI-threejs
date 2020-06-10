@@ -179,7 +179,7 @@ export class GObject {
         if (this._parent)
             r = this.parent;
         else
-            r = <GComponent><any>Forwards.GRootType.inst;
+            r = <GComponent><any>Decls.GRoot.inst;
 
         this.setPosition(Math.floor((r.width - this.width) / 2), Math.floor((r.height - this.height) / 2));
         if (restraint) {
@@ -261,7 +261,7 @@ export class GObject {
     }
 
     public makeFullScreen(): void {
-        this.setSize(Forwards.GRootType.inst.width, Forwards.GRootType.inst.height);
+        this.setSize(Decls.GRoot.inst.width, Decls.GRoot.inst.height);
     }
 
     public get actualWidth(): number {
@@ -397,6 +397,22 @@ export class GObject {
         }
     }
 
+    public get rotationX(): number {
+        return this._displayObject.rotationX;
+    }
+
+    public set rotationX(value: number) {
+        this._displayObject.rotationX = value;
+    }
+
+    public get rotationY(): number {
+        return this._displayObject.rotationY;
+    }
+
+    public set rotationY(value: number) {
+        this._displayObject.rotationY = value;
+    }
+
     public get alpha(): number {
         return this._alpha;
     }
@@ -473,12 +489,12 @@ export class GObject {
     }
 
     private __doShowTooltips(): void {
-        Forwards.GRootType.findFor(this).showTooltips(this._tooltips);
+        Decls.GRoot.findFor(this).showTooltips(this._tooltips);
     }
 
     private __rollOut(): void {
         Timers.remove(this.__doShowTooltips, this);
-        Forwards.GRootType.findFor(this).hideTooltips();
+        Decls.GRoot.findFor(this).hideTooltips();
     }
 
     public get blendMode(): Blending {
@@ -591,6 +607,10 @@ export class GObject {
 
     public get displayObject(): DisplayObject {
         return this._displayObject;
+    }
+
+    public get obj3D(): Object3D {
+        return this._displayObject.obj3D;
     }
 
     public get parent(): GComponent {
@@ -750,13 +770,13 @@ export class GObject {
     }
 
     public localToRoot(ax: number, ay: number, result?: Vector2): Vector2 {
-        let r = Forwards.GRootType.findFor(this);
+        let r = Decls.GRoot.findFor(this);
         let pt = this.localToGlobal(ax, ay, result);
         return r.globalToLocal(pt.x, pt.y, pt);
     }
 
     public rootToLocal(ax: number, ay: number, result?: Vector2): Vector2 {
-        let r = Forwards.GRootType.findFor(this);
+        let r = Decls.GRoot.findFor(this);
         let pt = r.localToGlobal(ax, ay, result);
         return this.globalToLocal(pt.x, pt.y, pt);
     }
@@ -1049,7 +1069,7 @@ export class GObject {
             let yy = evt.input.y - sGlobalDragStart.y + sGlobalRect.y;
 
             if (this._dragBounds) {
-                let rect: Rect = (<GObject><any>Forwards.GRootType.findFor(this)).localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
+                let rect: Rect = (<GObject><any>Decls.GRoot.findFor(this)).localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
                     this._dragBounds.width, this._dragBounds.height, s_rect);
                 if (xx < rect.x)
                     xx = rect.x;
@@ -1123,12 +1143,12 @@ const BlendModeTranslate = {
     4: SubtractiveBlending,//todo Screen
 }
 
-export interface IGRootType {
+export interface IGRoot {
     inst: any;
     findFor(obj: GObject): any;
 }
 
-export var Forwards: { GRootType?: IGRootType } = {};
+export var Decls: { GRoot?: IGRoot } = {};
 
 export var gInstanceCounter: number = 0;
 export var constructingDepth: { n: number } = { n: 0 };

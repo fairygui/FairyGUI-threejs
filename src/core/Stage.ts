@@ -1,7 +1,6 @@
-import { OrthographicCamera, Scene, Vector2, Renderer, AudioListener, Object3D } from "three";
+import { OrthographicCamera, Scene, Vector2, Renderer, AudioListener, Object3D, Camera, PerspectiveCamera, Vector3 } from "three";
 import { Timers } from "../utils/Timers";
 import { DisplayObject, traverseUpdate, traverseHitTest } from "./DisplayObject";
-import { HitTestContext } from "./hittest/IHitTest";
 import { UIContentScaler } from "../ui/UIContentScaler";
 import { EventPool, lastInput } from "../event/Event";
 import { EventDispatcher } from "../event/EventDispatcher";
@@ -27,8 +26,12 @@ export class Stage {
         return _scene;
     }
 
-    public static get camera(): OrthographicCamera {
+    public static get camera(): Camera {
         return _camera;
+    }
+
+    public static set camera(value: Camera) {
+        _camera = value;
     }
 
     public static get width(): number {
@@ -106,28 +109,55 @@ export class Stage {
         this.disableMatrixValidation = false;
     }
 
-    public static hitTest(x: number, y: number, forTouch: boolean): DisplayObject {
-        this.disableMatrixValidation = true;
-
-        _hitTest.screenPt.set(x, y, 0);
-        _hitTest.worldPt.set((x / _width) * 2 - 1, - (y / _height) * 2 + 1, 0);
-        _hitTest.worldPt.unproject(_camera);
-        _hitTest.forTouch = forTouch;
-
-        let ret = traverseHitTest(_scene, _hitTest);
-
-        this.disableMatrixValidation = false;
-
-        return ret;
+    public static hitTest(x: number, y: number, forTouch?: boolean): DisplayObject {
+        return hitTest(x, y, forTouch);
     }
 
     public static setFocus(newFocus: DisplayObject) {
     }
 }
 
+type HitTestRay = { origin: Vector3, direction: Vector3 };
+
+export class HitTestContext {
+    public readonly screenPt: Vector3 = new Vector3();
+    public forTouch: boolean;
+
+    private _camera: Camera;
+    private _ray: HitTestRay;
+
+    public get camera(): Camera {
+        return this._camera;
+    }
+
+    public set camera(value: Camera) {
+        this._camera = value;
+        this._ray = this._camera["$hitTestRay"];
+        if (!this._ray)
+            this._camera["$hitTestRay"] = this._ray = { origin: new Vector3(), direction: new Vector3() };
+
+        screenToWorld(this._camera, this.screenPt.x, this.screenPt.y, this._ray.origin, this._ray.direction);
+    }
+
+    public get ray(): HitTestRay {
+        return this._ray;
+    }
+
+    public set ray(value: HitTestRay) {
+        this._ray = value;
+    }
+
+    public getLocal(obj: DisplayObject): Vector2 {
+        hit_tmp.copy(this._ray.origin);
+        obj.worldToLocal(hit_tmp, this._ray.direction);
+        hit_tmp2.set(hit_tmp.x, hit_tmp.y);
+        return hit_tmp2;
+    }
+}
+
 const clickTestThreshold = 10;
 
-var _camera: OrthographicCamera;
+var _camera: Camera;
 var _scene: Scene;
 var _touches: Array<TouchInfo>;
 var _touchTarget: DisplayObject;
@@ -135,13 +165,15 @@ var _touchPos: Vector2;
 var _touchCount: number;
 var _rollOverChain: Array<DisplayObject> = [];
 var _rollOutChain: Array<DisplayObject> = [];
-var _hitTest: HitTestContext = new HitTestContext();
+var _hitTestContext: HitTestContext = new HitTestContext();
 var _canvas: HTMLCanvasElement;
 var _width: number;
 var _height: number;
 var _offsetX: number;
 var _offsetY: number;
 var _touchscreen: boolean;
+var hit_tmp: Vector3 = new Vector3();
+var hit_tmp2: Vector2 = new Vector2();
 
 function init(renderer: Renderer) {
     _canvas = renderer.domElement;
@@ -175,7 +207,7 @@ function init(renderer: Renderer) {
     window.addEventListener('resize', onWindowResize, false);
 
     _offsetX = _offsetY = 0;
-    var element: HTMLElement = renderer.domElement;
+    var element: HTMLElement = _canvas;
     var style = getComputedStyle(element, null);
     _offsetY += parseInt(style.getPropertyValue("padding-top"), 10);
     _offsetX += parseInt(style.getPropertyValue("padding-left"), 10);
@@ -195,18 +227,25 @@ function onWindowResize(evt?: UIEvent) {
     _width = _canvas.clientWidth;
     _height = _canvas.clientHeight;
     let aspectRatio = _width / _height;
-    let cameraSize = _height / 2;
 
-    _camera.left = -cameraSize * aspectRatio;
-    _camera.right = cameraSize * aspectRatio;
-    _camera.top = cameraSize;
-    _camera.bottom = -cameraSize;
+    if (_camera instanceof OrthographicCamera) {
+        let cameraSize = _height / 2;
 
-    _camera.position.x = cameraSize * aspectRatio;
-    _camera.position.y = -cameraSize;
-    _camera.position.z = 0;
+        _camera.left = -cameraSize * aspectRatio;
+        _camera.right = cameraSize * aspectRatio;
+        _camera.top = cameraSize;
+        _camera.bottom = -cameraSize;
 
-    _camera.updateProjectionMatrix();
+        _camera.position.x = cameraSize * aspectRatio;
+        _camera.position.y = -cameraSize;
+        _camera.position.z = 0;
+
+        _camera.updateProjectionMatrix();
+    }
+    else if (_camera instanceof PerspectiveCamera) {
+        _camera.aspect = window.innerWidth / window.innerHeight;
+        _camera.updateProjectionMatrix();
+    }
 
     if (evt)
         UIContentScaler._refresh();
@@ -226,7 +265,7 @@ function handleMouse(ev: MouseEvent, type: number) {
 
     touch.shiftKey = ev.shiftKey;
     touch.ctrlKey = ev.ctrlKey;
-    touch.target = _touchTarget = Stage.hitTest(_touchPos.x, _touchPos.y, true);
+    touch.target = _touchTarget = hitTest(_touchPos.x, _touchPos.y, true);
 
     if (_touchPos.x != touch.x || _touchPos.y != touch.y) {
         touch.x = _touchPos.x;
@@ -278,7 +317,7 @@ function handleWheel(ev: WheelEvent): void {
     if (_touchscreen) {
         touch.shiftKey = ev.shiftKey;
         touch.ctrlKey = ev.ctrlKey;
-        touch.target = _touchTarget = Stage.hitTest(_touchPos.x, _touchPos.y, true);
+        touch.target = _touchTarget = hitTest(_touchPos.x, _touchPos.y, true);
     }
 
     if (_touchTarget != null) {
@@ -330,7 +369,7 @@ function handleTouch(ev: TouchEvent, type: number) {
 
         touch.shiftKey = ev.shiftKey;
         touch.ctrlKey = ev.ctrlKey;
-        touch.target = _touchTarget = Stage.hitTest(_touchPos.x, _touchPos.y, true);
+        touch.target = _touchTarget = hitTest(_touchPos.x, _touchPos.y, true);
 
         if (touch.x != _touchPos.x || touch.y != _touchPos.y) {
             touch.x = _touchPos.x;
@@ -426,6 +465,41 @@ function handleRollOver(touch: TouchInfo) {
         }
         _rollOverChain.length = 0;
     };
+}
+
+function hitTest(x: number, y: number, forTouch?: boolean) {
+    if (!_hitTestContext) _hitTestContext = new HitTestContext();
+    Stage.disableMatrixValidation = true;
+
+    _hitTestContext.screenPt.set(x, y, 0);
+    _hitTestContext.camera = _camera;
+    _hitTestContext.forTouch = forTouch != null ? forTouch : true;
+
+    let ret = traverseHitTest(_scene, _hitTestContext);
+
+    Stage.disableMatrixValidation = false;
+
+    return ret;
+}
+
+var s_v3: Vector3 = new Vector3();
+export function screenToWorld(camera: Camera, x: number, y: number, outPt: Vector3, outDir: Vector3) {
+    outPt.set((x / _width) * 2 - 1, - (y / _height) * 2 + 1, 0);
+    outPt.unproject(camera);
+
+    if (camera["isPerspectiveCamera"]) {
+        s_v3.setFromMatrixPosition(camera.matrixWorld);
+        outDir.copy(outPt).sub(s_v3).normalize();
+        outDir.multiplyScalar(-1);
+    }
+    else
+        outDir.set(0, 0, 1);
+}
+
+export function worldToScreen(camera: Camera, input: Vector3, output: Vector2) {
+    s_v3.copy(input);
+    s_v3.project(camera);
+    output.set((s_v3.x + 1) / 2 * _width, (1 - s_v3.y) / 2 * _height);
 }
 
 function setLastInput(touch: TouchInfo) {
