@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import * as fgui from "../../build/FairyGUI";
+require("../../dist/fairygui")
 
 export class Threescene {
     private scene: THREE.Scene

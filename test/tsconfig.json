@@ -1,13 +1,19 @@
 {
   "compilerOptions": {
-      "declaration": false,
-      "target": "es6",
-      "module": "es6",
-      "moduleResolution":"Node"
+    "declaration": false,
+    "target": "es6",
+    "module": "es6",
+    "moduleResolution": "Node",
+    "typeRoots": [
+      "./node_modules/@types",
+      "../dist",
+    ],
+    "types": [
+      "node",
+    ]
   },
-  
   "include": [
-      "./src/**/*"
+    "./src/**/*","../dist/*"
   ],
   "exclude": [
     "node_modules"
