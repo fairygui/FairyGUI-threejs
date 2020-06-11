@@ -256,6 +256,8 @@
         obj._touchCapture = false;
     }, obj => {
         obj.data = null;
+        obj._initiator = null;
+        obj._sender = null;
     });
 
     class EventDispatcher {
@@ -566,8 +568,8 @@
 
     var UILayer = 1;
     class Stage {
-        static init(renderer) {
-            init(renderer);
+        static init(renderer, parameters) {
+            init(renderer, parameters);
         }
         static set scene(value) {
             _scene = value;
@@ -580,6 +582,9 @@
         }
         static get devicePixelRatio() {
             return _devicePixelRatio;
+        }
+        static get touchScreen() {
+            return _touchscreen;
         }
         static get camera() {
             return _camera;
@@ -595,6 +600,9 @@
         }
         static get touchPos() {
             return _touchPos;
+        }
+        static get canvasTransform() {
+            return _canvasTransform;
         }
         static get touchTarget() {
             return _touchTarget;
@@ -657,6 +665,8 @@
         }
     }
     Stage.eventDispatcher = new EventDispatcher();
+    var hit_tmp = new three.Vector3();
+    var hit_tmp2 = new three.Vector2();
     class HitTestContext {
         constructor() {
             this.screenPt = new three.Vector3();
@@ -685,6 +695,7 @@
         }
     }
     const clickTestThreshold = 10;
+    var _renderer;
     var _camera;
     var _scene;
     var _touches;
@@ -697,13 +708,18 @@
     var _canvas;
     var _width;
     var _height;
-    var _offsetX;
-    var _offsetY;
+    var _canvasTransform = new three.Matrix4();
     var _touchscreen;
     var _devicePixelRatio = 1;
-    var hit_tmp = new three.Vector3();
-    var hit_tmp2 = new three.Vector2();
-    function init(renderer) {
+    var _screenMode = "none";
+    function init(renderer, parameters) {
+        _renderer = renderer;
+        if (parameters) {
+            if (parameters.defaultLayer != null)
+                UILayer = parameters.defaultLayer;
+            if (parameters.screenMode)
+                _screenMode = parameters.screenMode;
+        }
         _canvas = renderer.domElement;
         _camera = new three.OrthographicCamera(-1, 1, 1, -1, 0, 1000);
         _camera.layers.set(UILayer);
@@ -730,23 +746,56 @@
         }
         document.addEventListener('wheel', ev => handleWheel(ev), { passive: false });
         window.addEventListener('resize', onWindowResize, false);
-        _offsetX = _offsetY = 0;
+        onWindowResize();
+    }
+    function updateCanvasMatrix() {
+        let offsetX = 0;
+        let offsetY = 0;
         var element = _canvas;
         var style = getComputedStyle(element, null);
-        _offsetY += parseInt(style.getPropertyValue("padding-top"), 10);
-        _offsetX += parseInt(style.getPropertyValue("padding-left"), 10);
+        offsetY += parseInt(style.getPropertyValue("padding-top"), 10);
+        offsetX += parseInt(style.getPropertyValue("padding-left"), 10);
         do {
-            _offsetX += element.offsetLeft;
-            _offsetY += element.offsetTop;
+            offsetX += element.offsetLeft;
+            offsetY += element.offsetTop;
             style = getComputedStyle(element, null);
-            _offsetX += parseInt(style.getPropertyValue("border-left-width"), 10);
-            _offsetY += parseInt(style.getPropertyValue("border-top-width"), 10);
+            offsetX += parseInt(style.getPropertyValue("border-left-width"), 10);
+            offsetY += parseInt(style.getPropertyValue("border-top-width"), 10);
         } while (element = element.offsetParent);
-        onWindowResize();
+        _canvasTransform.identity();
+        if (_screenMode == "horizontal") {
+            if (_height > _width) {
+                let tmp = _width;
+                _width = _height;
+                _height = tmp;
+                _renderer.setSize(_width, _height);
+                _canvas.style.transformOrigin = "0 0";
+                _canvas.style.transform = "translate(" + _height + "px,0) rotate(90deg)";
+                _canvasTransform.multiply(new three.Matrix4().makeTranslation(0, _height, 0))
+                    .multiply(new three.Matrix4().makeRotationZ(-Math.PI / 2));
+            }
+        }
+        else if (_screenMode == "vertical") {
+            if (_width > _height) {
+                let tmp = _width;
+                _width = _height;
+                _height = tmp;
+                _renderer.setSize(_width, _height);
+                _canvas.style.transformOrigin = "0 0";
+                _canvas.style.transform = "translate(0," + _width + "px) rotate(-90deg)";
+                _canvasTransform.multiply(new three.Matrix4().makeTranslation(_width, 0, 0))
+                    .multiply(new three.Matrix4().makeRotationZ(Math.PI / 2));
+            }
+        }
+        else
+            _renderer.setSize(_width, _height);
+        _canvasTransform.multiply(new three.Matrix4().makeTranslation(-offsetX, -offsetY, 0));
+        console.log(_canvasTransform);
     }
     function onWindowResize(evt) {
         _width = _canvas.clientWidth;
         _height = _canvas.clientHeight;
+        updateCanvasMatrix();
         let aspectRatio = _width / _height;
         if (_camera instanceof three.OrthographicCamera) {
             let cameraSize = _height / 2;
@@ -760,11 +809,9 @@
             _camera.updateProjectionMatrix();
         }
         else if (_camera instanceof three.PerspectiveCamera) {
-            _camera.aspect = window.innerWidth / window.innerHeight;
+            _camera.aspect = aspectRatio;
             _camera.updateProjectionMatrix();
         }
-        if (activeTextInput)
-            setFocus(null);
         if (evt)
             Stage.eventDispatcher.dispatchEvent("size_changed");
     }
@@ -776,7 +823,9 @@
     function handleMouse(ev, type) {
         if (!activeTextInput || !activeTextInput.stage)
             ev.preventDefault();
-        _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
+        s_v3.set(ev.pageX, ev.pageY, 0);
+        s_v3.applyMatrix4(_canvasTransform);
+        _touchPos.set(s_v3.x, s_v3.y);
         let touch = _touches[0];
         touch.shiftKey = ev.shiftKey;
         touch.ctrlKey = ev.ctrlKey;
@@ -818,7 +867,9 @@
     function handleWheel(ev) {
         if (!activeTextInput || !activeTextInput.stage)
             ev.preventDefault();
-        _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
+        s_v3.set(ev.pageX, ev.pageY, 0);
+        s_v3.applyMatrix4(_canvasTransform);
+        _touchPos.set(s_v3.x, s_v3.y);
         let touch = _touches[0];
         if (_touchscreen) {
             touch.shiftKey = ev.shiftKey;
@@ -847,7 +898,9 @@
         let touches = ev.changedTouches;
         for (let i = 0; i < touches.length; ++i) {
             let uTouch = touches[i];
-            _touchPos.set(uTouch.pageX - _offsetX, uTouch.pageY - _offsetY);
+            s_v3.set(uTouch.pageX, uTouch.pageY, 0);
+            s_v3.applyMatrix4(_canvasTransform);
+            _touchPos.set(s_v3.x, s_v3.y);
             let touch;
             let free;
             for (let j = 0; j < 5; j++) {
@@ -1058,6 +1111,8 @@
                 }
                 bubbleEvent(null, "touch_move", null, this.touchMonitors);
             }
+            else
+                Stage.eventDispatcher.dispatchEvent("touch_move");
         }
         end() {
             this.began = false;
@@ -7999,6 +8054,8 @@
             if (!this._glyph.vertRect)
                 return 0;
             if (this._format.outline > 0) {
+                if (!this._glyph.outlines)
+                    return 0;
                 let outlineGlyph = this._glyph.outlines[this._format.outline];
                 s_rect$5.copy(outlineGlyph.vertRect);
                 s_rect$5.x += x;
@@ -15249,6 +15306,7 @@
             e.style.background = 'transparent';
             e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
             Stage.domElement.parentNode.appendChild(e);
+            e.onblur = () => { Stage.setFocus(null); };
             this.setFormat();
         }
         setFormat() {
@@ -15274,22 +15332,35 @@
                 this.applyFormat();
             if (!this._element)
                 this.createElement();
-            this.localToGlobal(0, 0, s_v2);
-            this.localToGlobal(1, 1, s_v2_2);
-            s_v2_2.sub(s_v2);
             let e = this._element;
-            e.style.width = this.width.toFixed(2) + "px";
-            e.style.height = this.height.toFixed(2) + "px";
             e.style.display = "inline-block";
-            e.style.left = (s_v2.x + 2) + "px";
-            e.style.top = s_v2.y + "px";
-            e.style.transform = "scale(" + s_v2_2.x.toFixed(3) + "," + s_v2_2.y.toFixed(3) + ")";
+            this.locateInputElement();
             e.value = this._text2;
             //e.maxLength = this.maxLength;
             e.focus();
             this._editing = true;
             this._graphics.material.visible = false;
             this.dispatchEvent("focus_in");
+        }
+        locateInputElement() {
+            this.localToGlobal(0, 0, s_pos);
+            this.localToGlobal(1, 1, s_scale$1);
+            s_scale$1.sub(s_pos);
+            s_mat$1.getInverse(Stage.canvasTransform);
+            s_tmp.set(s_pos.x, s_pos.y, 0);
+            s_tmp.applyMatrix4(s_mat$1);
+            s_pos.set(s_tmp.x, s_tmp.y);
+            let rot = 0;
+            if (s_mat$1.elements[1] > 0)
+                rot = 90;
+            else if (s_mat$1.elements[1] < 0)
+                rot = -90;
+            let style = this._element.style;
+            style.width = this.width.toFixed(2) + "px";
+            style.height = this.height.toFixed(2) + "px";
+            style.left = (s_pos.x + 2) + "px";
+            style.top = s_pos.y + "px";
+            style.transform = style.webkitTransform = "scale(" + s_scale$1.x.toFixed(3) + "," + s_scale$1.y.toFixed(3) + ") rotate(" + rot + "deg)";
         }
         __focusOut() {
             if (!this._editing)
@@ -15308,8 +15379,10 @@
                 Stage.setFocus(null);
         }
     }
-    var s_v2 = new three.Vector2();
-    var s_v2_2 = new three.Vector2();
+    var s_pos = new three.Vector2();
+    var s_scale$1 = new three.Vector2();
+    var s_mat$1 = new three.Matrix4();
+    var s_tmp = new three.Vector3();
 
     class GTextField extends GObject {
         constructor() {

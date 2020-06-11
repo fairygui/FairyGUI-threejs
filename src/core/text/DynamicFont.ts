@@ -295,6 +295,9 @@ export class DynamicFont {
             return 0;
 
         if (this._format.outline > 0) {
+            if (!this._glyph.outlines)
+                return 0;
+
             let outlineGlyph = this._glyph.outlines[this._format.outline];
 
             s_rect.copy(outlineGlyph.vertRect);

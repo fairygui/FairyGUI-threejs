@@ -1,22 +1,26 @@
-import { OrthographicCamera, Scene, Vector2, Renderer, AudioListener, Object3D, Camera, PerspectiveCamera, Vector3, WebGLRenderer } from "three";
+import { OrthographicCamera, Scene, Vector2, Renderer, AudioListener, Object3D, Camera, PerspectiveCamera, Vector3, WebGLRenderer, Matrix4, Matrix } from "three";
 import { Timers } from "../utils/Timers";
 import { DisplayObject, traverseUpdate, traverseHitTest } from "./DisplayObject";
 import { EventPool, lastInput } from "../event/Event";
 import { EventDispatcher } from "../event/EventDispatcher";
 
+type ScreenMode = "none" | "horizontal" | "vertical";
+
 export var UILayer: number = 1;
 
+export interface StageInitParameters {
+    screenMode?: ScreenMode;
+    defaultLayer?: number;
+}
+
 export class Stage {
-    public static touchScreen: boolean;
     public static fontRebuilt?: boolean;
-    public static audioListener: AudioListener;
-
+    public static audioListener?: AudioListener;
     public static disableMatrixValidation: boolean;
-
     public static readonly eventDispatcher = new EventDispatcher();
 
-    public static init(renderer: Renderer) {
-        init(renderer);
+    public static init(renderer: Renderer, parameters?: StageInitParameters) {
+        init(renderer, parameters);
     }
 
     public static set scene(value: Scene) {
@@ -33,6 +37,10 @@ export class Stage {
 
     public static get devicePixelRatio(): number {
         return _devicePixelRatio;
+    }
+
+    public static get touchScreen(): boolean {
+        return _touchscreen;
     }
 
     public static get camera(): Camera {
@@ -53,6 +61,10 @@ export class Stage {
 
     public static get touchPos(): Vector2 {
         return _touchPos;
+    }
+
+    public static get canvasTransform(): Matrix4 {
+        return _canvasTransform;
     }
 
     public static get touchTarget(): DisplayObject {
@@ -128,6 +140,8 @@ export class Stage {
 }
 
 type HitTestRay = { origin: Vector3, direction: Vector3 };
+var hit_tmp: Vector3 = new Vector3();
+var hit_tmp2: Vector2 = new Vector2();
 
 export class HitTestContext {
     public readonly screenPt: Vector3 = new Vector3();
@@ -167,6 +181,7 @@ export class HitTestContext {
 
 const clickTestThreshold = 10;
 
+var _renderer: Renderer;
 var _camera: Camera;
 var _scene: Scene;
 var _touches: Array<TouchInfo>;
@@ -179,14 +194,20 @@ var _hitTestContext: HitTestContext = new HitTestContext();
 var _canvas: HTMLCanvasElement;
 var _width: number;
 var _height: number;
-var _offsetX: number;
-var _offsetY: number;
+var _canvasTransform: Matrix4 = new Matrix4();
 var _touchscreen: boolean;
 var _devicePixelRatio: number = 1;
-var hit_tmp: Vector3 = new Vector3();
-var hit_tmp2: Vector2 = new Vector2();
+var _screenMode: ScreenMode = "none";
 
-function init(renderer: Renderer) {
+function init(renderer: Renderer, parameters?: StageInitParameters) {
+    _renderer = renderer;
+    if (parameters) {
+        if (parameters.defaultLayer != null)
+            UILayer = parameters.defaultLayer;
+        if (parameters.screenMode)
+            _screenMode = parameters.screenMode;
+    }
+
     _canvas = renderer.domElement;
     _camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1000);
     _camera.layers.set(UILayer);
@@ -219,26 +240,63 @@ function init(renderer: Renderer) {
 
     window.addEventListener('resize', onWindowResize, false);
 
-    _offsetX = _offsetY = 0;
+    onWindowResize();
+}
+
+function updateCanvasMatrix() {
+    let offsetX: number = 0;
+    let offsetY: number = 0;
     var element: HTMLElement = _canvas;
     var style = getComputedStyle(element, null);
-    _offsetY += parseInt(style.getPropertyValue("padding-top"), 10);
-    _offsetX += parseInt(style.getPropertyValue("padding-left"), 10);
+    offsetY += parseInt(style.getPropertyValue("padding-top"), 10);
+    offsetX += parseInt(style.getPropertyValue("padding-left"), 10);
     do {
-        _offsetX += element.offsetLeft;
-        _offsetY += element.offsetTop;
+        offsetX += element.offsetLeft;
+        offsetY += element.offsetTop;
         style = getComputedStyle(element, null);
 
-        _offsetX += parseInt(style.getPropertyValue("border-left-width"), 10);
-        _offsetY += parseInt(style.getPropertyValue("border-top-width"), 10);
+        offsetX += parseInt(style.getPropertyValue("border-left-width"), 10);
+        offsetY += parseInt(style.getPropertyValue("border-top-width"), 10);
     } while (element = <HTMLElement>element.offsetParent);
 
-    onWindowResize();
+    _canvasTransform.identity();
+
+    if (_screenMode == "horizontal") {
+        if (_height > _width) {
+            let tmp = _width;
+            _width = _height;
+            _height = tmp;
+            _renderer.setSize(_width, _height);
+            _canvas.style.transformOrigin = "0 0";
+            _canvas.style.transform = "translate(" + _height + "px,0) rotate(90deg)";
+            _canvasTransform.multiply(new Matrix4().makeTranslation(0, _height, 0))
+                .multiply(new Matrix4().makeRotationZ(-Math.PI / 2));
+        }
+    }
+    else if (_screenMode == "vertical") {
+        if (_width > _height) {
+            let tmp = _width;
+            _width = _height;
+            _height = tmp;
+            _renderer.setSize(_width, _height);
+            _canvas.style.transformOrigin = "0 0";
+            _canvas.style.transform = "translate(0," + _width + "px) rotate(-90deg)";
+            _canvasTransform.multiply(new Matrix4().makeTranslation(_width, 0, 0))
+                .multiply(new Matrix4().makeRotationZ(Math.PI / 2));
+        }
+    }
+    else
+        _renderer.setSize(_width, _height);
+
+    _canvasTransform.multiply(new Matrix4().makeTranslation(-offsetX, -offsetY, 0));
+    console.log(_canvasTransform);
 }
 
 function onWindowResize(evt?: UIEvent) {
     _width = _canvas.clientWidth;
     _height = _canvas.clientHeight;
+    updateCanvasMatrix();
+
     let aspectRatio = _width / _height;
 
     if (_camera instanceof OrthographicCamera) {
@@ -256,12 +314,9 @@ function onWindowResize(evt?: UIEvent) {
         _camera.updateProjectionMatrix();
     }
     else if (_camera instanceof PerspectiveCamera) {
-        _camera.aspect = window.innerWidth / window.innerHeight;
+        _camera.aspect = aspectRatio;
         _camera.updateProjectionMatrix();
     }
-
-    if (activeTextInput)
-        setFocus(null);
 
     if (evt)
         Stage.eventDispatcher.dispatchEvent("size_changed");
@@ -277,7 +332,10 @@ function handleMouse(ev: MouseEvent, type: number) {
     if (!activeTextInput || !activeTextInput.stage)
         ev.preventDefault();
 
-    _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
+    s_v3.set(ev.pageX, ev.pageY, 0);
+    s_v3.applyMatrix4(_canvasTransform);
+    _touchPos.set(s_v3.x, s_v3.y);
+
     let touch: TouchInfo = _touches[0];
 
     touch.shiftKey = ev.shiftKey;
@@ -329,7 +387,10 @@ function handleWheel(ev: WheelEvent): void {
     if (!activeTextInput || !activeTextInput.stage)
         ev.preventDefault();
 
-    _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
+    s_v3.set(ev.pageX, ev.pageY, 0);
+    s_v3.applyMatrix4(_canvasTransform);
+    _touchPos.set(s_v3.x, s_v3.y);
+
     let touch = _touches[0];
 
     if (_touchscreen) {
@@ -365,7 +426,9 @@ function handleTouch(ev: TouchEvent, type: number) {
     for (let i: number = 0; i < touches.length; ++i) {
         let uTouch: Touch = touches[i];
 
-        _touchPos.set(uTouch.pageX - _offsetX, uTouch.pageY - _offsetY);
+        s_v3.set(uTouch.pageX, uTouch.pageY, 0);
+        s_v3.applyMatrix4(_canvasTransform);
+        _touchPos.set(s_v3.x, s_v3.y);
 
         let touch: TouchInfo;
         let free: TouchInfo;
@@ -639,6 +702,8 @@ class TouchInfo {
 
             bubbleEvent(null, "touch_move", null, this.touchMonitors);
         }
+        else
+            Stage.eventDispatcher.dispatchEvent("touch_move");
     }
 
     public end() {
