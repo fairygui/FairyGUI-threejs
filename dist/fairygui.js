@@ -9005,6 +9005,13 @@ window.THREE = require("three");
         }
       }
     }, {
+      key: "MakeFullScreen",
+      value: function MakeFullScreen() {
+        if (fgui.GRoot.inst) {
+          this.setSize(fgui.GRoot.inst.width, fgui.GRoot.inst.height);
+        }
+      }
+    }, {
       key: "setSize",
       value: function setSize(wv, hv, ignorePivot) {
         if (this._rawWidth != wv || this._rawHeight != hv) {

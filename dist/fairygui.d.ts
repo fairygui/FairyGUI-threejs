@@ -1499,6 +1499,7 @@ declare namespace fgui {
         set width(value: number);
         get height(): number;
         set height(value: number);
+        MakeFullScreen(): void;
         setSize(wv: number, hv: number, ignorePivot?: boolean): void;
         protected setSizeDirectly(wv: number, hv: number): void;
         makeFullScreen(): void;
