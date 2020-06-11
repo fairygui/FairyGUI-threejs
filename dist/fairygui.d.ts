@@ -876,19 +876,12 @@ declare namespace fgui {
 declare namespace fgui {
     class InteractiveEvents {
         static Down: string;
-        static Cancel: string;
         static Up: string;
         static Click: string;
-        static UpOutside: string;
         static Move: string;
-        static Over: string;
-        static Out: string;
-        static OnStay: string;
-        static OnStayOut: string;
         static RightDown: string;
         static RightUp: string;
         static RightClick: string;
-        static RightUpOutside: string;
     }
 }
 declare namespace fgui {

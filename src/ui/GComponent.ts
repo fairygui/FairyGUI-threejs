@@ -46,7 +46,7 @@ namespace fgui {
                 trans.dispose();
             }
 
-            this._transitions.length =0;
+            // this._transitions.length =0;
 
             cnt = this._controllers.length;
             for (i = 0; i < cnt; ++i) {
@@ -54,7 +54,7 @@ namespace fgui {
                 cc.dispose();
             }
 
-            this._controllers.length =0;
+            // this._controllers.length =0;
 
             if (this.scrollPane)
                 this.scrollPane.dispose();
@@ -65,7 +65,7 @@ namespace fgui {
                 obj.parent = null;//avoid removeFromParent call
                 obj.dispose();
             }
-            this._children.length =0;
+            // this._children.length =0;
             this._boundsChanged = false;
             super.dispose();
         }

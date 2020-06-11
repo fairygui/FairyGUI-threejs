@@ -6147,28 +6147,17 @@ window.THREE = require("three");
 })(fgui || (fgui = {}));
 
 (function (fgui) {
-  var win = window;
-  var hasPointer = !!(win.PointerEvent || win.MSPointerEvent);
-  var hasTouch = ('ontouchstart' in window);
-
   var InteractiveEvents = function InteractiveEvents() {
     _classCallCheck(this, InteractiveEvents);
   };
 
-  InteractiveEvents.Down = hasPointer ? "pointerdown" : hasTouch ? "touchstart" : "mousedown";
-  InteractiveEvents.Cancel = hasPointer ? "pointercancel" : hasTouch ? "touchcancel" : "mousecancel";
-  InteractiveEvents.Up = hasPointer ? "pointerup" : hasTouch ? "touchend" : "mouseup";
-  InteractiveEvents.Click = hasPointer ? "pointertap" : hasTouch ? "tap" : "click";
-  InteractiveEvents.UpOutside = hasPointer ? "pointerupoutside" : hasTouch ? "touchendoutside" : "mouseupoutside";
-  InteractiveEvents.Move = hasPointer ? "pointermove" : hasTouch ? "touchmove" : "mousemove";
-  InteractiveEvents.Over = hasPointer ? "pointerover" : hasTouch ? undefined : "mouseover";
-  InteractiveEvents.Out = hasPointer ? "pointerout" : hasTouch ? undefined : "mouseout";
-  InteractiveEvents.OnStay = hasPointer ? "pointerstay" : hasTouch ? undefined : "mousestay";
-  InteractiveEvents.OnStayOut = hasPointer ? "pointerstayout" : hasTouch ? undefined : "mousestayout";
+  InteractiveEvents.Down = "touch_begin";
+  InteractiveEvents.Up = "touch_end";
+  InteractiveEvents.Click = "click";
+  InteractiveEvents.Move = "touch_move";
   InteractiveEvents.RightDown = "rightdown";
   InteractiveEvents.RightUp = "rightup";
-  InteractiveEvents.RightClick = "rightclick";
-  InteractiveEvents.RightUpOutside = "rightupoutside";
+  InteractiveEvents.RightClick = "right_click";
   fgui.InteractiveEvents = InteractiveEvents;
 })(fgui || (fgui = {}));
 
@@ -10379,7 +10368,6 @@ window.THREE = require("three");
           trans.dispose();
         }
 
-        this._transitions.length = 0;
         cnt = this._controllers.length;
 
         for (i = 0; i < cnt; ++i) {
@@ -10387,7 +10375,6 @@ window.THREE = require("three");
           cc.dispose();
         }
 
-        this._controllers.length = 0;
         if (this.scrollPane) this.scrollPane.dispose();
         cnt = this._children.length;
 
@@ -10397,7 +10384,6 @@ window.THREE = require("three");
           obj.dispose();
         }
 
-        this._children.length = 0;
         this._boundsChanged = false;
 
         _get(_getPrototypeOf(GComponent.prototype), "dispose", this).call(this);
