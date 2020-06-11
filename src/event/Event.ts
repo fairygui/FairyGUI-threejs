@@ -92,4 +92,6 @@ export var EventPool: Pool<Event> = new Pool<Event>(Event,
     },
     obj => {
         obj.data = null;
+        obj._initiator = null;
+        obj._sender = null;
     });

@@ -3,9 +3,8 @@ import { Color4 } from "../../utils/Color";
 import { Rect } from "../../utils/Rect";
 import { convertToHtmlColor } from "../../utils/ToolSet";
 import { Stage } from "../Stage";
-import { Vector2 } from "three";
+import { Vector2, Matrix4, Vector3 } from "three";
 import { defaultParser } from "../../utils/UBBParser";
-import { UIContentScaler } from "../../ui/UIContentScaler";
 
 type InputElement = HTMLTextAreaElement | HTMLInputElement;
 
@@ -128,6 +127,8 @@ export class InputTextField extends TextField {
         e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
         Stage.domElement.parentNode.appendChild(e);
 
+        e.onblur = () => { Stage.setFocus(null); }
+
         this.setFormat();
     }
 
@@ -160,18 +161,9 @@ export class InputTextField extends TextField {
         if (!this._element)
             this.createElement();
 
-        this.localToGlobal(0, 0, s_v2);
-        this.localToGlobal(1, 1, s_v2_2);
-        s_v2_2.sub(s_v2);
-
         let e = this._element;
-
-        e.style.width = this.width.toFixed(2) + "px";
-        e.style.height = this.height.toFixed(2) + "px";
         e.style.display = "inline-block";
-        e.style.left = (s_v2.x + 2) + "px";
-        e.style.top = s_v2.y + "px";
-        e.style.transform = "scale(" + s_v2_2.x.toFixed(3) + "," + s_v2_2.y.toFixed(3) + ")";
+        this.locateInputElement();
 
         e.value = this._text2;
         //e.maxLength = this.maxLength;
@@ -180,6 +172,30 @@ export class InputTextField extends TextField {
         this._editing = true;
         this._graphics.material.visible = false;
         this.dispatchEvent("focus_in");
+    }
+
+    private locateInputElement() {
+        this.localToGlobal(0, 0, s_pos);
+        this.localToGlobal(1, 1, s_scale);
+        s_scale.sub(s_pos);
+
+        s_mat.getInverse(Stage.canvasTransform);
+        s_tmp.set(s_pos.x, s_pos.y, 0);
+        s_tmp.applyMatrix4(s_mat);
+        s_pos.set(s_tmp.x, s_tmp.y);
+
+        let rot: number = 0;
+        if (s_mat.elements[1] > 0)
+            rot = 90;
+        else if (s_mat.elements[1] < 0)
+            rot = -90;
+
+        let style = this._element.style;
+        style.width = this.width.toFixed(2) + "px";
+        style.height = this.height.toFixed(2) + "px";
+        style.left = (s_pos.x + 2) + "px";
+        style.top = s_pos.y + "px";
+        style.transform = style.webkitTransform = "scale(" + s_scale.x.toFixed(3) + "," + s_scale.y.toFixed(3) + ") rotate(" + rot + "deg)";
     }
 
     private __focusOut() {
@@ -203,5 +219,7 @@ export class InputTextField extends TextField {
     }
 }
 
-var s_v2: Vector2 = new Vector2();
-var s_v2_2: Vector2 = new Vector2();
+var s_pos: Vector2 = new Vector2();
+var s_scale: Vector2 = new Vector2();
+var s_mat: Matrix4 = new Matrix4();
+var s_tmp: Vector3 = new Vector3();
