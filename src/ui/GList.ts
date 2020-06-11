@@ -56,6 +56,7 @@ namespace fgui {
 
         public dispose(): void {
             this._pool.clear();
+
             super.dispose();
         }
 
@@ -229,7 +230,7 @@ namespace fgui {
                 button.selected = false;
                 button.changeStateOnClick = false;
             }
-            child.on("click", this.__clickItem, this);
+            child.on(InteractiveEvents.Click, this.__clickItem, this);
 
             return child;
         }
@@ -250,7 +251,7 @@ namespace fgui {
             if (dispose)
                 child.dispose();
             else
-                child.off("click", this.__clickItem, this);
+                child.off(InteractiveEvents.Click, this.__clickItem, this);
 
             return child;
         }
@@ -640,7 +641,7 @@ namespace fgui {
         }
 
         protected dispatchItemEvent(item: GObject, evt: Event): void {
-            this.dispatchEvent("click_item", item);
+            this.dispatchEvent(ListEvent.ItemClick, item);
         }
 
         private setSelectionOnEvent(item: GObject, evt: Event): void {
@@ -1003,7 +1004,7 @@ namespace fgui {
                         this._scrollPane._loop = 1;
                 }
 
-                this.on("scroll", this.__scrolled, this);
+                this.on(ScrollEvent.SCROLL, this.__scrolled, this);
                 this.setVirtualListChangedFlag(true);
             }
         }

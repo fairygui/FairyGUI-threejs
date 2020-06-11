@@ -97,6 +97,6 @@ namespace fgui
         else
             _scaleLevel = 0;
     
-        broadcastEvent(Stage.scene, "content_scale_factor_changed");
+        broadcastEvent(Stage.scene, StageEvent.ContentScaleChanged);
     }
 }

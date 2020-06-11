@@ -119,7 +119,7 @@ namespace fgui {
                     this._parent.setBoundsChangedFlag();
                     if (this._group)
                         this._group.setBoundsChangedFlag(true);
-                    this.dispatchEvent("pos_changed");
+                    this.dispatchEvent(DisplayObjectEvent.XY_CHANGED);
                 }
 
                 if (GObject.draggingObject == this && !s_dragging)
@@ -228,7 +228,7 @@ namespace fgui {
                         this._group.setBoundsChangedFlag();
                 }
 
-                this.dispatchEvent("size_changed");
+                this.dispatchEvent(DisplayObjectEvent.SIZE_CHANGED);
             }
         }
 
@@ -456,14 +456,14 @@ namespace fgui {
 
         public set tooltips(value: string) {
             if (this._tooltips) {
-                this.off("roll_over", this.__rollOver, this);
-                this.off("roll_out", this.__rollOut, this);
+                this.off(RollEvent.RollOver, this.__rollOver, this);
+                this.off(RollEvent.RollOut, this.__rollOut, this);
             }
 
             this._tooltips = value;
             if (this._tooltips) {
-                this.on("roll_over", this.__rollOver, this);
-                this.on("roll_out", this.__rollOut, this);
+                this.on(RollEvent.RollOver, this.__rollOver, this);
+                this.on(RollEvent.RollOut, this.__rollOut, this);
             }
         }
 
@@ -678,15 +678,15 @@ namespace fgui {
         }
 
         public onClick(listener: Function, target?: any): void {
-            this.on("click", listener, target);
+            this.on(InteractiveEvents.Click, listener, target);
         }
 
         public offClick(listener: Function, target?: any): void {
-            this.off("click", listener, target);
+            this.off(InteractiveEvents.Click, listener, target);
         }
 
         public hasClickListener(): boolean {
-            return this.hasListener("click");
+            return this.hasListener(InteractiveEvents.Click);
         }
 
         public get draggable(): boolean {
@@ -986,14 +986,14 @@ namespace fgui {
 
         private initDrag(): void {
             if (this._draggable) {
-                this.on("touch_begin", this.__touchBegin, this);
-                this.on("touch_move", this.__touchMove, this);
-                this.on("touch_end", this.__touchEnd, this);
+                this.on(InteractiveEvents.Down, this.__touchBegin, this);
+                this.on(InteractiveEvents.Move, this.__touchMove, this);
+                this.on(InteractiveEvents.Up, this.__touchEnd, this);
             }
             else {
-                this.off("touch_begin", this.__touchBegin, this);
-                this.off("touch_move", this.__touchMove, this);
-                this.off("touch_end", this.__touchEnd, this);
+                this.off(InteractiveEvents.Down, this.__touchBegin, this);
+                this.off(InteractiveEvents.Move, this.__touchMove, this);
+                this.off(InteractiveEvents.Up, this.__touchEnd, this);
             }
         }
 
@@ -1002,11 +1002,11 @@ namespace fgui {
                 let tmp = GObject.draggingObject;
                 GObject.draggingObject.stopDrag();
                 GObject.draggingObject = null;
-                tmp.dispatchEvent("drag_end");
+                tmp.dispatchEvent(DragEvent.END);
             }
 
-            this.on("touch_move", this.__touchMove, this);
-            this.on("touch_end", this.__touchEnd, this);
+            this.on(InteractiveEvents.Move, this.__touchMove, this);
+            this.on(InteractiveEvents.Up, this.__touchEnd, this);
 
             Stage.getTouchPos(touchId, sGlobalDragStart);
             this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
@@ -1043,7 +1043,7 @@ namespace fgui {
                     return;
 
                 this._dragTesting = false;
-                if (!this.dispatchEvent("drag_start", evt.input.touchId))
+                if (!this.dispatchEvent(DragEvent.START, evt.input.touchId))
                     this.dragBegin(evt.input.touchId);
             }
 
@@ -1077,14 +1077,14 @@ namespace fgui {
                 this.setPosition(Math.round(pt.x), Math.round(pt.y));
                 s_dragging = false;
 
-                this.dispatchEvent("drag_move");
+                this.dispatchEvent(DragEvent.MOVING);
             }
         }
 
         private __touchEnd(): void {
             if (GObject.draggingObject == this) {
                 GObject.draggingObject = null;
-                this.dispatchEvent("drag_end");
+                this.dispatchEvent(DragEvent.END);
             }
         }
 

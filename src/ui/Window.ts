@@ -29,9 +29,9 @@ namespace fgui
             this._uiSources = [];
             this.bringToFontOnClick = UIConfig.bringWindowToFrontOnClick;
     
-            this.on("added_to_stage", this.__onShown, this);
-            this.on("removed_from_stage", this.__onHidden, this);
-            this.on("touch_begin", this.__winTouchBegin, this);
+            this.on(StageEvent.AddtoStage, this.__onShown, this);
+            this.on(StageEvent.RemoveFromStage, this.__onHidden, this);
+            this.on(InteractiveEvents.Down, this.__winTouchBegin, this);
         }
     
         public addUISource(source: IUISource): void {
@@ -85,7 +85,7 @@ namespace fgui
             if (this._dragArea != value) {
                 if (this._dragArea) {
                     this._dragArea.draggable = false;
-                    this._dragArea.off("drag_start", this.__dragStart, this);
+                    this._dragArea.off(DragEvent.START, this.__dragStart, this);
                 }
     
                 this._dragArea = value;
@@ -93,7 +93,7 @@ namespace fgui
                     if (this._dragArea instanceof GGraph)
                         (<GGraph>this._dragArea).shape.drawRect(0, new Color4(0, 0), new Color4(0, 0));
                     this._dragArea.draggable = true;
-                    this._dragArea.on("drag_start", this.__dragStart, this);
+                    this._dragArea.on(DragEvent.START, this.__dragStart, this);
                 }
             }
         }

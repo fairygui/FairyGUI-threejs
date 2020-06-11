@@ -80,16 +80,16 @@ namespace fgui {
             this._arrowButton1 = this.getChild("arrow1");
             this._arrowButton2 = this.getChild("arrow2");
 
-            this._grip.on("touch_begin", this.__gripTouchBegin, this);
-            this._grip.on("touch_move", this.__gripTouchMove, this);
-            this._grip.on("touch_end", this.__gripTouchEnd, this);
+            this._grip.on(InteractiveEvents.Down, this.__gripTouchBegin, this);
+            this._grip.on(InteractiveEvents.Move, this.__gripTouchMove, this);
+            this._grip.on(InteractiveEvents.Up, this.__gripTouchEnd, this);
 
-            this.on("touch_begin", this.__barTouchBegin, this);
+            this.on(InteractiveEvents.Down, this.__barTouchBegin, this);
 
             if (this._arrowButton1)
-                this._arrowButton1.on("touch_begin", this.__arrowButton1Click, this);
+                this._arrowButton1.on(InteractiveEvents.Down, this.__arrowButton1Click, this);
             if (this._arrowButton2)
-                this._arrowButton2.on("touch_begin", this.__arrowButton2Click, this);
+                this._arrowButton2.on(InteractiveEvents.Down, this.__arrowButton2Click, this);
         }
 
         private __gripTouchBegin(evt: Event): void {

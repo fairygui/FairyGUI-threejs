@@ -1391,9 +1391,9 @@ window.THREE = require("three");
 
       _this4.setPlaySettings();
 
-      _this4.on("added_to_stage", _this4.__addToStage, _assertThisInitialized(_this4));
+      _this4.on(fgui.StageEvent.AddtoStage, _this4.__addToStage, _assertThisInitialized(_this4));
 
-      _this4.on("removed_from_stage", _this4.__removeFromStage, _assertThisInitialized(_this4));
+      _this4.on(fgui.StageEvent.RemoveFromStage, _this4.__removeFromStage, _assertThisInitialized(_this4));
 
       return _this4;
     }
@@ -1530,7 +1530,7 @@ window.THREE = require("three");
           this._frame = this._endAt;
           this._frameElapsed = 0;
           this._status = 3;
-          this.dispatchEvent("play_end");
+          this.dispatchEvent(fgui.PlayEvent.PlayEnd);
         } else {
           if (this._frame == this._end) {
             if (this._times > 0) {
@@ -2533,7 +2533,7 @@ window.THREE = require("three");
         touch.button = ev.button;
         Stage.setFocus(touch.target);
         setLastInput(touch);
-        if (touch.target) bubbleEvent(touch.target.obj3D, "touch_begin");
+        if (touch.target) bubbleEvent(touch.target.obj3D, fgui.InteractiveEvents.Down);
       }
     } else if (type == 1) {
       if (touch.began) {
@@ -2543,7 +2543,7 @@ window.THREE = require("three");
 
         if (clickTarget) {
           setLastInput(touch);
-          if (ev.button == 1 || ev.button == 2) bubbleEvent(clickTarget.obj3D, "right_click");else bubbleEvent(clickTarget.obj3D, "click");
+          if (ev.button == 1 || ev.button == 2) bubbleEvent(clickTarget.obj3D, fgui.InteractiveEvents.RightClick);else bubbleEvent(clickTarget.obj3D, fgui.InteractiveEvents.Click);
         }
 
         touch.button = -1;
@@ -2567,7 +2567,7 @@ window.THREE = require("three");
     if (_touchTarget != null) {
       touch.mouseWheelDelta = ev.deltaY;
       setLastInput(touch);
-      bubbleEvent(_touchTarget.obj3D, "mouse_wheel");
+      bubbleEvent(_touchTarget.obj3D, fgui.DisplayObjectEvent.MOUSE_WHEEL);
       touch.mouseWheelDelta = 0;
     }
   }
@@ -2627,7 +2627,7 @@ window.THREE = require("three");
           touch.button = 0;
           Stage.setFocus(touch.target);
           setLastInput(touch);
-          if (touch.target) bubbleEvent(touch.target.obj3D, "touch_begin");
+          if (touch.target) bubbleEvent(touch.target.obj3D, fgui.InteractiveEvents.Down);
         }
       } else if (type == 1 || type == 3) {
         if (touch.began) {
@@ -2639,7 +2639,7 @@ window.THREE = require("three");
 
             if (clickTarget != null) {
               setLastInput(touch);
-              bubbleEvent(clickTarget.obj3D, "click");
+              bubbleEvent(clickTarget.obj3D, fgui.InteractiveEvents.Click);
             }
           }
 
@@ -2693,7 +2693,7 @@ window.THREE = require("three");
     if (cnt > 0) {
       for (var _i2 = 0; _i2 < cnt; _i2++) {
         var element = _rollOutChain[_i2];
-        if (element.stage) element.dispatchEvent("roll_out", null);
+        if (element.stage) element.dispatchEvent(fgui.RollEvent.RollOut, null);
       }
 
       _rollOutChain.length = 0;
@@ -2704,7 +2704,7 @@ window.THREE = require("three");
     if (cnt > 0) {
       for (var _i3 = 0; _i3 < cnt; _i3++) {
         var _element = _rollOverChain[_i3];
-        if (_element.stage) _element.dispatchEvent("roll_over", null);
+        if (_element.stage) _element.dispatchEvent(fgui.RollEvent.RollOver, null);
       }
 
       _rollOverChain.length = 0;
@@ -2825,7 +2825,7 @@ window.THREE = require("three");
             if (e instanceof fgui.DisplayObject && !e.stage) this.touchMonitors[i] = null;
           }
 
-          bubbleEvent(null, "touch_move", null, this.touchMonitors);
+          bubbleEvent(null, fgui.InteractiveEvents.Move, null, this.touchMonitors);
         }
       }
     }, {
@@ -2861,9 +2861,9 @@ window.THREE = require("three");
             if (e instanceof fgui.DisplayObject && !e.stage) this.touchMonitors[i] = null;
           }
 
-          bubbleEvent(bubbleFrom, "touch_end", null, this.touchMonitors);
+          bubbleEvent(bubbleFrom, fgui.InteractiveEvents.Up, null, this.touchMonitors);
           this.touchMonitors.length = 0;
-        } else bubbleEvent(bubbleFrom, "touch_end");
+        } else bubbleEvent(bubbleFrom, fgui.InteractiveEvents.Up);
       }
     }, {
       key: "clickTest",
@@ -2942,7 +2942,7 @@ window.THREE = require("three");
 
         if (ev._touchCapture) {
           ev._touchCapture = false;
-          if (type == "touch_begin") Stage.addTouchMonitor(ev.input.touchId, obj);
+          if (type == fgui.InteractiveEvents.Down) Stage.addTouchMonitor(ev.input.touchId, obj);
         }
       }
     }
@@ -2957,7 +2957,7 @@ window.THREE = require("three");
 
           if (ev._touchCapture) {
             ev._touchCapture = false;
-            if (type == "touch_begin") Stage.addTouchMonitor(ev.input.touchId, _obj);
+            if (type == fgui.InteractiveEvents.Down) Stage.addTouchMonitor(ev.input.touchId, _obj);
           }
 
           if (ev._stopsPropagation) break;
@@ -5904,6 +5904,138 @@ window.THREE = require("three");
 })(fgui || (fgui = {}));
 
 (function (fgui) {
+  var DisplayObjectEvent;
+
+  (function (DisplayObjectEvent) {
+    DisplayObjectEvent["XY_CHANGED"] = "pos_changed";
+    DisplayObjectEvent["SIZE_CHANGED"] = "size_changed";
+    DisplayObjectEvent["MOUSE_WHEEL"] = "mouse_wheel";
+  })(DisplayObjectEvent = fgui.DisplayObjectEvent || (fgui.DisplayObjectEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var DragEvent;
+
+  (function (DragEvent) {
+    DragEvent["START"] = "drag_start";
+    DragEvent["END"] = "drag_end";
+    DragEvent["MOVING"] = "drag_move";
+    DragEvent["DROP"] = "drop";
+    DragEvent["CANCEL"] = "drag_cancel";
+  })(DragEvent = fgui.DragEvent || (fgui.DragEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var FocusEvent;
+
+  (function (FocusEvent) {
+    FocusEvent["CHANGED"] = "focus_changed";
+  })(FocusEvent = fgui.FocusEvent || (fgui.FocusEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var GearEvent;
+
+  (function (GearEvent) {
+    GearEvent["GEAR_STOP"] = "gear_stop";
+  })(GearEvent = fgui.GearEvent || (fgui.GearEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var win = window;
+  var hasPointer = !!(win.PointerEvent || win.MSPointerEvent);
+  var hasTouch = ('ontouchstart' in window);
+
+  var InteractiveEvents = function InteractiveEvents() {
+    _classCallCheck(this, InteractiveEvents);
+  };
+
+  InteractiveEvents.Down = hasPointer ? "pointerdown" : hasTouch ? "touchstart" : "mousedown";
+  InteractiveEvents.Cancel = hasPointer ? "pointercancel" : hasTouch ? "touchcancel" : "mousecancel";
+  InteractiveEvents.Up = hasPointer ? "pointerup" : hasTouch ? "touchend" : "mouseup";
+  InteractiveEvents.Click = hasPointer ? "pointertap" : hasTouch ? "tap" : "click";
+  InteractiveEvents.UpOutside = hasPointer ? "pointerupoutside" : hasTouch ? "touchendoutside" : "mouseupoutside";
+  InteractiveEvents.Move = hasPointer ? "pointermove" : hasTouch ? "touchmove" : "mousemove";
+  InteractiveEvents.Over = hasPointer ? "pointerover" : hasTouch ? undefined : "mouseover";
+  InteractiveEvents.Out = hasPointer ? "pointerout" : hasTouch ? undefined : "mouseout";
+  InteractiveEvents.OnStay = hasPointer ? "pointerstay" : hasTouch ? undefined : "mousestay";
+  InteractiveEvents.OnStayOut = hasPointer ? "pointerstayout" : hasTouch ? undefined : "mousestayout";
+  InteractiveEvents.RightDown = "rightdown";
+  InteractiveEvents.RightUp = "rightup";
+  InteractiveEvents.RightClick = "rightclick";
+  InteractiveEvents.RightUpOutside = "rightupoutside";
+  fgui.InteractiveEvents = InteractiveEvents;
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var LinkEvent;
+
+  (function (LinkEvent) {
+    LinkEvent["ClickLink"] = "click_link";
+  })(LinkEvent = fgui.LinkEvent || (fgui.LinkEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var ListEvent;
+
+  (function (ListEvent) {
+    ListEvent["ItemClick"] = "click_item";
+  })(ListEvent = fgui.ListEvent || (fgui.ListEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var PlayEvent;
+
+  (function (PlayEvent) {
+    PlayEvent["PlayEnd"] = "play_end";
+  })(PlayEvent = fgui.PlayEvent || (fgui.PlayEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var RollEvent;
+
+  (function (RollEvent) {
+    RollEvent["RollOut"] = "roll_out";
+    RollEvent["RollOver"] = "roll_over";
+  })(RollEvent = fgui.RollEvent || (fgui.RollEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var ScrollEvent;
+
+  (function (ScrollEvent) {
+    ScrollEvent["SCROLL"] = "scroll";
+    ScrollEvent["SCROLL_END"] = "scroll_end";
+    ScrollEvent["PULL_DOWN_RELEASE"] = "pull_down_release";
+    ScrollEvent["PULL_UP_RELEASE"] = "pull_up_release";
+  })(ScrollEvent = fgui.ScrollEvent || (fgui.ScrollEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var StageEvent;
+
+  (function (StageEvent) {
+    StageEvent["AddtoStage"] = "added_to_stage";
+    StageEvent["RemoveFromStage"] = "removed_from_stage";
+    StageEvent["ContentScaleChanged"] = "content_scale_factor_changed";
+  })(StageEvent = fgui.StageEvent || (fgui.StageEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var StateChangeEvent;
+
+  (function (StateChangeEvent) {
+    StateChangeEvent["CHANGED"] = "status_changed";
+  })(StateChangeEvent = fgui.StateChangeEvent || (fgui.StateChangeEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
+  var TextEvent;
+
+  (function (TextEvent) {})(TextEvent = fgui.TextEvent || (fgui.TextEvent = {}));
+})(fgui || (fgui = {}));
+
+(function (fgui) {
   var GearBase = /*#__PURE__*/function () {
     function GearBase(owner) {
       _classCallCheck(this, GearBase);
@@ -8524,7 +8656,7 @@ window.THREE = require("three");
           this._previousIndex = this._selectedIndex;
           this._selectedIndex = value;
           this.parent.applyController(this);
-          this.dispatchEvent("status_changed");
+          this.dispatchEvent(fgui.StateChangeEvent.CHANGED);
           this.changing = false;
         }
       }
@@ -8611,7 +8743,7 @@ window.THREE = require("three");
       a.align = "center";
       a.verticalAlign = "middle";
       a.sortingOrder = 1000000;
-      a.on("drag_end", this.__dragEnd, this);
+      a.on(fgui.DragEvent.END, this.__dragEnd, this);
     }
 
     _createClass(DragDropManager, [{
@@ -8647,8 +8779,8 @@ window.THREE = require("three");
         var obj = fgui.GObject.cast(fgui.Stage.touchTarget);
 
         while (obj) {
-          if (obj.hasListener("drop")) {
-            obj.dispatchEvent("drop", sourceData);
+          if (obj.hasListener(fgui.DragEvent.DROP)) {
+            obj.dispatchEvent(fgui.DragEvent.DROP, sourceData);
             return;
           }
 
@@ -8986,7 +9118,7 @@ window.THREE = require("three");
             this._parent.setBoundsChangedFlag();
 
             if (this._group) this._group.setBoundsChangedFlag(true);
-            this.dispatchEvent("pos_changed");
+            this.dispatchEvent(fgui.DisplayObjectEvent.XY_CHANGED);
           }
 
           if (GObject.draggingObject == this && !s_dragging) this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
@@ -9044,7 +9176,7 @@ window.THREE = require("three");
             if (this._group) this._group.setBoundsChangedFlag();
           }
 
-          this.dispatchEvent("size_changed");
+          this.dispatchEvent(fgui.DisplayObjectEvent.SIZE_CHANGED);
         }
       }
     }, {
@@ -9232,17 +9364,17 @@ window.THREE = require("three");
     }, {
       key: "onClick",
       value: function onClick(listener, target) {
-        this.on("click", listener, target);
+        this.on(fgui.InteractiveEvents.Click, listener, target);
       }
     }, {
       key: "offClick",
       value: function offClick(listener, target) {
-        this.off("click", listener, target);
+        this.off(fgui.InteractiveEvents.Click, listener, target);
       }
     }, {
       key: "hasClickListener",
       value: function hasClickListener() {
-        return this.hasListener("click");
+        return this.hasListener(fgui.InteractiveEvents.Click);
       }
     }, {
       key: "startDrag",
@@ -9514,13 +9646,13 @@ window.THREE = require("three");
       key: "initDrag",
       value: function initDrag() {
         if (this._draggable) {
-          this.on("touch_begin", this.__touchBegin, this);
-          this.on("touch_move", this.__touchMove, this);
-          this.on("touch_end", this.__touchEnd, this);
+          this.on(fgui.InteractiveEvents.Down, this.__touchBegin, this);
+          this.on(fgui.InteractiveEvents.Move, this.__touchMove, this);
+          this.on(fgui.InteractiveEvents.Up, this.__touchEnd, this);
         } else {
-          this.off("touch_begin", this.__touchBegin, this);
-          this.off("touch_move", this.__touchMove, this);
-          this.off("touch_end", this.__touchEnd, this);
+          this.off(fgui.InteractiveEvents.Down, this.__touchBegin, this);
+          this.off(fgui.InteractiveEvents.Move, this.__touchMove, this);
+          this.off(fgui.InteractiveEvents.Up, this.__touchEnd, this);
         }
       }
     }, {
@@ -9530,11 +9662,11 @@ window.THREE = require("three");
           var tmp = GObject.draggingObject;
           GObject.draggingObject.stopDrag();
           GObject.draggingObject = null;
-          tmp.dispatchEvent("drag_end");
+          tmp.dispatchEvent(fgui.DragEvent.END);
         }
 
-        this.on("touch_move", this.__touchMove, this);
-        this.on("touch_end", this.__touchEnd, this);
+        this.on(fgui.InteractiveEvents.Move, this.__touchMove, this);
+        this.on(fgui.InteractiveEvents.Up, this.__touchEnd, this);
         fgui.Stage.getTouchPos(touchId, sGlobalDragStart);
         this.localToGlobalRect(0, 0, this.width, this.height, sGlobalRect);
         this._dragTesting = false;
@@ -9567,7 +9699,7 @@ window.THREE = require("three");
           if (fgui.Stage.touchScreen) sensitivity = fgui.UIConfig.touchDragSensitivity;else sensitivity = fgui.UIConfig.clickDragSensitivity;
           if (Math.abs(this._dragTouchStartPos.x - evt.input.x) < sensitivity && Math.abs(this._dragTouchStartPos.y - evt.input.y) < sensitivity) return;
           this._dragTesting = false;
-          if (!this.dispatchEvent("drag_start", evt.input.touchId)) this.dragBegin(evt.input.touchId);
+          if (!this.dispatchEvent(fgui.DragEvent.START, evt.input.touchId)) this.dragBegin(evt.input.touchId);
         }
 
         if (GObject.draggingObject == this) {
@@ -9590,7 +9722,7 @@ window.THREE = require("three");
           s_dragging = true;
           this.setPosition(Math.round(pt.x), Math.round(pt.y));
           s_dragging = false;
-          this.dispatchEvent("drag_move");
+          this.dispatchEvent(fgui.DragEvent.MOVING);
         }
       }
     }, {
@@ -9598,7 +9730,7 @@ window.THREE = require("three");
       value: function __touchEnd() {
         if (GObject.draggingObject == this) {
           GObject.draggingObject = null;
-          this.dispatchEvent("drag_end");
+          this.dispatchEvent(fgui.DragEvent.END);
         }
       }
     }, {
@@ -9854,15 +9986,15 @@ window.THREE = require("three");
       },
       set: function set(value) {
         if (this._tooltips) {
-          this.off("roll_over", this.__rollOver, this);
-          this.off("roll_out", this.__rollOut, this);
+          this.off(fgui.RollEvent.RollOver, this.__rollOver, this);
+          this.off(fgui.RollEvent.RollOut, this.__rollOut, this);
         }
 
         this._tooltips = value;
 
         if (this._tooltips) {
-          this.on("roll_over", this.__rollOver, this);
-          this.on("roll_out", this.__rollOut, this);
+          this.on(fgui.RollEvent.RollOver, this.__rollOver, this);
+          this.on(fgui.RollEvent.RollOut, this.__rollOut, this);
         }
       }
     }, {
@@ -10054,6 +10186,7 @@ window.THREE = require("three");
           trans.dispose();
         }
 
+        this._transitions.length = 0;
         cnt = this._controllers.length;
 
         for (i = 0; i < cnt; ++i) {
@@ -10061,6 +10194,7 @@ window.THREE = require("three");
           cc.dispose();
         }
 
+        this._controllers.length = 0;
         if (this.scrollPane) this.scrollPane.dispose();
         cnt = this._children.length;
 
@@ -10070,6 +10204,7 @@ window.THREE = require("three");
           obj.dispose();
         }
 
+        this._children.length = 0;
         this._boundsChanged = false;
 
         _get(_getPrototypeOf(GComponent.prototype), "dispose", this).call(this);
@@ -10967,12 +11102,12 @@ window.THREE = require("three");
         }
 
         if (this._transitions.length > 0) {
-          this.on("added_to_stage", function () {
+          this.on(fgui.StageEvent.AddtoStage, function () {
             _this18._transitions.forEach(function (e) {
               return e.onOwnerAddedToStage();
             });
           });
-          this.on("removed_from_stage", function () {
+          this.on(fgui.StageEvent.RemoveFromStage, function () {
             _this18._transitions.forEach(function (e) {
               return e.onOwnerRemovedFromStage();
             });
@@ -11162,7 +11297,7 @@ window.THREE = require("three");
           fgui.Timers.add(200, 1, this.setState, this, function () {
             _this20.setState("up");
 
-            if (clickCall) _this20.dispatchEvent("click");
+            if (clickCall) _this20.dispatchEvent(fgui.InteractiveEvents.Click);
           });
         }
       }
@@ -11300,12 +11435,12 @@ window.THREE = require("three");
         if (this._titleObject) this._title = this._titleObject.text;
         if (this._iconObject) this._icon = this._iconObject.icon;
         if (this._mode == fgui.ButtonMode.Common) this.setState("up");
-        this.on("roll_over", this.__rollover, this);
-        this.on("roll_out", this.__rollout, this);
-        this.on("touch_begin", this.__btnTouchBegin, this);
-        this.on("touch_end", this.__btnTouchEnd, this);
-        this.on("click", this.__click, this);
-        this.on("removed_from_stage", this.__removeFromStage, this);
+        this.on(fgui.RollEvent.RollOver, this.__rollover, this);
+        this.on(fgui.RollEvent.RollOut, this.__rollout, this);
+        this.on(fgui.InteractiveEvents.Down, this.__btnTouchBegin, this);
+        this.on(fgui.InteractiveEvents.Up, this.__btnTouchEnd, this);
+        this.on(fgui.InteractiveEvents.Click, this.__click, this);
+        this.on(fgui.StageEvent.RemoveFromStage, this.__removeFromStage, this);
       }
     }, {
       key: "setup_afterAdd",
@@ -11399,12 +11534,12 @@ window.THREE = require("three");
         if (this._mode == fgui.ButtonMode.Check) {
           if (this._changeStateOnClick) {
             this.selected = !this._selected;
-            this.dispatchEvent("status_changed");
+            this.dispatchEvent(fgui.StateChangeEvent.CHANGED);
           }
         } else if (this._mode == fgui.ButtonMode.Radio) {
           if (this._changeStateOnClick && !this._selected) {
             this.selected = true;
-            this.dispatchEvent("status_changed");
+            this.dispatchEvent(fgui.StateChangeEvent.CHANGED);
           }
         } else {
           if (this._relatedController) this._relatedController.selectedPageId = this._relatedPageId;
@@ -11726,7 +11861,7 @@ window.THREE = require("three");
             return;
           }
 
-          this._list.on("click_item", this.__clickItem, this);
+          this._list.on(fgui.ListEvent.ItemClick, this.__clickItem, this);
 
           this._list.addRelation(this.dropdown, fgui.RelationType.Width);
 
@@ -11734,13 +11869,13 @@ window.THREE = require("three");
 
           this.dropdown.addRelation(this._list, fgui.RelationType.Height);
           this.dropdown.removeRelation(this._list, fgui.RelationType.Width);
-          this.dropdown.on("removed_from_stage", this.__popupWinClosed, this);
+          this.dropdown.on(fgui.StageEvent.RemoveFromStage, this.__popupWinClosed, this);
         }
 
-        this.on("roll_over", this.__rollover, this);
-        this.on("roll_out", this.__rollout, this);
-        this.on("touch_begin", this.__mousedown, this);
-        this.on("touch_end", this.__mouseup, this);
+        this.on(fgui.RollEvent.RollOver, this.__rollover, this);
+        this.on(fgui.RollEvent.RollOut, this.__rollout, this);
+        this.on(fgui.InteractiveEvents.Down, this.__mousedown, this);
+        this.on(fgui.InteractiveEvents.Up, this.__mouseup, this);
       }
     }, {
       key: "setup_afterAdd",
@@ -11829,7 +11964,7 @@ window.THREE = require("three");
         if (this.dropdown.parent instanceof fgui.GRoot) this.dropdown.parent.hidePopup();
         this._selectedIndex = -1;
         this.selectedIndex = this._list.getChildIndex(evt.data);
-        this.dispatchEvent("status_changed");
+        this.dispatchEvent(fgui.StateChangeEvent.CHANGED);
       }
     }, {
       key: "__rollover",
@@ -12890,7 +13025,7 @@ window.THREE = require("three");
           button.changeStateOnClick = false;
         }
 
-        child.on("click", this.__clickItem, this);
+        child.on(fgui.InteractiveEvents.Click, this.__clickItem, this);
         return child;
       }
     }, {
@@ -12909,7 +13044,7 @@ window.THREE = require("three");
       value: function removeChildAt(index, dispose) {
         var child = _get(_getPrototypeOf(GList.prototype), "removeChildAt", this).call(this, index);
 
-        if (dispose) child.dispose();else child.off("click", this.__clickItem, this);
+        if (dispose) child.dispose();else child.off(fgui.InteractiveEvents.Click, this.__clickItem, this);
         return child;
       }
     }, {
@@ -13284,7 +13419,7 @@ window.THREE = require("three");
     }, {
       key: "dispatchItemEvent",
       value: function dispatchItemEvent(item, evt) {
-        this.dispatchEvent("click_item", item);
+        this.dispatchEvent(fgui.ListEvent.ItemClick, item);
       }
     }, {
       key: "setSelectionOnEvent",
@@ -13594,7 +13729,7 @@ window.THREE = require("three");
             if (this._loop) this._scrollPane._loop = 1;
           }
 
-          this.on("scroll", this.__scrolled, this);
+          this.on(fgui.ScrollEvent.SCROLL, this.__scrolled, this);
           this.setVirtualListChangedFlag(true);
         }
       }
@@ -16260,7 +16395,7 @@ window.THREE = require("three");
       _this28._popupStack = [];
       _this28._justClosedPopups = [];
 
-      _this28.on("touch_begin", _this28.__stageTouchBegin, _assertThisInitialized(_this28), true);
+      _this28.on(fgui.InteractiveEvents.Down, _this28.__stageTouchBegin, _assertThisInitialized(_this28), true);
 
       _this28._modalLayer = new fgui.GGraph();
 
@@ -16272,7 +16407,7 @@ window.THREE = require("three");
 
       _this28.applyScaleFactor();
 
-      _this28.on("content_scale_factor_changed", _this28.applyScaleFactor, _assertThisInitialized(_this28));
+      _this28.on(fgui.StageEvent.ContentScaleChanged, _this28.applyScaleFactor, _assertThisInitialized(_this28));
 
       return _this28;
     }
@@ -16733,15 +16868,15 @@ window.THREE = require("three");
         this._arrowButton1 = this.getChild("arrow1");
         this._arrowButton2 = this.getChild("arrow2");
 
-        this._grip.on("touch_begin", this.__gripTouchBegin, this);
+        this._grip.on(fgui.InteractiveEvents.Down, this.__gripTouchBegin, this);
 
-        this._grip.on("touch_move", this.__gripTouchMove, this);
+        this._grip.on(fgui.InteractiveEvents.Move, this.__gripTouchMove, this);
 
-        this._grip.on("touch_end", this.__gripTouchEnd, this);
+        this._grip.on(fgui.InteractiveEvents.Up, this.__gripTouchEnd, this);
 
-        this.on("touch_begin", this.__barTouchBegin, this);
-        if (this._arrowButton1) this._arrowButton1.on("touch_begin", this.__arrowButton1Click, this);
-        if (this._arrowButton2) this._arrowButton2.on("touch_begin", this.__arrowButton2Click, this);
+        this.on(fgui.InteractiveEvents.Down, this.__barTouchBegin, this);
+        if (this._arrowButton1) this._arrowButton1.on(fgui.InteractiveEvents.Down, this.__arrowButton1Click, this);
+        if (this._arrowButton2) this._arrowButton2.on(fgui.InteractiveEvents.Down, this.__arrowButton2Click, this);
       }
     }, {
       key: "__gripTouchBegin",
@@ -16878,7 +17013,7 @@ window.THREE = require("three");
 
           if (newValue != this._value) {
             this._value = newValue;
-            if (this.dispatchEvent("status_changed")) return;
+            if (this.dispatchEvent(fgui.StateChangeEvent.CHANGED)) return;
           }
         }
 
@@ -16950,12 +17085,12 @@ window.THREE = require("three");
         }
 
         if (this._gripObject) {
-          this._gripObject.on("touch_begin", this.__gripTouchBegin, this);
+          this._gripObject.on(fgui.InteractiveEvents.Down, this.__gripTouchBegin, this);
 
-          this._gripObject.on("touch_move", this.__gripTouchMove, this);
+          this._gripObject.on(fgui.InteractiveEvents.Move, this.__gripTouchMove, this);
         }
 
-        this.on("touch_begin", this.__barTouchBegin, this);
+        this.on(fgui.InteractiveEvents.Down, this.__barTouchBegin, this);
       }
     }, {
       key: "handleSizeChanged",
@@ -17286,13 +17421,13 @@ window.THREE = require("three");
         cc = child.getController("expanded");
 
         if (cc) {
-          cc.on("status_changed", this.__expandedStateChanged, this);
+          cc.on(fgui.StateChangeEvent.CHANGED, this.__expandedStateChanged, this);
           cc.selectedIndex = node.expanded ? 1 : 0;
         }
 
         cc = child.getController("leaf");
         if (cc) cc.selectedIndex = node.isFolder ? 0 : 1;
-        if (node.isFolder) child.on("touch_begin", this.__cellMouseDown, this);
+        if (node.isFolder) child.on(fgui.InteractiveEvents.Down, this.__cellMouseDown, this);
         if (this.treeNodeRender) this.treeNodeRender(node, child);
       }
     }, {
@@ -17893,7 +18028,7 @@ window.THREE = require("three");
 
       this._contentPane = fgui.UIPackage.createObjectFromURL(resourceURL);
 
-      this._contentPane.on("added_to_stage", this.__addedToStage, this);
+      this._contentPane.on(fgui.StageEvent.AddtoStage, this.__addedToStage, this);
 
       this._list = this._contentPane.getChild("list");
 
@@ -17905,7 +18040,7 @@ window.THREE = require("three");
 
       this._contentPane.addRelation(this._list, fgui.RelationType.Height);
 
-      this._list.on("click_item", this.__clickItem, this);
+      this._list.on(fgui.ListEvent.ItemClick, this.__clickItem, this);
     }
 
     _createClass(PopupMenu, [{
@@ -18498,9 +18633,9 @@ window.THREE = require("three");
     }, {
       key: "addRefTarget",
       value: function addRefTarget() {
-        if (this._target != this._owner.parent) this._target.on("pos_changed", this.__targetXYChanged, this);
+        if (this._target != this._owner.parent) this._target.on(fgui.DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
 
-        this._target.on("size_changed", this.__targetSizeChanged, this);
+        this._target.on(fgui.DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
 
         this._targetX = this._target.x;
         this._targetY = this._target.y;
@@ -18512,9 +18647,9 @@ window.THREE = require("three");
       value: function releaseRefTarget() {
         if (this._target.displayObject == null) return;
 
-        this._target.off("pos_changed", this.__targetXYChanged, this);
+        this._target.off(fgui.DisplayObjectEvent.XY_CHANGED, this.__targetXYChanged, this);
 
-        this._target.off("size_changed", this.__targetSizeChanged, this);
+        this._target.off(fgui.DisplayObjectEvent.SIZE_CHANGED, this.__targetSizeChanged, this);
       }
     }, {
       key: "__targetXYChanged",
@@ -18863,13 +18998,13 @@ window.THREE = require("three");
       this._scrollStep = fgui.UIConfig.defaultScrollStep;
       this._decelerationRate = fgui.UIConfig.defaultScrollDecelerationRate;
 
-      this._owner.on("touch_begin", this.__touchBegin, this);
+      this._owner.on(fgui.InteractiveEvents.Down, this.__touchBegin, this);
 
-      this._owner.on("touch_move", this.__touchMove, this);
+      this._owner.on(fgui.InteractiveEvents.Move, this.__touchMove, this);
 
-      this._owner.on("touch_end", this.__touchEnd, this);
+      this._owner.on(fgui.InteractiveEvents.Up, this.__touchEnd, this);
 
-      this._owner.on("mouse_wheel", this.__mouseWheel, this);
+      this._owner.on(fgui.DisplayObjectEvent.MOUSE_WHEEL, this.__mouseWheel, this);
     }
 
     _createClass(ScrollPane, [{
@@ -19390,7 +19525,7 @@ window.THREE = require("three");
 
         this.refresh2();
 
-        this._owner.dispatchEvent("scroll");
+        this._owner.dispatchEvent(fgui.ScrollEvent.SCROLL);
 
         if (this._needRefresh) {
           this._needRefresh = false;
@@ -19588,7 +19723,7 @@ window.THREE = require("three");
         this.updateScrollBarVisible();
         if (this._pageMode) this.updatePageController();
 
-        this._owner.dispatchEvent("scroll");
+        this._owner.dispatchEvent(fgui.ScrollEvent.SCROLL);
       }
     }, {
       key: "__touchEnd",
@@ -19630,13 +19765,13 @@ window.THREE = require("three");
           if (this._tweenChange.x < -fgui.UIConfig.touchDragSensitivity || this._tweenChange.y < -fgui.UIConfig.touchDragSensitivity) {
             this._refreshEventDispatching = true;
 
-            this._owner.dispatchEvent("pull_down_release");
+            this._owner.dispatchEvent(fgui.ScrollEvent.PULL_DOWN_RELEASE);
 
             this._refreshEventDispatching = false;
           } else if (this._tweenChange.x > fgui.UIConfig.touchDragSensitivity || this._tweenChange.y > fgui.UIConfig.touchDragSensitivity) {
             this._refreshEventDispatching = true;
 
-            this._owner.dispatchEvent("pull_up_release");
+            this._owner.dispatchEvent(fgui.ScrollEvent.PULL_UP_RELEASE);
 
             this._refreshEventDispatching = false;
           }
@@ -19952,14 +20087,14 @@ window.THREE = require("three");
         if (this._tweening == 1) {
           this._container.setPosition(this._tweenStart.x + this._tweenChange.x, this._tweenStart.y + this._tweenChange.y);
 
-          this._owner.dispatchEvent("scroll");
+          this._owner.dispatchEvent(fgui.ScrollEvent.SCROLL);
         }
 
         this._tweening = 0;
         fgui.Timers.remove(this.tweenUpdate, this);
         this.updateScrollBarVisible();
 
-        this._owner.dispatchEvent("scroll_end");
+        this._owner.dispatchEvent(fgui.ScrollEvent.SCROLL_END);
       }
     }, {
       key: "checkRefreshBar",
@@ -20021,13 +20156,13 @@ window.THREE = require("three");
           this.updateScrollBarPos();
           this.updateScrollBarVisible();
 
-          this._owner.dispatchEvent("scroll");
+          this._owner.dispatchEvent(fgui.ScrollEvent.SCROLL);
 
-          this._owner.dispatchEvent("scroll_end");
+          this._owner.dispatchEvent(fgui.ScrollEvent.SCROLL_END);
         } else {
           this.updateScrollBarPos();
 
-          this._owner.dispatchEvent("scroll");
+          this._owner.dispatchEvent(fgui.ScrollEvent.SCROLL);
         }
       }
     }, {
@@ -21677,7 +21812,7 @@ window.THREE = require("three");
 
     if (_scaleFactor > 10) _scaleFactor = 10;
     if (_scaleFactor > 3) _scaleLevel = 3;else if (_scaleFactor > 2) _scaleLevel = 2;else if (_scaleFactor > 1) _scaleLevel = 1;else _scaleLevel = 0;
-    fgui.broadcastEvent(fgui.Stage.scene, "content_scale_factor_changed");
+    fgui.broadcastEvent(fgui.Stage.scene, fgui.StageEvent.ContentScaleChanged);
   }
 })(fgui || (fgui = {}));
 
@@ -22478,11 +22613,11 @@ window.THREE = require("three");
       _this32._uiSources = [];
       _this32.bringToFontOnClick = fgui.UIConfig.bringWindowToFrontOnClick;
 
-      _this32.on("added_to_stage", _this32.__onShown, _assertThisInitialized(_this32));
+      _this32.on(fgui.StageEvent.AddtoStage, _this32.__onShown, _assertThisInitialized(_this32));
 
-      _this32.on("removed_from_stage", _this32.__onHidden, _assertThisInitialized(_this32));
+      _this32.on(fgui.StageEvent.RemoveFromStage, _this32.__onHidden, _assertThisInitialized(_this32));
 
-      _this32.on("touch_begin", _this32.__winTouchBegin, _assertThisInitialized(_this32));
+      _this32.on(fgui.InteractiveEvents.Down, _this32.__winTouchBegin, _assertThisInitialized(_this32));
 
       return _this32;
     }
@@ -22715,7 +22850,7 @@ window.THREE = require("three");
           if (this._dragArea) {
             this._dragArea.draggable = false;
 
-            this._dragArea.off("drag_start", this.__dragStart, this);
+            this._dragArea.off(fgui.DragEvent.START, this.__dragStart, this);
           }
 
           this._dragArea = value;
@@ -22724,7 +22859,7 @@ window.THREE = require("three");
             if (this._dragArea instanceof fgui.GGraph) this._dragArea.shape.drawRect(0, new fgui.Color4(0, 0), new fgui.Color4(0, 0));
             this._dragArea.draggable = true;
 
-            this._dragArea.on("drag_start", this.__dragStart, this);
+            this._dragArea.on(fgui.DragEvent.START, this.__dragStart, this);
           }
         }
       }
@@ -23702,8 +23837,8 @@ window.THREE = require("three");
 
       this._shape = new fgui.SelectionShape();
 
-      this._shape.on("click", function () {
-        fgui.bubbleEvent(_this33._owner.obj3D, "click_link", _this33._element.getAttrString("href"));
+      this._shape.on(fgui.InteractiveEvents.Click, function () {
+        fgui.bubbleEvent(_this33._owner.obj3D, fgui.LinkEvent.ClickLink, _this33._element.getAttrString("href"));
       });
     }
 

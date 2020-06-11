@@ -235,7 +235,7 @@ namespace fgui {
                 Timers.add(200, 1, this.setState, this, () => {
                     this.setState("up");
                     if (clickCall)
-                        this.dispatchEvent("click");
+                        this.dispatchEvent(InteractiveEvents.Click);
                 });
             }
         }
@@ -389,12 +389,12 @@ namespace fgui {
             if (this._mode == ButtonMode.Common)
                 this.setState("up");
 
-            this.on("roll_over", this.__rollover, this);
-            this.on("roll_out", this.__rollout, this);
-            this.on("touch_begin", this.__btnTouchBegin, this);
-            this.on("touch_end", this.__btnTouchEnd, this);
-            this.on("click", this.__click, this);
-            this.on("removed_from_stage", this.__removeFromStage, this);
+            this.on(RollEvent.RollOver, this.__rollover, this);
+            this.on(RollEvent.RollOut, this.__rollout, this);
+            this.on(InteractiveEvents.Down, this.__btnTouchBegin, this);
+            this.on(InteractiveEvents.Up, this.__btnTouchEnd, this);
+            this.on(InteractiveEvents.Click, this.__click, this);
+            this.on(StageEvent.RemoveFromStage, this.__removeFromStage, this);
         }
 
         public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -529,13 +529,13 @@ namespace fgui {
             if (this._mode == ButtonMode.Check) {
                 if (this._changeStateOnClick) {
                     this.selected = !this._selected;
-                    this.dispatchEvent("status_changed");
+                    this.dispatchEvent(StateChangeEvent.CHANGED);
                 }
             }
             else if (this._mode == ButtonMode.Radio) {
                 if (this._changeStateOnClick && !this._selected) {
                     this.selected = true;
-                    this.dispatchEvent("status_changed");
+                    this.dispatchEvent(StateChangeEvent.CHANGED);
                 }
             }
             else {

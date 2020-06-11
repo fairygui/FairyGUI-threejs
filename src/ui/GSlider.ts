@@ -101,7 +101,7 @@ namespace fgui {
 
                 if (newValue != this._value) {
                     this._value = newValue;
-                    if (this.dispatchEvent("status_changed"))
+                    if (this.dispatchEvent(StateChangeEvent.CHANGED))
                         return;
                 }
             }
@@ -172,11 +172,11 @@ namespace fgui {
                 this._barStartY = this._barObjectV.y;
             }
             if (this._gripObject) {
-                this._gripObject.on("touch_begin", this.__gripTouchBegin, this);
-                this._gripObject.on("touch_move", this.__gripTouchMove, this);
+                this._gripObject.on(InteractiveEvents.Down, this.__gripTouchBegin, this);
+                this._gripObject.on(InteractiveEvents.Move, this.__gripTouchMove, this);
             }
 
-            this.on("touch_begin", this.__barTouchBegin, this);
+            this.on(InteractiveEvents.Down, this.__barTouchBegin, this);
         }
 
         protected handleSizeChanged(): void {

@@ -21,7 +21,7 @@ namespace fgui {
             a.align = "center";
             a.verticalAlign = "middle";
             a.sortingOrder = 1000000;
-            a.on("drag_end", this.__dragEnd, this);
+            a.on(DragEvent.END, this.__dragEnd, this);
         }
 
         public get dragAgent(): GObject {
@@ -63,8 +63,8 @@ namespace fgui {
 
             var obj: GObject = GObject.cast(Stage.touchTarget);
             while (obj) {
-                if (obj.hasListener("drop")) {
-                    obj.dispatchEvent("drop", sourceData);
+                if (obj.hasListener(DragEvent.DROP)) {
+                    obj.dispatchEvent(DragEvent.DROP, sourceData);
                     return;
                 }
 

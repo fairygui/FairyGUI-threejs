@@ -29,8 +29,8 @@ namespace fgui {
 
             this.setPlaySettings();
 
-            this.on("added_to_stage", this.__addToStage, this);
-            this.on("removed_from_stage", this.__removeFromStage, this);
+            this.on(StageEvent.AddtoStage, this.__addToStage, this);
+            this.on(StageEvent.RemoveFromStage, this.__removeFromStage, this);
         }
 
         public get frames(): Frame[] {
@@ -237,7 +237,7 @@ namespace fgui {
                 this._frameElapsed = 0;
                 this._status = 3; //ended
 
-                this.dispatchEvent("play_end");
+                this.dispatchEvent(PlayEvent.PlayEnd);
             }
             else {
                 if (this._frame == this._end) {

@@ -830,6 +830,95 @@ declare namespace fgui {
     var EventPool: Pool<Event>;
 }
 declare namespace fgui {
+    enum DisplayObjectEvent {
+        XY_CHANGED = "pos_changed",
+        SIZE_CHANGED = "size_changed",
+        MOUSE_WHEEL = "mouse_wheel"
+    }
+}
+declare namespace fgui {
+    enum DragEvent {
+        START = "drag_start",
+        END = "drag_end",
+        MOVING = "drag_move",
+        DROP = "drop",
+        CANCEL = "drag_cancel"
+    }
+}
+declare namespace fgui {
+    enum FocusEvent {
+        CHANGED = "focus_changed"
+    }
+}
+declare namespace fgui {
+    enum GearEvent {
+        GEAR_STOP = "gear_stop"
+    }
+}
+declare namespace fgui {
+    class InteractiveEvents {
+        static Down: string;
+        static Cancel: string;
+        static Up: string;
+        static Click: string;
+        static UpOutside: string;
+        static Move: string;
+        static Over: string;
+        static Out: string;
+        static OnStay: string;
+        static OnStayOut: string;
+        static RightDown: string;
+        static RightUp: string;
+        static RightClick: string;
+        static RightUpOutside: string;
+    }
+}
+declare namespace fgui {
+    enum LinkEvent {
+        ClickLink = "click_link"
+    }
+}
+declare namespace fgui {
+    enum ListEvent {
+        ItemClick = "click_item"
+    }
+}
+declare namespace fgui {
+    enum PlayEvent {
+        PlayEnd = "play_end"
+    }
+}
+declare namespace fgui {
+    enum RollEvent {
+        RollOut = "roll_out",
+        RollOver = "roll_over"
+    }
+}
+declare namespace fgui {
+    enum ScrollEvent {
+        SCROLL = "scroll",
+        SCROLL_END = "scroll_end",
+        PULL_DOWN_RELEASE = "pull_down_release",
+        PULL_UP_RELEASE = "pull_up_release"
+    }
+}
+declare namespace fgui {
+    enum StageEvent {
+        AddtoStage = "added_to_stage",
+        RemoveFromStage = "removed_from_stage",
+        ContentScaleChanged = "content_scale_factor_changed"
+    }
+}
+declare namespace fgui {
+    enum StateChangeEvent {
+        CHANGED = "status_changed"
+    }
+}
+declare namespace fgui {
+    enum TextEvent {
+    }
+}
+declare namespace fgui {
     class GearBase {
         static disableAllTweenEffect?: boolean;
         protected _owner: GObject;
