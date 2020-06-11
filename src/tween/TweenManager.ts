@@ -1,4 +1,3 @@
-import { GObject } from "../ui/GObject";
 import { Timers } from "../utils/Timers";
 import { GTweener } from "./GTweener";
 import { Pool } from "../utils/Pool";
@@ -87,7 +86,7 @@ export class TweenManager {
                     freePosStart = i;
             }
             else {
-                if ((tweener._target instanceof GObject) && (<GObject>tweener._target).isDisposed)
+                if (('isDisposed' in tweener._target) && tweener._target.isDisposed)
                     tweener._killed = true;
                 else if (!tweener._paused)
                     tweener._update(dt);

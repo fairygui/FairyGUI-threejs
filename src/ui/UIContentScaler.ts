@@ -29,10 +29,6 @@ export class UIContentScaler {
         _constantScaleFactor = constantScaleFactor || 1;
         refresh();
     }
-
-    public static _refresh(): void {
-        refresh();
-    }
 }
 
 var _scaleMode: ScaleMode = ScaleMode.ConstantPixelSize;
@@ -46,6 +42,8 @@ var _ignoreOrientation: boolean;
 
 var _scaleFactor: number = 1;
 var _scaleLevel: number = 0;
+
+Stage.eventDispatcher.on("size_changed", refresh);
 
 function refresh() {
     let screenWidth: number = Stage.width;

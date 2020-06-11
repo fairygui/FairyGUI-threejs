@@ -2,7 +2,7 @@ import { DisplayObject } from "../core/DisplayObject";
 import { MovieClip } from "../core/MovieClip";
 import { NTexture } from "../core/NTexture";
 import { ByteBuffer } from "../utils/ByteBuffer";
-import { LoaderFillType, ObjectPropID, PackageItemType } from "./FieldTypes";
+import { LoaderFillType, ObjectPropID, PackageItemType, AlignType, VertAlignType } from "./FieldTypes";
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { PackageItem } from "./PackageItem";
@@ -11,8 +11,8 @@ import { TextureLoader } from "three";
 
 export class GLoader extends GObject {
     private _url: string;
-    private _align: string;
-    private _valign: string;
+    private _align: AlignType;
+    private _valign: VertAlignType;
     private _autoSize: boolean;
     private _fill: number;
     private _shrinkOnly: boolean;
@@ -74,22 +74,22 @@ export class GLoader extends GObject {
         this.url = value;
     }
 
-    public get align(): string {
+    public get align(): AlignType {
         return this._align;
     }
 
-    public set align(value: string) {
+    public set align(value: AlignType) {
         if (this._align != value) {
             this._align = value;
             this.updateLayout();
         }
     }
 
-    public get verticalAlign(): string {
+    public get verticalAlign(): VertAlignType {
         return this._valign;
     }
 
-    public set verticalAlign(value: string) {
+    public set verticalAlign(value: VertAlignType) {
         if (this._valign != value) {
             this._valign = value;
             this.updateLayout();

@@ -1125,7 +1125,9 @@ let GearClasses: Array<typeof GearBase> = [
 ];
 
 function createGear(owner: GObject, index: number): GearBase {
-    return new (GearClasses[index])(owner);
+    let ret = new (GearClasses[index])();
+    ret._owner = owner;
+    return ret;
 }
 
 var s_vec2: Vector2 = new Vector2();

@@ -1,15 +1,10 @@
 import { ObjectPropID } from "../ui/FieldTypes";
-import { GObject } from "../ui/GObject";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { GearBase } from "./GearBase";
 
 export class GearColor extends GearBase {
     private _storage: { [index: string]: GearColorValue };
     private _default: GearColorValue;
-
-    constructor(owner: GObject) {
-        super(owner);
-    }
 
     protected init(): void {
         this._default = {

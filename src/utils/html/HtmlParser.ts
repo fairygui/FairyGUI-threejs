@@ -197,15 +197,7 @@ export class HtmlParser {
                 case "p":
                     if (XMLIterator.tagType == XMLTagType.Start) {
                         this.pushTextFormat();
-                        let align = XMLIterator.getAttribute("align");
-                        switch (align) {
-                            case "center":
-                                this._format.align = AlignType.Center;
-                                break;
-                            case "right":
-                                this._format.align = AlignType.Right;
-                                break;
-                        }
+                        this._format.align = <AlignType>XMLIterator.getAttribute("align");
                         if (!this.isNewLine())
                             this.appendText("\n");
                     }

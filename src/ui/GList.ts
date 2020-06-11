@@ -5,7 +5,7 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { Rect } from "../utils/Rect";
 import { Timers } from "../utils/Timers";
 import { Controller } from "./Controller";
-import { ChildrenRenderOrder, ListLayoutType, ListSelectionMode, OverflowType } from "./FieldTypes";
+import { ChildrenRenderOrder, ListLayoutType, ListSelectionMode, OverflowType, AlignType, VertAlignType } from "./FieldTypes";
 import { GButton } from "./GButton";
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
@@ -28,8 +28,8 @@ export class GList extends GComponent {
     private _defaultItem: string;
     private _autoResizeItem: boolean;
     private _selectionMode: number;
-    private _align: string;
-    private _verticalAlign: string;
+    private _align: AlignType;
+    private _verticalAlign: VertAlignType;
     private _selectionController: Controller;
 
     private _lastSelectedIndex: number = 0;
@@ -141,11 +141,11 @@ export class GList extends GComponent {
         }
     }
 
-    public get align(): string {
+    public get align(): AlignType {
         return this._align;
     }
 
-    public set align(value: string) {
+    public set align(value: AlignType) {
         if (this._align != value) {
             this._align = value;
             this.setBoundsChangedFlag();
@@ -154,11 +154,11 @@ export class GList extends GComponent {
         }
     }
 
-    public get verticalAlign(): string {
+    public get verticalAlign(): VertAlignType {
         return this._verticalAlign;
     }
 
-    public set verticalAlign(value: string) {
+    public set verticalAlign(value: VertAlignType) {
         if (this._verticalAlign != value) {
             this._verticalAlign = value;
             this.setBoundsChangedFlag();

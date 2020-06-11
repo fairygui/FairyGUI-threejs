@@ -1,4 +1,3 @@
-import { GObject, constructingDepth } from "../ui/GObject";
 import { GTween } from "../tween/GTween";
 import { GTweener } from "../tween/GTweener";
 import { ByteBuffer } from "../utils/ByteBuffer";
@@ -7,10 +6,6 @@ import { GearBase } from "./GearBase";
 export class GearLook extends GearBase {
     private _storage: { [index: string]: GearLookValue };
     private _default: GearLookValue;
-
-    constructor(owner: GObject) {
-        super(owner);
-    }
 
     protected init(): void {
         this._default = {
@@ -40,7 +35,7 @@ export class GearLook extends GearBase {
     public apply(): void {
         var gv: GearLookValue = this._storage[this._controller.selectedPageId] || this._default;
 
-        if (this._tweenConfig && this._tweenConfig.tween && constructingDepth.n == 0 && !GearBase.disableAllTweenEffect) {
+        if (this.allowTween) {
             this._owner._gearLocked = true;
             this._owner.grayed = gv.grayed;
             this._owner.touchable = gv.touchable;

@@ -1,15 +1,10 @@
 import { GearBase } from "./GearBase";
-import { GObject } from "../ui/GObject";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { ObjectPropID } from "../ui/FieldTypes";
 
 export class GearAnimation extends GearBase {
     private _storage: { [index: string]: GearAnimationValue };
     private _default: GearAnimationValue;
-
-    constructor(owner: GObject) {
-        super(owner);
-    }
 
     protected init(): void {
         this._default = {

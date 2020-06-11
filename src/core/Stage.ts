@@ -1,7 +1,6 @@
-import { OrthographicCamera, Scene, Vector2, Renderer, AudioListener, Object3D, Camera, PerspectiveCamera, Vector3 } from "three";
+import { OrthographicCamera, Scene, Vector2, Renderer, AudioListener, Object3D, Camera, PerspectiveCamera, Vector3, WebGLRenderer } from "three";
 import { Timers } from "../utils/Timers";
 import { DisplayObject, traverseUpdate, traverseHitTest } from "./DisplayObject";
-import { UIContentScaler } from "../ui/UIContentScaler";
 import { EventPool, lastInput } from "../event/Event";
 import { EventDispatcher } from "../event/EventDispatcher";
 
@@ -14,6 +13,8 @@ export class Stage {
 
     public static disableMatrixValidation: boolean;
 
+    public static readonly eventDispatcher = new EventDispatcher();
+
     public static init(renderer: Renderer) {
         init(renderer);
     }
@@ -24,6 +25,14 @@ export class Stage {
 
     public static get scene(): Scene {
         return _scene;
+    }
+
+    public static get domElement(): HTMLCanvasElement {
+        return _canvas;
+    }
+
+    public static get devicePixelRatio(): number {
+        return _devicePixelRatio;
     }
 
     public static get camera(): Camera {
@@ -113,7 +122,8 @@ export class Stage {
         return hitTest(x, y, forTouch);
     }
 
-    public static setFocus(newFocus: DisplayObject) {
+    public static setFocus(obj: DisplayObject) {
+        setFocus(obj);
     }
 }
 
@@ -172,6 +182,7 @@ var _height: number;
 var _offsetX: number;
 var _offsetY: number;
 var _touchscreen: boolean;
+var _devicePixelRatio: number = 1;
 var hit_tmp: Vector3 = new Vector3();
 var hit_tmp2: Vector2 = new Vector2();
 
@@ -181,6 +192,8 @@ function init(renderer: Renderer) {
     _camera.layers.set(UILayer);
 
     _touchscreen = is_touch_enabled();
+    if (renderer instanceof WebGLRenderer)
+        _devicePixelRatio = renderer.getPixelRatio();
 
     _touches = [];
     for (let i = 0; i < 5; i++)
@@ -247,8 +260,11 @@ function onWindowResize(evt?: UIEvent) {
         _camera.updateProjectionMatrix();
     }
 
+    if (activeTextInput)
+        setFocus(null);
+
     if (evt)
-        UIContentScaler._refresh();
+        Stage.eventDispatcher.dispatchEvent("size_changed");
 }
 
 function is_touch_enabled() {
@@ -258,7 +274,8 @@ function is_touch_enabled() {
 }
 
 function handleMouse(ev: MouseEvent, type: number) {
-    ev.preventDefault();
+    if (!activeTextInput || !activeTextInput.stage)
+        ev.preventDefault();
 
     _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
     let touch: TouchInfo = _touches[0];
@@ -281,7 +298,7 @@ function handleMouse(ev: MouseEvent, type: number) {
             _touchCount = 1;
             touch.begin();
             touch.button = ev.button;
-            Stage.setFocus(touch.target);
+            setFocus(touch.target);
             setLastInput(touch);
 
             if (touch.target)
@@ -309,7 +326,8 @@ function handleMouse(ev: MouseEvent, type: number) {
 }
 
 function handleWheel(ev: WheelEvent): void {
-    ev.preventDefault();
+    if (!activeTextInput || !activeTextInput.stage)
+        ev.preventDefault();
 
     _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
     let touch = _touches[0];
@@ -340,7 +358,8 @@ function getTouch(touchId: number): TouchInfo {
 }
 
 function handleTouch(ev: TouchEvent, type: number) {
-    ev.preventDefault();
+    if (!activeTextInput || !activeTextInput.stage)
+        ev.preventDefault();
 
     let touches = ev.changedTouches;
     for (let i: number = 0; i < touches.length; ++i) {
@@ -386,7 +405,7 @@ function handleTouch(ev: TouchEvent, type: number) {
                 _touchCount++;
                 touch.begin();
                 touch.button = 0;
-                Stage.setFocus(touch.target);
+                setFocus(touch.target);
 
                 setLastInput(touch);
                 if (touch.target)
@@ -480,6 +499,24 @@ function hitTest(x: number, y: number, forTouch?: boolean) {
     Stage.disableMatrixValidation = false;
 
     return ret;
+}
+
+var activeTextInput: DisplayObject;
+function setFocus(obj: DisplayObject): void {
+    if (activeTextInput == obj)
+        return;
+
+    if (activeTextInput) {
+        let t = activeTextInput;
+        activeTextInput = null;
+        t.dispatchEvent("focus_out");
+    }
+
+    if (!obj || !obj["isInput"])
+        return;
+
+    activeTextInput = obj;
+    activeTextInput.dispatchEvent("focus_in");
 }
 
 var s_v3: Vector3 = new Vector3();

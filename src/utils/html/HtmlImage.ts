@@ -3,10 +3,9 @@ import { RichTextField } from "../../core/text/RichTextField";
 import { LoaderFillType, ObjectType } from "../../ui/FieldTypes";
 import { GLoader } from "../../ui/GLoader";
 import { PackageItem } from "../../ui/PackageItem";
-import { UIPackage } from "../../ui/UIPackage";
+import { UIPackage, Decls } from "../../ui/UIPackage";
 import { HtmlElement } from "./HtmlElement";
 import { IHtmlObject } from "./IHtmlObject";
-import { UIObjectFactory } from "../../ui/UIObjectFactory";
 
 export class HtmlImage implements IHtmlObject {
     public readonly loader: GLoader;
@@ -15,7 +14,7 @@ export class HtmlImage implements IHtmlObject {
     private _element: HtmlElement;
 
     public constructor() {
-        this.loader = <GLoader>UIObjectFactory.newObject(ObjectType.Loader);
+        this.loader = <GLoader>Decls.UIObjectFactory.newObject(ObjectType.Loader);
         this.loader.fill = LoaderFillType.ScaleFree;
         this.loader.touchable = false;
     }

@@ -17,29 +17,29 @@ import { FontManager } from "./FontManager";
 import { TextFormat } from "./TextFormat";
 
 export class TextField extends DisplayObject implements IMeshFactory {
-    private _verticalAlign: VertAlignType;
-    private _textFormat: TextFormat;
-    private _text: string;
-    private _autoSize: AutoSizeType;
-    private _wordWrap: boolean;
-    private _singleLine: boolean;
-    private _html: boolean;
-    private _maxWidth: number;
-    private _elements: Array<HtmlElement>;
-    private _lines: Array<LineInfo>;
-    private _charPositions: Array<CharPosition>;
-    private _font: BaseFont;
-    private _textWidth: number;
-    private _textHeight: number;
-    private _textChanged: boolean;
-    private _yOffset: number;
-    private _fontSizeScale: number;
-    private _fontVersion: number;
-    private _parsedText: string;
-    private _updatingSize?: boolean;
+    protected _verticalAlign: VertAlignType;
+    protected _textFormat: TextFormat;
+    protected _text: string;
+    protected _autoSize: AutoSizeType;
+    protected _wordWrap: boolean;
+    protected _singleLine: boolean;
+    protected _html: boolean;
+    protected _maxWidth: number;
+    protected _elements: Array<HtmlElement>;
+    protected _lines: Array<LineInfo>;
+    protected _charPositions: Array<CharPosition>;
+    protected _font: BaseFont;
+    protected _textWidth: number;
+    protected _textHeight: number;
+    protected _textChanged: boolean;
+    protected _yOffset: number;
+    protected _fontSizeScale: number;
+    protected _fontVersion: number;
+    protected _parsedText: string;
+    protected _updatingSize?: boolean;
 
-    protected _input?: boolean;
-    protected _rich?: boolean;
+    protected isInput?: boolean;
+    protected isRich?: boolean;
 
     constructor() {
         super();
@@ -206,7 +206,6 @@ export class TextField extends DisplayObject implements IMeshFactory {
             this.buildLines();
 
         return this._lines;
-
     }
 
     public get charPositions(): Array<CharPosition> {
@@ -219,13 +218,8 @@ export class TextField extends DisplayObject implements IMeshFactory {
     }
 
     public redraw(): boolean {
-        if (this._font == null) {
-            this._font = FontManager.getFont(UIConfig.defaultFont);
-            this._graphics.texture = this._font.mainTexture;
-            this._graphics.setKeyword("TEXT", this._font.isDynamic);
-            this._fontVersion = this._font.version;
-            this._textChanged = true;
-        }
+        if (!this._font)
+            this.applyFormat();
 
         if (this._font.version != this._fontVersion) {
             this._fontVersion = this._font.version;
@@ -296,7 +290,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
             else if (this._autoSize != AutoSizeType.None)
                 this._graphics.setMeshDirty();
 
-            if (this._verticalAlign != VertAlignType.Top)
+            if (this._verticalAlign != "top")
                 this.applyVertAlign();
         }
 
@@ -331,12 +325,8 @@ export class TextField extends DisplayObject implements IMeshFactory {
     }
 
     private buildLines() {
-        if (this._font == null) {
-            this._font = FontManager.getFont(UIConfig.defaultFont);
-            this._fontVersion = this._font.version;
-            this._graphics.texture = this._font.mainTexture;
-            this._graphics.setKeyword("TEXT", this._font.isDynamic);
-        }
+        if (!this._font)
+            this.applyFormat();
 
         this._textChanged = false;
         this._graphics.setMeshDirty();
@@ -364,7 +354,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
 
         if (this._autoSize == AutoSizeType.Both) {
             this._updatingSize = true;
-            if (this._input) {
+            if (this.isInput) {
                 let w: number = Math.max(this._textFormat.size, this._textWidth);
                 let h: number = Math.max(this._font.getLineHeight(this._textFormat.size) + GUTTER_Y * 2, this._textHeight);
                 this.setSize(w, h);
@@ -375,7 +365,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
         }
         else if (this._autoSize == AutoSizeType.Height) {
             this._updatingSize = true;
-            if (this._input)
+            if (this.isInput)
                 this.height = Math.max(this._font.getLineHeight(this._textFormat.size) + GUTTER_Y * 2, this._textHeight);
             else
                 this.height = this._textHeight;
@@ -388,7 +378,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
 
     private parseText() {
         if (this._html) {
-            defaultParser.parse(this._text, this._textFormat, this._elements, this._rich ? (<any>this).htmlParseOptions : null);
+            defaultParser.parse(this._text, this._textFormat, this._elements, this.isRich ? (<any>this).htmlParseOptions : null);
 
             this._parsedText = "";
         }
@@ -397,7 +387,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
 
         let elementCount: number = this._elements.length;
         if (elementCount == 0) {
-            if (this._input)
+            if (this.isInput)
                 this._parsedText = this._parsedText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
         }
         else {
@@ -406,7 +396,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
                 let element: HtmlElement = this._elements[i];
                 element.charIndex = this._parsedText.length;
                 if (element.type == HtmlElementType.Text) {
-                    if (this._input)
+                    if (this.isInput)
                         this._parsedText += element.text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
                     else
                         this._parsedText += element.text;
@@ -465,7 +455,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
                 }
                 else {
                     let htmlObject: IHtmlObject = element.htmlObject;
-                    if (this._rich && !htmlObject) {
+                    if (this.isRich && !htmlObject) {
                         element.space = rectWidth - line.width - 4;
                         htmlObject = (<any>this).htmlPageContext.createObject(<any>this, element);
                         element.htmlObject = htmlObject;
@@ -696,7 +686,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
 
         let posx: number = 0;
         let indent_x: number;
-        let clipping = !this._input && this._autoSize == AutoSizeType.None;
+        let clipping = !this.isInput && this._autoSize == AutoSizeType.None;
         let lineClipped: boolean;
         let lineAlign: AlignType;
         let vertCount: number;
@@ -725,9 +715,9 @@ export class TextField extends DisplayObject implements IMeshFactory {
             else
                 lineAlign = format.align;
 
-            if (lineAlign == AlignType.Center)
+            if (lineAlign == "center")
                 indent_x = Math.floor((rectWidth - line.width) / 2);
-            else if (lineAlign == AlignType.Right)
+            else if (lineAlign == "right")
                 indent_x = rectWidth - line.width;
             else
                 indent_x = 0;
@@ -933,7 +923,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
     private applyVertAlign() {
         let oldOffset: number = this._yOffset;
         if (this._autoSize == AutoSizeType.Both || this._autoSize == AutoSizeType.Height
-            || this._verticalAlign == VertAlignType.Top)
+            || this._verticalAlign == "top")
             this._yOffset = 0;
         else {
             let dh: number;
@@ -943,7 +933,7 @@ export class TextField extends DisplayObject implements IMeshFactory {
                 dh = this._contentRect.height - this._textHeight;
             if (dh < 0)
                 dh = 0;
-            if (this._verticalAlign == VertAlignType.Middle)
+            if (this._verticalAlign == "middle")
                 this._yOffset = Math.floor(dh / 2);
             else
                 this._yOffset = dh;
