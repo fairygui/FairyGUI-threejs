@@ -45,6 +45,8 @@ gulp.task("uglify", function () {
     return gulp.src("dist/fairygui.js")
         .pipe(rename({ suffix: '.min' }))
         .pipe(uglify(/* options */))
+        .pipe(sourcemaps.init())
+        .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest("dist/"));
 });
 //
