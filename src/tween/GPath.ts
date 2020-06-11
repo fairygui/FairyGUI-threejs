@@ -1,15 +1,14 @@
-import { Vector2 } from "three";
-import { clamp01, distance, lerp, repeat } from "../utils/ToolSet";
-import { CurveType, GPathPoint } from "./GPathPoint";
-
+namespace fgui
+{
+    
 export class GPath {
     private _segments: Array<Segment>;
-    private _points: Array<Vector2>;
+    private _points: Array<THREE.Vector2>;
     private _fullLength: number;
 
     constructor() {
         this._segments = new Array<Segment>();
-        this._points = new Array<Vector2>();
+        this._points = new Array<THREE.Vector2>();
     }
 
     public get length(): number {
@@ -36,11 +35,11 @@ export class GPath {
         if (cnt == 0)
             return;
 
-        var splinePoints: Array<Vector2> = [];
+        var splinePoints: Array<THREE.Vector2> = [];
 
         var prev: GPathPoint = points[0];
         if (prev.curveType == CurveType.CRSpline)
-            splinePoints.push(new Vector2(prev.x, prev.y));
+            splinePoints.push(new THREE.Vector2(prev.x, prev.y));
 
         for (var i: number = 1; i < cnt; i++) {
             var current: GPathPoint = points[i];
@@ -51,21 +50,21 @@ export class GPath {
                 seg.ptStart = this._points.length;
                 if (prev.curveType == CurveType.Straight) {
                     seg.ptCount = 2;
-                    this._points.push(new Vector2(prev.x, prev.y));
-                    this._points.push(new Vector2(current.x, current.y));
+                    this._points.push(new THREE.Vector2(prev.x, prev.y));
+                    this._points.push(new THREE.Vector2(current.x, current.y));
                 }
                 else if (prev.curveType == CurveType.Bezier) {
                     seg.ptCount = 3;
-                    this._points.push(new Vector2(prev.x, prev.y));
-                    this._points.push(new Vector2(current.x, current.y));
-                    this._points.push(new Vector2(prev.control1_x, prev.control1_y));
+                    this._points.push(new THREE.Vector2(prev.x, prev.y));
+                    this._points.push(new THREE.Vector2(current.x, current.y));
+                    this._points.push(new THREE.Vector2(prev.control1_x, prev.control1_y));
                 }
                 else if (prev.curveType == CurveType.CubicBezier) {
                     seg.ptCount = 4;
-                    this._points.push(new Vector2(prev.x, prev.y));
-                    this._points.push(new Vector2(current.x, current.y));
-                    this._points.push(new Vector2(prev.control1_x, prev.control1_y));
-                    this._points.push(new Vector2(prev.control2_x, prev.control2_y));
+                    this._points.push(new THREE.Vector2(prev.x, prev.y));
+                    this._points.push(new THREE.Vector2(current.x, current.y));
+                    this._points.push(new THREE.Vector2(prev.control1_x, prev.control1_y));
+                    this._points.push(new THREE.Vector2(prev.control2_x, prev.control2_y));
                 }
                 seg.length = distance(prev.x, prev.y, current.x, current.y);
                 this._fullLength += seg.length;
@@ -74,12 +73,12 @@ export class GPath {
 
             if (current.curveType != CurveType.CRSpline) {
                 if (splinePoints.length > 0) {
-                    splinePoints.push(new Vector2(current.x, current.y));
+                    splinePoints.push(new THREE.Vector2(current.x, current.y));
                     this.createSplineSegment(splinePoints);
                 }
             }
             else
-                splinePoints.push(new Vector2(current.x, current.y));
+                splinePoints.push(new THREE.Vector2(current.x, current.y));
 
             prev = current;
         }
@@ -88,7 +87,7 @@ export class GPath {
             this.createSplineSegment(splinePoints);
     }
 
-    private createSplineSegment(splinePoints: Array<Vector2>): void {
+    private createSplineSegment(splinePoints: Array<THREE.Vector2>): void {
         var cnt: number = splinePoints.length;
         splinePoints.splice(0, 0, splinePoints[0]);
         splinePoints.push(splinePoints[cnt]);
@@ -117,9 +116,9 @@ export class GPath {
         this._points.length = 0;
     }
 
-    public getPointAt(t: number, result?: Vector2): Vector2 {
+    public getPointAt(t: number, result?: THREE.Vector2): THREE.Vector2 {
         if (!result)
-            result = new Vector2();
+            result = new THREE.Vector2();
         else
             result.set(0, 0);
 
@@ -173,20 +172,20 @@ export class GPath {
         return this._segments.length;
     }
 
-    public getAnchorsInSegment(segmentIndex: number, points?: Array<Vector2>): Array<Vector2> {
+    public getAnchorsInSegment(segmentIndex: number, points?: Array<THREE.Vector2>): Array<THREE.Vector2> {
         if (points == null)
-            points = new Array<Vector2>();
+            points = new Array<THREE.Vector2>();
 
         var seg: Segment = this._segments[segmentIndex];
         for (var i: number = 0; i < seg.ptCount; i++)
-            points.push(new Vector2(this._points[seg.ptStart + i].x, this._points[seg.ptStart + i].y));
+            points.push(new THREE.Vector2(this._points[seg.ptStart + i].x, this._points[seg.ptStart + i].y));
 
         return points;
     }
 
-    public getPointsInSegment(segmentIndex: number, t0: number, t1: number, points?: Array<Vector2>, ts?: Array<number>, pointDensity?: number): Array<Vector2> {
+    public getPointsInSegment(segmentIndex: number, t0: number, t1: number, points?: Array<THREE.Vector2>, ts?: Array<number>, pointDensity?: number): Array<THREE.Vector2> {
         if (points == null)
-            points = new Array<Vector2>();
+            points = new Array<THREE.Vector2>();
         if (!pointDensity || isNaN(pointDensity))
             pointDensity = 0.1;
 
@@ -194,9 +193,9 @@ export class GPath {
             ts.push(t0);
         var seg: Segment = this._segments[segmentIndex];
         if (seg.type == CurveType.Straight) {
-            points.push(new Vector2(lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t0),
+            points.push(new THREE.Vector2(lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t0),
                 lerp(this._points[seg.ptStart].y, this._points[seg.ptStart + 1].y, t0)));
-            points.push(new Vector2(lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t1),
+            points.push(new THREE.Vector2(lerp(this._points[seg.ptStart].x, this._points[seg.ptStart + 1].x, t1),
                 lerp(this._points[seg.ptStart].y, this._points[seg.ptStart + 1].y, t1)));
         }
         else {
@@ -206,17 +205,17 @@ export class GPath {
             else
                 func = this.onCRSplineCurve;
 
-            points.push(func.call(this, seg.ptStart, seg.ptCount, t0, new Vector2()));
+            points.push(func.call(this, seg.ptStart, seg.ptCount, t0, new THREE.Vector2()));
             var SmoothAmount: number = Math.min(seg.length * pointDensity, 50);
             for (var j: number = 0; j <= SmoothAmount; j++) {
                 var t: number = j / SmoothAmount;
                 if (t > t0 && t < t1) {
-                    points.push(func.call(this, seg.ptStart, seg.ptCount, t, new Vector2()));
+                    points.push(func.call(this, seg.ptStart, seg.ptCount, t, new THREE.Vector2()));
                     if (ts)
                         ts.push(t);
                 }
             }
-            points.push(func.call(this, seg.ptStart, seg.ptCount, t1, new Vector2()));
+            points.push(func.call(this, seg.ptStart, seg.ptCount, t1, new THREE.Vector2()));
         }
 
         if (ts)
@@ -225,9 +224,9 @@ export class GPath {
         return points;
     }
 
-    public getAllPoints(points?: Array<Vector2>, ts?: Array<number>, pointDensity?: number): Array<Vector2> {
+    public getAllPoints(points?: Array<THREE.Vector2>, ts?: Array<number>, pointDensity?: number): Array<THREE.Vector2> {
         if (points == null)
-            points = new Array<Vector2>();
+            points = new Array<THREE.Vector2>();
         if (!pointDensity || isNaN(pointDensity))
             pointDensity = 0.1;
 
@@ -238,7 +237,7 @@ export class GPath {
         return points;
     }
 
-    private onCRSplineCurve(ptStart: number, ptCount: number, t: number, result: Vector2): Vector2 {
+    private onCRSplineCurve(ptStart: number, ptCount: number, t: number, result: THREE.Vector2): THREE.Vector2 {
         var adjustedIndex: number = Math.floor(t * (ptCount - 4)) + ptStart; //Since the equation works with 4 points, we adjust the starting point depending on t to return a point on the specific segment
 
         var p0x: number = this._points[adjustedIndex].x;
@@ -263,7 +262,7 @@ export class GPath {
         return result;
     }
 
-    private onBezierCurve(ptStart: number, ptCount: number, t: number, result: Vector2): Vector2 {
+    private onBezierCurve(ptStart: number, ptCount: number, t: number, result: THREE.Vector2): THREE.Vector2 {
         var t2: number = 1 - t;
         var p0x: number = this._points[ptStart].x;
         var p0y: number = this._points[ptStart].y;
@@ -292,4 +291,6 @@ class Segment {
     public length: number;
     public ptStart: number;
     public ptCount: number;
+}
+
 }

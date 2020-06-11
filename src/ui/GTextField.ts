@@ -1,15 +1,6 @@
-import { InputTextField } from "../core/text/InputTextField";
-import { TextField } from "../core/text/TextField";
-import { TextFormat } from "../core/text/TextFormat";
-import { AlignType, AutoSizeType, ObjectPropID, VertAlignType } from "./FieldTypes";
-import { GObject } from "./GObject";
-import { UIConfig } from "./UIConfig";
-import { ByteBuffer } from "../utils/ByteBuffer";
-import { UBBParser, defaultParser } from "../utils/UBBParser";
-import { XMLUtils } from "../utils/xml/XMLUtils";
-import { RichTextField } from "../core/text/RichTextField";
-
-export type TextTemplate = { [index: string]: string };
+namespace fgui
+{
+    export type TextTemplate = { [index: string]: string };
 
 export class GTextField extends GObject {
     protected _textField: TextField | RichTextField | InputTextField;
@@ -355,4 +346,5 @@ export class GTextField extends GObject {
 
         return result;
     }
+}
 }

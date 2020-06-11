@@ -1,13 +1,6 @@
-import { Audio } from 'three';
-import { PixelHitTestData } from "../core/hittest/PixelHitTest";
-import { Frame } from "../core/MovieClip";
-import { NTexture } from "../core/NTexture";
-import { BitmapFont } from "../core/text/BitmapFont";
-import { ByteBuffer } from "../utils/ByteBuffer";
-import { Rect } from "../utils/Rect";
-import { UIContentScaler } from "./UIContentScaler";
-import { UIPackage } from "./UIPackage";
-
+namespace fgui
+{
+    
 export class PackageItem {
     public owner: UIPackage;
 
@@ -47,7 +40,7 @@ export class PackageItem {
 
     //sound
     public audioBuffer?: AudioBuffer;
-    public sound?: Audio;
+    public sound?: THREE.Audio;
 
     constructor() {
     }
@@ -79,4 +72,6 @@ export class PackageItem {
     public toString(): string {
         return this.name;
     }
+}
+
 }

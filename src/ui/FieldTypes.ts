@@ -1,4 +1,6 @@
-
+namespace fgui
+{
+    
 export enum ButtonMode {
     Common,
     Check,
@@ -187,4 +189,6 @@ export enum ObjectPropID {
     TimeScale,
     FontSize,
     Selected
+}
+
 }

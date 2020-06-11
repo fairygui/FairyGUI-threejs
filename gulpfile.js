@@ -1,39 +1,45 @@
 const gulp = require('gulp')
-const rollup = require('rollup')
 const ts = require('gulp-typescript');
 const rename = require("gulp-rename");
 const uglify = require('gulp-uglify-es').default;
+const sourcemaps = require('gulp-sourcemaps')
 const tsProject = ts.createProject('tsconfig.json', { declaration: true });
+var babel = require('gulp-babel');
+const insert = require('gulp-insert');
+const replace = require('gulp-string-replace');
+
+let first = true
 
 gulp.task('buildJs', () => {
-    return tsProject.src().pipe(tsProject()).pipe(gulp.dest('./build'));
+    return tsProject.src()
+        .pipe(tsProject()).js
+        .pipe(sourcemaps.init())
+        .pipe(replace('var fgui;', function () {
+            if (first) {
+                first = false;
+                return "window.fgui = {};";
+            }
+            else
+                return "";
+        }, { logs: { enabled: false } }))
+        .pipe(insert.append('module.exports = window.fgui'))
+        .pipe(sourcemaps.write('.'))
+        .pipe(gulp.dest('./'));
 })
 
-gulp.task("rollup", async function () {
-    let config = {
-        input: "build/FairyGUI.js",
-        output: {
-            file: 'dist/fairygui.js',
-            format: 'umd',
-            extend: true,
-            name: 'fgui'
-        }
-    };
-    const subTask = await rollup.rollup(config);
-    await subTask.write(config);
 
-    let config2 = {
-        input: "build/FairyGUI.js",
-        output: {
-            file: 'dist/fairygui.module.js',
-            format: 'esm',
-            extend: true,
-            name: 'fgui'
-        }
-    };
-    const subTask2 = await rollup.rollup(config2);
-    await subTask2.write(config2);
+gulp.task("builddts", () => {
+    return tsProject.src()
+        .pipe(tsProject())
+        .dts.pipe(gulp.dest('./'));
 });
+
+gulp.task("buildbabel", () => {
+    return gulp.src('./dist/*.js')
+        .pipe(babel())
+        .pipe(gulp.dest('./dist'));
+});
+
 
 gulp.task("uglify", function () {
     return gulp.src("dist/fairygui.js")
@@ -41,11 +47,9 @@ gulp.task("uglify", function () {
         .pipe(uglify(/* options */))
         .pipe(gulp.dest("dist/"));
 });
-
-gulp.task('build'
-    , gulp.series(
-        gulp.parallel('buildJs'),
-        gulp.parallel('rollup'),
-        gulp.parallel('uglify')
-    )
-)
+//
+gulp.task("build",gulp.series(
+    gulp.parallel('buildJs'),
+    gulp.parallel('builddts'),
+    gulp.parallel('buildbabel'),
+    gulp.parallel('uglify'))) 

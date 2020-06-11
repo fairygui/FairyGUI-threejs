@@ -1,4 +1,6 @@
-
+namespace fgui
+{
+    
 export enum EaseType {
     Linear = 0,
     SineIn = 1,
@@ -34,3 +36,5 @@ export enum EaseType {
     Custom = 31,
 }
 
+
+}

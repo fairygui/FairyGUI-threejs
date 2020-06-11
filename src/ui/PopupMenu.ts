@@ -1,14 +1,6 @@
-import { Event } from "../event/Event";
-import { Controller } from "./Controller";
-import { PopupDirection, RelationType } from "./FieldTypes";
-import { GButton } from "./GButton";
-import { GComponent } from "./GComponent";
-import { GList } from "./GList";
-import { GObject } from "./GObject";
-import { GRoot } from "./GRoot";
-import { UIConfig } from "./UIConfig";
-import { UIPackage } from "./UIPackage";
-
+namespace fgui
+{
+    
 export class PopupMenu {
 
     protected _contentPane: GComponent;
@@ -174,4 +166,5 @@ export class PopupMenu {
         this._list.resizeToFit(100000, 10);
     }
 
+}
 }

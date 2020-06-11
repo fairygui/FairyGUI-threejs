@@ -1,13 +1,20 @@
 {
   "compilerOptions": {
-      "declaration": true,
-      "target": "es6",
-      "module": "es6",
-      "moduleResolution":"Node",
+    "outFile": "./dist/fairygui.js",
+    "module": "system",
+    "target": "es6",
+    "declaration": true,
+    "esModuleInterop": true,
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
   },
-  
   "include": [
-      "./src/**/*"
+    "./src/**/*"
   ],
   "exclude": [
     "node_modules"

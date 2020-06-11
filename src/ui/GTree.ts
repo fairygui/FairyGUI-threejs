@@ -1,12 +1,6 @@
-import { Event } from "../event/Event";
-import { ByteBuffer } from "../utils/ByteBuffer";
-import { Controller } from "./Controller";
-import { GComponent } from "./GComponent";
-import { GList } from "./GList";
-import { GObject } from "./GObject";
-import { GTreeNode } from "./GTreeNode";
-
-var s_list: Array<number> = new Array<number>();
+namespace fgui
+{
+    var s_list: Array<number> = new Array<number>();
 
 export class GTree extends GList {
 
@@ -398,4 +392,5 @@ export class GTree extends GList {
             buffer.pos = nextPos;
         }
     }
+}
 }

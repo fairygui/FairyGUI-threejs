@@ -1,5 +1,6 @@
-import { Rect } from "../../utils/Rect";
+namespace fgui {
 
-export interface IHitTest {
-    hitTest(contentRect: Rect, x: number, y: number): boolean;
+    export interface IHitTest {
+        hitTest(contentRect: Rect, x: number, y: number): boolean;
+    }
 }

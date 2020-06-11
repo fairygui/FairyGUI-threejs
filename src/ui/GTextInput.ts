@@ -1,7 +1,6 @@
-import { GTextField } from "./GTextField";
-import { ByteBuffer } from "../utils/ByteBuffer";
-import { InputTextField } from "../core/text/InputTextField";
-
+namespace fgui
+{
+    
 export class GTextInput extends GTextField {
     constructor() {
         super();
@@ -88,4 +87,5 @@ export class GTextInput extends GTextField {
         if (buffer.readBool())
             this.password = true;
     }
+}
 }
