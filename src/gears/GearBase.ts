@@ -1,5 +1,5 @@
 import { Controller } from "../ui/Controller";
-import { GObject } from "../ui/GObject";
+import { GObject, constructingDepth } from "../ui/GObject";
 import { EaseType } from "../tween/EaseType";
 import { GTweener } from "../tween/GTweener";
 import { ByteBuffer } from "../utils/ByteBuffer";
@@ -7,13 +7,9 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 export class GearBase {
     public static disableAllTweenEffect?: boolean;
 
-    protected _owner: GObject;
+    public _owner: GObject;
     protected _controller: Controller;
     protected _tweenConfig: GearTweenConfig;
-
-    constructor(owner: GObject) {
-        this._owner = owner;
-    }
 
     public dispose(): void {
         if (this._tweenConfig && this._tweenConfig._tweener) {
@@ -38,6 +34,10 @@ export class GearBase {
         if (!this._tweenConfig)
             this._tweenConfig = new GearTweenConfig();
         return this._tweenConfig;
+    }
+
+    protected get allowTween(): boolean {
+        return this._tweenConfig && this._tweenConfig.tween && constructingDepth.n == 0 && !GearBase.disableAllTweenEffect;
     }
 
     public setup(buffer: ByteBuffer): void {

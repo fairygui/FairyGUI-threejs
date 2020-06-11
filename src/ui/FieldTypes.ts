@@ -1,4 +1,7 @@
 
+export type AlignType = "left" | "center" | "right";
+export type VertAlignType = "top" | "middle" | "bottom";
+
 export enum ButtonMode {
     Common,
     Check,
@@ -10,16 +13,7 @@ export enum AutoSizeType {
     Height,
     Shrink
 }
-export enum AlignType {
-    Left,
-    Center,
-    Right
-}
-export enum VertAlignType {
-    Top,
-    Middle,
-    Bottom
-}
+
 export enum LoaderFillType {
     None,
     Scale,

@@ -265,8 +265,10 @@ export class GTextField extends GObject {
         tf.font = buffer.readS();
         tf.size = buffer.readShort();
         tf.color = buffer.readColor();
-        this.align = buffer.readByte();
-        this.verticalAlign = buffer.readByte();
+        let c = buffer.readByte();
+        this.align = c == 0 ? "left" : (c == 1 ? "center" : "right");
+        c = buffer.readByte();
+        this.verticalAlign = c == 0 ? "top" : (c == 1 ? "middle" : "bottom");
         tf.lineSpacing = buffer.readShort();
         tf.letterSpacing = buffer.readShort();
         this.ubbEnabled = buffer.readBool();

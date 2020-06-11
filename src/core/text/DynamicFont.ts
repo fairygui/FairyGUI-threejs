@@ -20,13 +20,14 @@ type Glyph = {
     advance?: number;
     sourceRect?: Rect;
     chl?: number,
+    baseline?: number,
     ver: number;
 
     outlines?: { [index: number]: OutlineGlyph }
 }
 
 var s_rect = new Rect();
-var s_scale = window.devicePixelRatio;
+var s_scale: number = 1;
 
 export class DynamicFont {
     public version: number = 0;
@@ -57,6 +58,8 @@ export class DynamicFont {
         this._context = this._canvas.getContext("2d");
         this._context.globalCompositeOperation = "lighter";
         this.createTexture(512);
+
+        s_scale = Stage.devicePixelRatio;
     }
 
     public get name(): string {
@@ -139,7 +142,7 @@ export class DynamicFont {
         this._context.font = size + "px " + this._name;
 
         if (!glyph) {
-            glyph = this.measureChar(ch);
+            glyph = this.measureChar(ch, size);
             this._glyphs[key] = glyph;
         }
         glyph.ver = this.version;
@@ -155,9 +158,9 @@ export class DynamicFont {
             return null;
         }
 
-        this._context.textBaseline = "top";
+        this._context.textBaseline = "alphabetic";
         this._context.fillStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
-        this._context.fillText(ch, node.x + glyph.sourceRect.x, node.y + glyph.sourceRect.y);
+        this._context.fillText(ch, node.x + glyph.sourceRect.x, node.y + glyph.baseline);
         this._texture.needsUpdate = true;
 
         glyph.chl = node.z / 3;
@@ -197,10 +200,10 @@ export class DynamicFont {
         if (this.keepCrisp)
             size *= s_scale;
         this._context.font = size + "px " + this._name;
-        this._context.textBaseline = "top";
+        this._context.textBaseline = "alphabetic";
         this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
         this._context.lineWidth = outline2;
-        this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.sourceRect.y + outline2);
+        this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.baseline + outline2);
         this._texture.needsUpdate = true;
 
         outlineGlyph.chl = node.z / 3;
@@ -210,16 +213,29 @@ export class DynamicFont {
             w / this.mainTexture.width, h / this.mainTexture.height);
     }
 
-    private measureChar(ch: string): Glyph {
+    private measureChar(ch: string, size: number): Glyph {
+        let left: number, top: number, w: number, h: number, baseline: number;
         this._context.textBaseline = "alphabetic";
         let met: TextMetrics = this._context.measureText(ch);
-        this._context.textBaseline = "top";
-        let met1: TextMetrics = this._context.measureText(ch);
+        if ('actualBoundingBoxLeft' in met) {
+            this._context.textBaseline = "top";
+            let met1: TextMetrics = this._context.measureText(ch);
 
-        let left: number = met.actualBoundingBoxLeft > 0 ? Math.ceil(met.actualBoundingBoxLeft) : 0;
-        let top: number = Math.ceil(met1.actualBoundingBoxAscent) + 1;
-        let w: number = Math.ceil(left + met.actualBoundingBoxRight) + 1;
-        let h: number = Math.ceil(met.actualBoundingBoxAscent + met.actualBoundingBoxDescent) + 2;
+            left = met.actualBoundingBoxLeft > 0 ? Math.ceil(met.actualBoundingBoxLeft) : 0;
+            top = Math.ceil(met1.actualBoundingBoxAscent) + 1;
+            w = Math.ceil(left + met.actualBoundingBoxRight) + 1;
+            h = Math.ceil(met.actualBoundingBoxAscent + met.actualBoundingBoxDescent) + 2;
+            baseline = Math.ceil(met.actualBoundingBoxAscent);
+        }
+        else {
+            baseline = getBaseline(ch, this._name, size);
+            left = 0;
+            if (ch == 'j')
+                left = Math.ceil(size / 20); //guess
+            top = 0;
+            w = met["width"];
+            h = size * 1.25 + 2;
+        }
 
         let glyph: Glyph;
         if (w == 0) {
@@ -228,9 +244,10 @@ export class DynamicFont {
         else {
             glyph = {
                 uvRect: new Rect(),
-                vertRect: new Rect(-left, -met.actualBoundingBoxAscent, w, h),
+                vertRect: new Rect(-left, -baseline, w, h),
                 advance: met.width,
                 sourceRect: new Rect(left, top, w, h),
+                baseline: baseline,
                 ver: this.version
             };
 
@@ -344,4 +361,42 @@ class BinPacker {
         node.right = { x: node.x + w, y: node.y, w: node.w - w, h: h };
         return node;
     }
+}
+
+
+let eSpan: HTMLSpanElement;
+let eBlock: HTMLDivElement;
+
+function getBaseline(ch: string, font: string, size: number): number {
+    if (!eSpan) {
+        eSpan = document.createElement('span');
+        eBlock = document.createElement("div");
+        eBlock.style.display = 'inline-block';
+        eBlock.style.width = '1px';
+        eBlock.style.height = '0px';
+
+        var div = document.createElement('div');
+        div.id = 'measureText';
+        div.style.position = 'absolute';
+        div.style.visibility = 'hidden';
+        div.style.left = div.style.top = '0px';
+        div.appendChild(eSpan);
+        div.appendChild(eBlock);
+        document.body.appendChild(div);
+    }
+
+    eSpan.innerHTML = ch;
+    eSpan.style.fontFamily = font;
+    eSpan.style.fontSize = size + "px";
+
+    let ascent: number, height: number;
+    let offset = eSpan.offsetTop;
+
+    eBlock.style['vertical-align'] = 'baseline';
+    ascent = eBlock.offsetTop - offset;
+
+    eBlock.style['vertical-align'] = 'bottom';
+    height = eBlock.offsetTop - offset;
+
+    return ascent + Math.floor((size * 1.25 - height) / 2);
 }

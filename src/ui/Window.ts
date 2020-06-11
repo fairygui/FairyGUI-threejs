@@ -129,9 +129,7 @@ export class Window extends GComponent {
     }
 
     public hideImmediately(): void {
-        var r: GRoot = (this.parent instanceof GRoot) ? (<GRoot>this.parent) : null;
-        if (!r)
-            r = GRoot.inst;
+        var r: GRoot = GRoot.findFor(this.parent);
         r.hideWindowImmediately(this);
     }
 

@@ -1,8 +1,6 @@
 import { Controller } from "./Controller";
 import { ObjectPropID, PopupDirection, RelationType } from "./FieldTypes";
-import { GButton, ButtonStatus } from "./GButton";
 import { GComponent } from "./GComponent";
-import { GLabel } from "./GLabel";
 import { GList } from "./GList";
 import { GObject } from "./GObject";
 import { GRoot } from "./GRoot";
@@ -187,15 +185,12 @@ export class GComboBox extends GComponent {
     public getTextField(): GTextField {
         if (this._titleObject instanceof GTextField)
             return <GTextField>this._titleObject;
-        else if (this._titleObject instanceof GLabel)
-            return (<GLabel>this._titleObject).getTextField();
-        else if (this._titleObject instanceof GButton)
-            return (<GButton>this._titleObject).getTextField();
+        else if ('getTextField' in this._titleObject)
+            return <GTextField>(<any>this._titleObject).getTextField();
         else
             return null;
     }
-
-    protected setState(val: ButtonStatus): void {
+    protected setState(val: string): void {
         if (this._buttonController)
             this._buttonController.selectedPage = val;
     }

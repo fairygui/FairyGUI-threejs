@@ -1,15 +1,10 @@
 import { ObjectPropID } from "../ui/FieldTypes";
-import { GObject } from "../ui/GObject";
 import { ByteBuffer } from "../utils/ByteBuffer";
 import { GearBase } from "./GearBase";
 
 export class GearFontSize extends GearBase {
     private _storage: { [index: string]: number };
     private _default: number = 0;
-
-    constructor(owner: GObject) {
-        super(owner);
-    }
 
     protected init(): void {
         this._default = this._owner.getProp(ObjectPropID.FontSize);

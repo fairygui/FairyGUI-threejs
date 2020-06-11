@@ -15,16 +15,6 @@
         AutoSizeType[AutoSizeType["Height"] = 2] = "Height";
         AutoSizeType[AutoSizeType["Shrink"] = 3] = "Shrink";
     })(exports.AutoSizeType || (exports.AutoSizeType = {}));
-    (function (AlignType) {
-        AlignType[AlignType["Left"] = 0] = "Left";
-        AlignType[AlignType["Center"] = 1] = "Center";
-        AlignType[AlignType["Right"] = 2] = "Right";
-    })(exports.AlignType || (exports.AlignType = {}));
-    (function (VertAlignType) {
-        VertAlignType[VertAlignType["Top"] = 0] = "Top";
-        VertAlignType[VertAlignType["Middle"] = 1] = "Middle";
-        VertAlignType[VertAlignType["Bottom"] = 2] = "Bottom";
-    })(exports.VertAlignType || (exports.VertAlignType = {}));
     (function (LoaderFillType) {
         LoaderFillType[LoaderFillType["None"] = 0] = "None";
         LoaderFillType[LoaderFillType["Scale"] = 1] = "Scale";
@@ -81,6 +71,7 @@
         ObjectType[ObjectType["Slider"] = 15] = "Slider";
         ObjectType[ObjectType["ScrollBar"] = 16] = "ScrollBar";
         ObjectType[ObjectType["Tree"] = 17] = "Tree";
+        ObjectType[ObjectType["Loader3D"] = 18] = "Loader3D";
     })(exports.ObjectType || (exports.ObjectType = {}));
     (function (ProgressTitleType) {
         ProgressTitleType[ProgressTitleType["Percent"] = 0] = "Percent";
@@ -573,84 +564,6 @@
         return false;
     }
 
-    (function (ScaleMode) {
-        ScaleMode[ScaleMode["ConstantPixelSize"] = 0] = "ConstantPixelSize";
-        ScaleMode[ScaleMode["ScaleWithScreenSize"] = 1] = "ScaleWithScreenSize";
-        ScaleMode[ScaleMode["ConstantPhysicalSize"] = 2] = "ConstantPhysicalSize";
-    })(exports.ScaleMode || (exports.ScaleMode = {}));
-    (function (ScreenMatchMode) {
-        ScreenMatchMode[ScreenMatchMode["MatchWidthOrHeight"] = 0] = "MatchWidthOrHeight";
-        ScreenMatchMode[ScreenMatchMode["MatchWidth"] = 1] = "MatchWidth";
-        ScreenMatchMode[ScreenMatchMode["MatchHeight"] = 2] = "MatchHeight";
-    })(exports.ScreenMatchMode || (exports.ScreenMatchMode = {}));
-    class UIContentScaler {
-        static get scaleFactor() { return _scaleFactor; }
-        static get scaleLevel() { return _scaleLevel; }
-        static scaleWithScreenSize(designResolutionX, designResolutionY, screenMatchMode) {
-            _designResolutionX = designResolutionX;
-            _designResolutionY = designResolutionY;
-            _scaleMode = exports.ScaleMode.ScaleWithScreenSize;
-            _screenMatchMode = screenMatchMode || exports.ScreenMatchMode.MatchWidthOrHeight;
-            refresh();
-        }
-        static setConstant(constantScaleFactor) {
-            _scaleMode = exports.ScaleMode.ConstantPixelSize;
-            _constantScaleFactor = constantScaleFactor || 1;
-            refresh();
-        }
-        static _refresh() {
-            refresh();
-        }
-    }
-    var _scaleMode = exports.ScaleMode.ConstantPixelSize;
-    var _screenMatchMode;
-    var _designResolutionX = 1136;
-    var _designResolutionY = 640;
-    // var _fallbackScreenDPI: number;
-    // var _defaultSpriteDPI: number;
-    var _constantScaleFactor = 1;
-    var _scaleFactor = 1;
-    var _scaleLevel = 0;
-    function refresh() {
-        let screenWidth = Stage.width;
-        let screenHeight = Stage.height;
-        if (_scaleMode == exports.ScaleMode.ScaleWithScreenSize) {
-            if (_designResolutionX == 0 || _designResolutionY == 0)
-                return;
-            let dx = _designResolutionX;
-            let dy = _designResolutionY;
-            if ( (screenWidth > screenHeight && dx < dy || screenWidth < screenHeight && dx > dy)) {
-                //scale should not change when orientation change
-                let tmp = dx;
-                dx = dy;
-                dy = tmp;
-            }
-            if (_screenMatchMode == exports.ScreenMatchMode.MatchWidthOrHeight) {
-                let s1 = screenWidth / dx;
-                let s2 = screenHeight / dy;
-                _scaleFactor = Math.min(s1, s2);
-            }
-            else if (_screenMatchMode == exports.ScreenMatchMode.MatchWidth)
-                _scaleFactor = screenWidth / dx;
-            else
-                _scaleFactor = screenHeight / dy;
-        }
-        else if (_scaleMode == exports.ScaleMode.ConstantPhysicalSize) ;
-        else
-            _scaleFactor = _constantScaleFactor;
-        if (_scaleFactor > 10)
-            _scaleFactor = 10;
-        if (_scaleFactor > 3)
-            _scaleLevel = 3; //x4
-        else if (_scaleFactor > 2)
-            _scaleLevel = 2; //x3
-        else if (_scaleFactor > 1)
-            _scaleLevel = 1; //x2
-        else
-            _scaleLevel = 0;
-        broadcastEvent(Stage.scene, "content_scale_factor_changed");
-    }
-
     var UILayer = 1;
     class Stage {
         static init(renderer) {
@@ -661,6 +574,12 @@
         }
         static get scene() {
             return _scene;
+        }
+        static get domElement() {
+            return _canvas;
+        }
+        static get devicePixelRatio() {
+            return _devicePixelRatio;
         }
         static get camera() {
             return _camera;
@@ -733,9 +652,11 @@
         static hitTest(x, y, forTouch) {
             return hitTest(x, y, forTouch);
         }
-        static setFocus(newFocus) {
+        static setFocus(obj) {
+            setFocus(obj);
         }
     }
+    Stage.eventDispatcher = new EventDispatcher();
     class HitTestContext {
         constructor() {
             this.screenPt = new three.Vector3();
@@ -779,6 +700,7 @@
     var _offsetX;
     var _offsetY;
     var _touchscreen;
+    var _devicePixelRatio = 1;
     var hit_tmp = new three.Vector3();
     var hit_tmp2 = new three.Vector2();
     function init(renderer) {
@@ -786,6 +708,8 @@
         _camera = new three.OrthographicCamera(-1, 1, 1, -1, 0, 1000);
         _camera.layers.set(UILayer);
         _touchscreen = is_touch_enabled();
+        if (renderer instanceof three.WebGLRenderer)
+            _devicePixelRatio = renderer.getPixelRatio();
         _touches = [];
         for (let i = 0; i < 5; i++)
             _touches.push(new TouchInfo());
@@ -839,8 +763,10 @@
             _camera.aspect = window.innerWidth / window.innerHeight;
             _camera.updateProjectionMatrix();
         }
+        if (activeTextInput)
+            setFocus(null);
         if (evt)
-            UIContentScaler._refresh();
+            Stage.eventDispatcher.dispatchEvent("size_changed");
     }
     function is_touch_enabled() {
         return ('ontouchstart' in window) ||
@@ -848,7 +774,8 @@
             (navigator.msMaxTouchPoints > 0);
     }
     function handleMouse(ev, type) {
-        ev.preventDefault();
+        if (!activeTextInput || !activeTextInput.stage)
+            ev.preventDefault();
         _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
         let touch = _touches[0];
         touch.shiftKey = ev.shiftKey;
@@ -866,7 +793,7 @@
                 _touchCount = 1;
                 touch.begin();
                 touch.button = ev.button;
-                Stage.setFocus(touch.target);
+                setFocus(touch.target);
                 setLastInput(touch);
                 if (touch.target)
                     bubbleEvent(touch.target.obj3D, "touch_begin");
@@ -889,7 +816,8 @@
         }
     }
     function handleWheel(ev) {
-        ev.preventDefault();
+        if (!activeTextInput || !activeTextInput.stage)
+            ev.preventDefault();
         _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
         let touch = _touches[0];
         if (_touchscreen) {
@@ -914,7 +842,8 @@
         return null;
     }
     function handleTouch(ev, type) {
-        ev.preventDefault();
+        if (!activeTextInput || !activeTextInput.stage)
+            ev.preventDefault();
         let touches = ev.changedTouches;
         for (let i = 0; i < touches.length; ++i) {
             let uTouch = touches[i];
@@ -951,7 +880,7 @@
                     _touchCount++;
                     touch.begin();
                     touch.button = 0;
-                    Stage.setFocus(touch.target);
+                    setFocus(touch.target);
                     setLastInput(touch);
                     if (touch.target)
                         bubbleEvent(touch.target.obj3D, "touch_begin");
@@ -1031,6 +960,20 @@
         let ret = traverseHitTest(_scene, _hitTestContext);
         Stage.disableMatrixValidation = false;
         return ret;
+    }
+    var activeTextInput;
+    function setFocus(obj) {
+        if (activeTextInput == obj)
+            return;
+        if (activeTextInput) {
+            let t = activeTextInput;
+            activeTextInput = null;
+            t.dispatchEvent("focus_out");
+        }
+        if (!obj || !obj["isInput"])
+            return;
+        activeTextInput = obj;
+        activeTextInput.dispatchEvent("focus_in");
     }
     var s_v3 = new three.Vector3();
     function screenToWorld(camera, x, y, outPt, outDir) {
@@ -1810,9 +1753,6 @@
     })(exports.EaseType || (exports.EaseType = {}));
 
     class GearBase {
-        constructor(owner) {
-            this._owner = owner;
-        }
         dispose() {
             if (this._tweenConfig && this._tweenConfig._tweener) {
                 this._tweenConfig._tweener.kill();
@@ -1833,6 +1773,9 @@
             if (!this._tweenConfig)
                 this._tweenConfig = new GearTweenConfig();
             return this._tweenConfig;
+        }
+        get allowTween() {
+            return this._tweenConfig && this._tweenConfig.tween && constructingDepth.n == 0 && !GearBase.disableAllTweenEffect;
         }
         setup(buffer) {
             this._controller = this._owner.parent.getControllerAt(buffer.readShort());
@@ -1898,9 +1841,6 @@
     }
 
     class GearAnimation extends GearBase {
-        constructor(owner) {
-            super(owner);
-        }
         init() {
             this._default = {
                 playing: this._owner.getProp(exports.ObjectPropID.Playing),
@@ -1938,9 +1878,6 @@
     }
 
     class GearColor extends GearBase {
-        constructor(owner) {
-            super(owner);
-        }
         init() {
             this._default = {
                 color: this._owner.getProp(exports.ObjectPropID.Color),
@@ -1978,10 +1915,9 @@
     }
 
     class GearDisplay extends GearBase {
-        constructor(owner) {
-            super(owner);
+        constructor() {
+            super(...arguments);
             this._visible = 0;
-            this._displayLockToken = 0;
             this._displayLockToken = 1;
         }
         init() {
@@ -2011,8 +1947,8 @@
     }
 
     class GearDisplay2 extends GearBase {
-        constructor(owner) {
-            super(owner);
+        constructor() {
+            super(...arguments);
             this._visible = 0;
         }
         init() {
@@ -2036,8 +1972,8 @@
     }
 
     class GearFontSize extends GearBase {
-        constructor(owner) {
-            super(owner);
+        constructor() {
+            super(...arguments);
             this._default = 0;
         }
         init() {
@@ -2065,9 +2001,6 @@
     }
 
     class GearIcon extends GearBase {
-        constructor(owner) {
-            super(owner);
-        }
         init() {
             this._default = this._owner.icon;
             this._storage = {};
@@ -2766,7 +2699,7 @@
                         freePosStart = i;
                 }
                 else {
-                    if ((tweener._target instanceof GObject) && tweener._target.isDisposed)
+                    if (('isDisposed' in tweener._target) && tweener._target.isDisposed)
                         tweener._killed = true;
                     else if (!tweener._paused)
                         tweener._update(dt);
@@ -2829,9 +2762,6 @@
     GTween.catchCallbackExceptions = true;
 
     class GearLook extends GearBase {
-        constructor(owner) {
-            super(owner);
-        }
         init() {
             this._default = {
                 alpha: this._owner.alpha,
@@ -2856,7 +2786,7 @@
         }
         apply() {
             var gv = this._storage[this._controller.selectedPageId] || this._default;
-            if (this._tweenConfig && this._tweenConfig.tween && constructingDepth.n == 0 && !GearBase.disableAllTweenEffect) {
+            if (this.allowTween) {
                 this._owner._gearLocked = true;
                 this._owner.grayed = gv.grayed;
                 this._owner.touchable = gv.touchable;
@@ -2922,9 +2852,6 @@
     }
 
     class GearSize extends GearBase {
-        constructor(owner) {
-            super(owner);
-        }
         init() {
             this._default = {
                 width: this._owner.width,
@@ -2949,7 +2876,7 @@
         }
         apply() {
             var gv = this._storage[this._controller.selectedPageId] || this._default;
-            if (this._tweenConfig && this._tweenConfig.tween && constructingDepth.n == 0 && !GearBase.disableAllTweenEffect) {
+            if (this.allowTween) {
                 if (this._tweenConfig._tweener) {
                     if (this._tweenConfig._tweener.endValue.x != gv.width || this._tweenConfig._tweener.endValue.y != gv.height
                         || this._tweenConfig._tweener.endValue.z != gv.scaleX || this._tweenConfig._tweener.endValue.w != gv.scaleY) {
@@ -3022,9 +2949,6 @@
     }
 
     class GearText extends GearBase {
-        constructor(owner) {
-            super(owner);
-        }
         init() {
             this._default = this._owner.text;
             this._storage = {};
@@ -3050,9 +2974,6 @@
     }
 
     class GearXY extends GearBase {
-        constructor(owner) {
-            super(owner);
-        }
         init() {
             this._default = {
                 x: this._owner.x,
@@ -3094,7 +3015,7 @@
                 ex = pt.x;
                 ey = pt.y;
             }
-            if (this._tweenConfig && this._tweenConfig.tween && constructingDepth.n == 0 && !GearBase.disableAllTweenEffect) {
+            if (this.allowTween) {
                 if (this._tweenConfig._tweener) {
                     if (this._tweenConfig._tweener.endValue.x != ex || this._tweenConfig._tweener.endValue.y != ey) {
                         this._tweenConfig._tweener.kill(true);
@@ -4743,7 +4664,9 @@
         GearAnimation, GearText, GearIcon, GearDisplay2, GearFontSize
     ];
     function createGear(owner, index) {
-        return new (GearClasses[index])(owner);
+        let ret = new (GearClasses[index])();
+        ret._owner = owner;
+        return ret;
     }
     var s_vec2$1 = new three.Vector2();
     var s_rect$1 = new Rect();
@@ -7761,6 +7684,82 @@
         }
     }
 
+    (function (ScaleMode) {
+        ScaleMode[ScaleMode["ConstantPixelSize"] = 0] = "ConstantPixelSize";
+        ScaleMode[ScaleMode["ScaleWithScreenSize"] = 1] = "ScaleWithScreenSize";
+        ScaleMode[ScaleMode["ConstantPhysicalSize"] = 2] = "ConstantPhysicalSize";
+    })(exports.ScaleMode || (exports.ScaleMode = {}));
+    (function (ScreenMatchMode) {
+        ScreenMatchMode[ScreenMatchMode["MatchWidthOrHeight"] = 0] = "MatchWidthOrHeight";
+        ScreenMatchMode[ScreenMatchMode["MatchWidth"] = 1] = "MatchWidth";
+        ScreenMatchMode[ScreenMatchMode["MatchHeight"] = 2] = "MatchHeight";
+    })(exports.ScreenMatchMode || (exports.ScreenMatchMode = {}));
+    class UIContentScaler {
+        static get scaleFactor() { return _scaleFactor; }
+        static get scaleLevel() { return _scaleLevel; }
+        static scaleWithScreenSize(designResolutionX, designResolutionY, screenMatchMode) {
+            _designResolutionX = designResolutionX;
+            _designResolutionY = designResolutionY;
+            _scaleMode = exports.ScaleMode.ScaleWithScreenSize;
+            _screenMatchMode = screenMatchMode || exports.ScreenMatchMode.MatchWidthOrHeight;
+            refresh();
+        }
+        static setConstant(constantScaleFactor) {
+            _scaleMode = exports.ScaleMode.ConstantPixelSize;
+            _constantScaleFactor = constantScaleFactor || 1;
+            refresh();
+        }
+    }
+    var _scaleMode = exports.ScaleMode.ConstantPixelSize;
+    var _screenMatchMode;
+    var _designResolutionX = 1136;
+    var _designResolutionY = 640;
+    // var _fallbackScreenDPI: number;
+    // var _defaultSpriteDPI: number;
+    var _constantScaleFactor = 1;
+    var _scaleFactor = 1;
+    var _scaleLevel = 0;
+    Stage.eventDispatcher.on("size_changed", refresh);
+    function refresh() {
+        let screenWidth = Stage.width;
+        let screenHeight = Stage.height;
+        if (_scaleMode == exports.ScaleMode.ScaleWithScreenSize) {
+            if (_designResolutionX == 0 || _designResolutionY == 0)
+                return;
+            let dx = _designResolutionX;
+            let dy = _designResolutionY;
+            if ( (screenWidth > screenHeight && dx < dy || screenWidth < screenHeight && dx > dy)) {
+                //scale should not change when orientation change
+                let tmp = dx;
+                dx = dy;
+                dy = tmp;
+            }
+            if (_screenMatchMode == exports.ScreenMatchMode.MatchWidthOrHeight) {
+                let s1 = screenWidth / dx;
+                let s2 = screenHeight / dy;
+                _scaleFactor = Math.min(s1, s2);
+            }
+            else if (_screenMatchMode == exports.ScreenMatchMode.MatchWidth)
+                _scaleFactor = screenWidth / dx;
+            else
+                _scaleFactor = screenHeight / dy;
+        }
+        else if (_scaleMode == exports.ScaleMode.ConstantPhysicalSize) ;
+        else
+            _scaleFactor = _constantScaleFactor;
+        if (_scaleFactor > 10)
+            _scaleFactor = 10;
+        if (_scaleFactor > 3)
+            _scaleLevel = 3; //x4
+        else if (_scaleFactor > 2)
+            _scaleLevel = 2; //x3
+        else if (_scaleFactor > 1)
+            _scaleLevel = 1; //x2
+        else
+            _scaleLevel = 0;
+        broadcastEvent(Stage.scene, "content_scale_factor_changed");
+    }
+
     class PackageItem {
         constructor() {
             this.width = 0;
@@ -7791,7 +7790,7 @@
     }
 
     var s_rect$5 = new Rect();
-    var s_scale = window.devicePixelRatio;
+    var s_scale = 1;
     class DynamicFont {
         constructor() {
             this.version = 0;
@@ -7805,6 +7804,7 @@
             this._context = this._canvas.getContext("2d");
             this._context.globalCompositeOperation = "lighter";
             this.createTexture(512);
+            s_scale = Stage.devicePixelRatio;
         }
         get name() {
             return this._name;
@@ -7873,7 +7873,7 @@
                 size *= s_scale;
             this._context.font = size + "px " + this._name;
             if (!glyph) {
-                glyph = this.measureChar(ch);
+                glyph = this.measureChar(ch, size);
                 this._glyphs[key] = glyph;
             }
             glyph.ver = this.version;
@@ -7886,9 +7886,9 @@
                 this.rebuild();
                 return null;
             }
-            this._context.textBaseline = "top";
+            this._context.textBaseline = "alphabetic";
             this._context.fillStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
-            this._context.fillText(ch, node.x + glyph.sourceRect.x, node.y + glyph.sourceRect.y);
+            this._context.fillText(ch, node.x + glyph.sourceRect.x, node.y + glyph.baseline);
             this._texture.needsUpdate = true;
             glyph.chl = node.z / 3;
             glyph.uvRect.set(node.x / this.mainTexture.width, 1 - (node.y + h) / this.mainTexture.height, w / this.mainTexture.width, h / this.mainTexture.height);
@@ -7919,25 +7919,38 @@
             if (this.keepCrisp)
                 size *= s_scale;
             this._context.font = size + "px " + this._name;
-            this._context.textBaseline = "top";
+            this._context.textBaseline = "alphabetic";
             this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
             this._context.lineWidth = outline2;
-            this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.sourceRect.y + outline2);
+            this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.baseline + outline2);
             this._texture.needsUpdate = true;
             outlineGlyph.chl = node.z / 3;
             outlineGlyph.vertRect.copy(glyph.vertRect);
             outlineGlyph.vertRect.extend(outline, outline);
             outlineGlyph.uvRect.set(node.x / this.mainTexture.width, 1 - (node.y + h) / this.mainTexture.height, w / this.mainTexture.width, h / this.mainTexture.height);
         }
-        measureChar(ch) {
+        measureChar(ch, size) {
+            let left, top, w, h, baseline;
             this._context.textBaseline = "alphabetic";
             let met = this._context.measureText(ch);
-            this._context.textBaseline = "top";
-            let met1 = this._context.measureText(ch);
-            let left = met.actualBoundingBoxLeft > 0 ? Math.ceil(met.actualBoundingBoxLeft) : 0;
-            let top = Math.ceil(met1.actualBoundingBoxAscent) + 1;
-            let w = Math.ceil(left + met.actualBoundingBoxRight) + 1;
-            let h = Math.ceil(met.actualBoundingBoxAscent + met.actualBoundingBoxDescent) + 2;
+            if ('actualBoundingBoxLeft' in met) {
+                this._context.textBaseline = "top";
+                let met1 = this._context.measureText(ch);
+                left = met.actualBoundingBoxLeft > 0 ? Math.ceil(met.actualBoundingBoxLeft) : 0;
+                top = Math.ceil(met1.actualBoundingBoxAscent) + 1;
+                w = Math.ceil(left + met.actualBoundingBoxRight) + 1;
+                h = Math.ceil(met.actualBoundingBoxAscent + met.actualBoundingBoxDescent) + 2;
+                baseline = Math.ceil(met.actualBoundingBoxAscent);
+            }
+            else {
+                baseline = getBaseline(ch, this._name, size);
+                left = 0;
+                if (ch == 'j')
+                    left = Math.ceil(size / 20); //guess
+                top = 0;
+                w = met["width"];
+                h = size * 1.25 + 2;
+            }
             let glyph;
             if (w == 0) {
                 glyph = { ver: this.version };
@@ -7945,9 +7958,10 @@
             else {
                 glyph = {
                     uvRect: new Rect(),
-                    vertRect: new Rect(-left, -met.actualBoundingBoxAscent, w, h),
+                    vertRect: new Rect(-left, -baseline, w, h),
                     advance: met.width,
                     sourceRect: new Rect(left, top, w, h),
+                    baseline: baseline,
                     ver: this.version
                 };
                 if (this.keepCrisp) {
@@ -8035,6 +8049,35 @@
             node.right = { x: node.x + w, y: node.y, w: node.w - w, h: h };
             return node;
         }
+    }
+    let eSpan;
+    let eBlock;
+    function getBaseline(ch, font, size) {
+        if (!eSpan) {
+            eSpan = document.createElement('span');
+            eBlock = document.createElement("div");
+            eBlock.style.display = 'inline-block';
+            eBlock.style.width = '1px';
+            eBlock.style.height = '0px';
+            var div = document.createElement('div');
+            div.id = 'measureText';
+            div.style.position = 'absolute';
+            div.style.visibility = 'hidden';
+            div.style.left = div.style.top = '0px';
+            div.appendChild(eSpan);
+            div.appendChild(eBlock);
+            document.body.appendChild(div);
+        }
+        eSpan.innerHTML = ch;
+        eSpan.style.fontFamily = font;
+        eSpan.style.fontSize = size + "px";
+        let ascent, height;
+        let offset = eSpan.offsetTop;
+        eBlock.style['vertical-align'] = 'baseline';
+        ascent = eBlock.offsetTop - offset;
+        eBlock.style['vertical-align'] = 'bottom';
+        height = eBlock.offsetTop - offset;
+        return ascent + Math.floor((size * 1.25 - height) / 2);
     }
 
     class FontManager {
@@ -12962,9 +13005,7 @@
                 this.doHideAnimation();
         }
         hideImmediately() {
-            var r = (this.parent instanceof GRoot) ? this.parent : null;
-            if (!r)
-                r = GRoot.inst;
+            var r = GRoot.findFor(this.parent);
             r.hideWindowImmediately(this);
         }
         centerOn(r, restraint) {
@@ -14105,15 +14146,7 @@
                     case "p":
                         if (XMLIterator.tagType == XMLTagType.Start) {
                             this.pushTextFormat();
-                            let align = XMLIterator.getAttribute("align");
-                            switch (align) {
-                                case "center":
-                                    this._format.align = exports.AlignType.Center;
-                                    break;
-                                case "right":
-                                    this._format.align = exports.AlignType.Right;
-                                    break;
-                            }
+                            this._format.align = XMLIterator.getAttribute("align");
                             if (!this.isNewLine())
                                 this.appendText("\n");
                         }
@@ -14345,13 +14378,8 @@
             return this._charPositions;
         }
         redraw() {
-            if (this._font == null) {
-                this._font = FontManager.getFont(UIConfig.defaultFont);
-                this._graphics.texture = this._font.mainTexture;
-                this._graphics.setKeyword("TEXT", this._font.isDynamic);
-                this._fontVersion = this._font.version;
-                this._textChanged = true;
-            }
+            if (!this._font)
+                this.applyFormat();
             if (this._font.version != this._fontVersion) {
                 this._fontVersion = this._font.version;
                 this._graphics.texture = this._font.mainTexture;
@@ -14416,7 +14444,7 @@
                     this._textChanged = true;
                 else if (this._autoSize != exports.AutoSizeType.None)
                     this._graphics.setMeshDirty();
-                if (this._verticalAlign != exports.VertAlignType.Top)
+                if (this._verticalAlign != "top")
                     this.applyVertAlign();
             }
             super.onSizeChanged();
@@ -14446,12 +14474,8 @@
             }
         }
         buildLines() {
-            if (this._font == null) {
-                this._font = FontManager.getFont(UIConfig.defaultFont);
-                this._fontVersion = this._font.version;
-                this._graphics.texture = this._font.mainTexture;
-                this._graphics.setKeyword("TEXT", this._font.isDynamic);
-            }
+            if (!this._font)
+                this.applyFormat();
             this._textChanged = false;
             this._graphics.setMeshDirty();
             this._fontSizeScale = 1;
@@ -14473,7 +14497,7 @@
             }
             if (this._autoSize == exports.AutoSizeType.Both) {
                 this._updatingSize = true;
-                if (this._input) {
+                if (this.isInput) {
                     let w = Math.max(this._textFormat.size, this._textWidth);
                     let h = Math.max(this._font.getLineHeight(this._textFormat.size) + GUTTER_Y * 2, this._textHeight);
                     this.setSize(w, h);
@@ -14484,7 +14508,7 @@
             }
             else if (this._autoSize == exports.AutoSizeType.Height) {
                 this._updatingSize = true;
-                if (this._input)
+                if (this.isInput)
                     this.height = Math.max(this._font.getLineHeight(this._textFormat.size) + GUTTER_Y * 2, this._textHeight);
                 else
                     this.height = this._textHeight;
@@ -14495,14 +14519,14 @@
         }
         parseText() {
             if (this._html) {
-                defaultParser.parse(this._text, this._textFormat, this._elements, this._rich ? this.htmlParseOptions : null);
+                defaultParser.parse(this._text, this._textFormat, this._elements, this.isRich ? this.htmlParseOptions : null);
                 this._parsedText = "";
             }
             else
                 this._parsedText = this._text;
             let elementCount = this._elements.length;
             if (elementCount == 0) {
-                if (this._input)
+                if (this.isInput)
                     this._parsedText = this._parsedText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
             }
             else {
@@ -14511,7 +14535,7 @@
                     let element = this._elements[i];
                     element.charIndex = this._parsedText.length;
                     if (element.type == HtmlElementType.Text) {
-                        if (this._input)
+                        if (this.isInput)
                             this._parsedText += element.text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
                         else
                             this._parsedText += element.text;
@@ -14560,7 +14584,7 @@
                     }
                     else {
                         let htmlObject = element.htmlObject;
-                        if (this._rich && !htmlObject) {
+                        if (this.isRich && !htmlObject) {
                             element.space = rectWidth - line.width - 4;
                             htmlObject = this.htmlPageContext.createObject(this, element);
                             element.htmlObject = htmlObject;
@@ -14752,7 +14776,7 @@
             let linkStartLine = 0;
             let posx = 0;
             let indent_x;
-            let clipping = !this._input && this._autoSize == exports.AutoSizeType.None;
+            let clipping = !this.isInput && this._autoSize == exports.AutoSizeType.None;
             let lineClipped;
             let lineAlign;
             let vertCount;
@@ -14777,9 +14801,9 @@
                     lineAlign = element.format.align;
                 else
                     lineAlign = format.align;
-                if (lineAlign == exports.AlignType.Center)
+                if (lineAlign == "center")
                     indent_x = Math.floor((rectWidth - line.width) / 2);
-                else if (lineAlign == exports.AlignType.Right)
+                else if (lineAlign == "right")
                     indent_x = rectWidth - line.width;
                 else
                     indent_x = 0;
@@ -14950,7 +14974,7 @@
         applyVertAlign() {
             let oldOffset = this._yOffset;
             if (this._autoSize == exports.AutoSizeType.Both || this._autoSize == exports.AutoSizeType.Height
-                || this._verticalAlign == exports.VertAlignType.Top)
+                || this._verticalAlign == "top")
                 this._yOffset = 0;
             else {
                 let dh;
@@ -14960,7 +14984,7 @@
                     dh = this._contentRect.height - this._textHeight;
                 if (dh < 0)
                     dh = 0;
-                if (this._verticalAlign == exports.VertAlignType.Middle)
+                if (this._verticalAlign == "middle")
                     this._yOffset = Math.floor(dh / 2);
                 else
                     this._yOffset = dh;
@@ -14989,34 +15013,6 @@
     class CharPosition {
     }
     var charPosPool = new Pool(CharPosition);
-
-    class InputTextField extends TextField {
-        constructor() {
-            super();
-            this._touchDisabled = false;
-            this._input = true;
-            this.maxLength = 0;
-            this.editable = true;
-            this._borderColor = new Color4();
-            this._backgroundColor = new Color4(0xFFFFFF, 0);
-        }
-        get password() {
-            return this._password;
-        }
-        set password(value) {
-            this._password = value;
-        }
-        onSizeChanged() {
-            super.onSizeChanged();
-            if (!this._clipRect)
-                this._clipRect = new Rect();
-            this._clipRect.copy(this._contentRect);
-            this._clipRect.x += GUTTER_X;
-            this._clipRect.y += GUTTER_Y;
-            this._clipRect.width -= GUTTER_X * 2;
-            this._clipRect.height -= GUTTER_Y * 2;
-        }
-    }
 
     class UBBParser {
         constructor() {
@@ -15169,6 +15165,151 @@
         }
     }
     var defaultParser$1 = new UBBParser();
+
+    class InputTextField extends TextField {
+        constructor() {
+            super();
+            this._touchDisabled = false;
+            this.opaque = true;
+            this.isInput = true;
+            this._text2 = '';
+            this.maxLength = 0;
+            this.editable = true;
+            this._borderColor = new Color4();
+            this._backgroundColor = new Color4(0xFFFFFF, 0);
+            this.on("focus_in", this.__focusIn, this, true);
+            this.on("focus_out", this.__focusOut, this, true);
+            this.on("removed_from_stage", this.__removed, this);
+        }
+        get text() {
+            if (this._editing)
+                this._text2 = this._element.value;
+            return this._text2;
+        }
+        set text(value) {
+            this._text2 = value;
+            this.updateText();
+        }
+        get promptText() {
+            return this._promptText;
+        }
+        set promptText(value) {
+            this._promptText = value;
+            this._decodedPromptText = defaultParser$1.parse(value);
+            this.updateText();
+        }
+        get password() {
+            return this._password;
+        }
+        set password(value) {
+            this._password = value;
+        }
+        updateText() {
+            if (this._editing)
+                this._element.value = this._text2;
+            else if (this._text2.length == 0 && this._promptText)
+                super.htmlText = this._decodedPromptText;
+            else if (this._password)
+                super.text = "*".repeat(this._text2.length);
+            else
+                super.text = this._text2;
+        }
+        onSizeChanged() {
+            super.onSizeChanged();
+            if (!this._clipRect)
+                this._clipRect = new Rect();
+            this._clipRect.copy(this._contentRect);
+            this._clipRect.x += GUTTER_X;
+            this._clipRect.y += GUTTER_Y;
+            this._clipRect.width -= GUTTER_X * 2;
+            this._clipRect.height -= GUTTER_Y * 2;
+        }
+        applyFormat() {
+            super.applyFormat();
+            if (this._element)
+                this.setFormat();
+        }
+        createElement() {
+            let e;
+            if (this.singleLine) {
+                e = this._element = document.createElement("input");
+            }
+            else {
+                e = this._element = document.createElement("textarea");
+                e.style.resize = "none";
+                e.style.overflow = "scroll";
+            }
+            e.id = 'InputText';
+            e.style.outline = "none";
+            e.style.borderWidth = "0px";
+            e.style.padding = "0px";
+            e.style.margin = "0px";
+            e.style.position = "absolute";
+            e.style.display = "none";
+            e.style.background = 'transparent';
+            e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
+            Stage.domElement.parentNode.appendChild(e);
+            this.setFormat();
+        }
+        setFormat() {
+            let e = this._element;
+            e.style.font = this._textFormat.size + "px " + this._font.name;
+            e.style.color = convertToHtmlColor(this._textFormat.color);
+            e.style.webkitTextStroke = this._textFormat.outline + "px " + convertToHtmlColor(this._textFormat.outlineColor);
+            e.style.textAlign = this._textFormat.align;
+        }
+        dispose() {
+            super.dispose();
+            if (this._element) {
+                this._element.style.display = 'none';
+                if (this._element.parentNode)
+                    this._element.parentNode.removeChild(this._element);
+                this._element = null;
+            }
+        }
+        __focusIn() {
+            if (!this.editable || this._editing)
+                return;
+            if (!this._font)
+                this.applyFormat();
+            if (!this._element)
+                this.createElement();
+            this.localToGlobal(0, 0, s_v2);
+            this.localToGlobal(1, 1, s_v2_2);
+            s_v2_2.sub(s_v2);
+            let e = this._element;
+            e.style.width = this.width.toFixed(2) + "px";
+            e.style.height = this.height.toFixed(2) + "px";
+            e.style.display = "inline-block";
+            e.style.left = (s_v2.x + 2) + "px";
+            e.style.top = s_v2.y + "px";
+            e.style.transform = "scale(" + s_v2_2.x.toFixed(3) + "," + s_v2_2.y.toFixed(3) + ")";
+            e.value = this._text2;
+            //e.maxLength = this.maxLength;
+            e.focus();
+            this._editing = true;
+            this._graphics.material.visible = false;
+            this.dispatchEvent("focus_in");
+        }
+        __focusOut() {
+            if (!this._editing)
+                return;
+            this._element.style.display = "none";
+            this._element.blur();
+            this._text2 = this._element.value;
+            this._editing = false;
+            this.updateText();
+            this._graphics.material.visible = true;
+            if (this.stage)
+                this.dispatchEvent("focus_out");
+        }
+        __removed() {
+            if (this._editing)
+                Stage.setFocus(null);
+        }
+    }
+    var s_v2 = new three.Vector2();
+    var s_v2_2 = new three.Vector2();
 
     class GTextField extends GObject {
         constructor() {
@@ -15372,8 +15513,10 @@
             tf.font = buffer.readS();
             tf.size = buffer.readShort();
             tf.color = buffer.readColor();
-            this.align = buffer.readByte();
-            this.verticalAlign = buffer.readByte();
+            let c = buffer.readByte();
+            this.align = c == 0 ? "left" : (c == 1 ? "center" : "right");
+            c = buffer.readByte();
+            this.verticalAlign = c == 0 ? "top" : (c == 1 ? "middle" : "bottom");
             tf.lineSpacing = buffer.readShort();
             tf.letterSpacing = buffer.readShort();
             this.ubbEnabled = buffer.readBool();
@@ -15451,6 +15594,294 @@
         }
     }
 
+    class HtmlImage {
+        constructor() {
+            this.loader = Decls$1.UIObjectFactory.newObject(exports.ObjectType.Loader);
+            this.loader.fill = exports.LoaderFillType.ScaleFree;
+            this.loader.touchable = false;
+        }
+        get displayObject() {
+            return this.loader.displayObject;
+        }
+        get element() {
+            return this._element;
+        }
+        get width() {
+            return this.loader.width;
+        }
+        get height() {
+            return this.loader.height;
+        }
+        create(owner, element) {
+            this._owner = owner;
+            this._element = element;
+            let sourceWidth = 0;
+            let sourceHeight = 0;
+            let src = element.getAttrString("src");
+            if (src != null) {
+                let pi = UIPackage.getItemByURL(src);
+                if (pi) {
+                    sourceWidth = pi.width;
+                    sourceHeight = pi.height;
+                }
+            }
+            this.loader.url = src;
+            let width = element.getAttrInt("width", sourceWidth);
+            let height = element.getAttrInt("height", sourceHeight);
+            if (width == 0)
+                width = 5;
+            if (height == 0)
+                height = 10;
+            this.loader.setSize(width, height);
+        }
+        setPosition(x, y) {
+            this.loader.setPosition(x, y);
+        }
+        add() {
+            this._owner.addChild(this.loader.displayObject);
+        }
+        remove() {
+            if (this.loader.displayObject.parent)
+                this._owner.removeChild(this.loader.displayObject);
+        }
+        release() {
+            this.loader.offAll();
+            this.loader.url = null;
+            this._owner = null;
+            this._element = null;
+        }
+        dispose() {
+            this.loader.dispose();
+        }
+    }
+
+    var s_rect$7 = new Rect();
+    class SelectionShape extends DisplayObject {
+        constructor() {
+            super();
+            this.rects = new Array();
+            this._graphics = new NGraphics(this._obj3D);
+            this._graphics.texture = EmptyTexture;
+        }
+        refresh() {
+            let count = this.rects.length;
+            if (count > 0) {
+                s_rect$7.copy(this.rects[0]);
+                for (let i = 1; i < count; i++)
+                    s_rect$7.union(this.rects[i]);
+                this.setSize(s_rect$7.xMax, s_rect$7.yMax);
+            }
+            else
+                this.setSize(0, 0);
+            this.graphics.setMeshDirty();
+        }
+        clear() {
+            this.rects.length = 0;
+            this.graphics.setMeshDirty();
+        }
+        onPopulateMesh(vb) {
+            let count = this.rects.length;
+            if (count == 0)
+                return;
+            for (let i = 0; i < count; i++)
+                vb.addQuad(this.rects[i]);
+            vb.addTriangles();
+        }
+        hitTest(context) {
+            let pt = context.getLocal(this);
+            if (this._contentRect.contains(pt)) {
+                let count = this.rects.length;
+                for (let i = 0; i < count; i++) {
+                    if (this.rects[i].contains(pt))
+                        return this;
+                }
+            }
+            return null;
+        }
+    }
+
+    class HtmlLink {
+        constructor() {
+            this._shape = new SelectionShape();
+            this._shape.on("click", () => {
+                bubbleEvent(this._owner.obj3D, "click_link", this._element.getAttrString("href"));
+            });
+        }
+        get displayObject() {
+            return this._shape;
+        }
+        get element() {
+            return this._element;
+        }
+        get width() {
+            return 0;
+        }
+        get height() {
+            return 0;
+        }
+        create(owner, element) {
+            this._owner = owner;
+            this._element = element;
+        }
+        setArea(startLine, startCharX, endLine, endCharX) {
+            if (startLine == endLine && startCharX > endCharX) {
+                let tmp = startCharX;
+                startCharX = endCharX;
+                endCharX = tmp;
+            }
+            this._shape.rects.length = 0;
+            this._owner.getLinesShape(startLine, startCharX, endLine, endCharX, true, this._shape.rects);
+            this._shape.refresh();
+        }
+        setPosition(x, y) {
+            this._shape.setPosition(x, y);
+        }
+        add() {
+            this._owner.addChild(this._shape);
+        }
+        remove() {
+            if (this._shape.parent)
+                this._owner.removeChild(this._shape);
+        }
+        release() {
+            this._shape.offAll();
+            this._owner = null;
+            this._element = null;
+        }
+        dispose() {
+            this._shape.dispose();
+        }
+    }
+
+    class HtmlPageContext {
+        constructor() {
+            this._imagePool = new Pool(HtmlImage);
+            this._linkPool = new Pool(HtmlLink);
+        }
+        createObject(owner, element) {
+            let ret = null;
+            if (element.type == HtmlElementType.Image)
+                ret = this._imagePool.borrow();
+            else if (element.type == HtmlElementType.Link)
+                ret = this._linkPool.borrow();
+            if (ret)
+                ret.create(owner, element);
+            return ret;
+        }
+        freeObject(obj) {
+            obj.release();
+            if (obj instanceof HtmlImage)
+                this._imagePool.returns(obj);
+            else if (obj instanceof HtmlLink)
+                this._linkPool.returns(obj);
+        }
+    }
+    var defaultContext = new HtmlPageContext();
+
+    class RichTextField extends TextField {
+        constructor() {
+            super();
+            this._touchDisabled = false;
+            this.opaque = true;
+            this.isRich = true;
+            this.htmlPageContext = defaultContext;
+            this.htmlParseOptions = new HtmlParseOptions();
+        }
+        getHtmlElement(name) {
+            let elements = this.htmlElements;
+            let count = elements.length;
+            for (let i = 0; i < count; i++) {
+                let element = elements[i];
+                if (name == element.name)
+                    return element;
+            }
+            return null;
+        }
+        showHtmlObject(index, show) {
+            let element = this.htmlElements[index];
+            if (element.htmlObject && element.type != HtmlElementType.Link) {
+                //set hidden flag
+                if (show)
+                    element.status &= 253; //~(1<<1)
+                else
+                    element.status |= 2;
+                if ((element.status & 3) == 0) //not (hidden and clipped)
+                 {
+                    if ((element.status & 4) == 0) //not added
+                     {
+                        element.status |= 4;
+                        element.htmlObject.add();
+                    }
+                }
+                else {
+                    if ((element.status & 4) != 0) //added
+                     {
+                        element.status &= 251;
+                        element.htmlObject.remove();
+                    }
+                }
+            }
+        }
+        dispose() {
+            this.cleanupObjects();
+            super.dispose();
+        }
+        cleanupObjects() {
+            let elements = this.htmlElements;
+            let count = elements.length;
+            for (let i = 0; i < count; i++) {
+                let element = elements[i];
+                if (element.htmlObject) {
+                    element.htmlObject.remove();
+                    this.htmlPageContext.freeObject(element.htmlObject);
+                }
+            }
+        }
+        refreshObjects() {
+            let elements = this.htmlElements;
+            let count = elements.length;
+            for (let i = 0; i < count; i++) {
+                let element = elements[i];
+                if (element.htmlObject) {
+                    if ((element.status & 3) == 0) //not (hidden and clipped)
+                     {
+                        if ((element.status & 4) == 0) //not added
+                         {
+                            element.status |= 4;
+                            element.htmlObject.add();
+                        }
+                    }
+                    else {
+                        if ((element.status & 4) != 0) //added
+                         {
+                            element.status &= 251;
+                            element.htmlObject.remove();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    class GRichTextField extends GTextField {
+        constructor() {
+            super();
+        }
+        createDisplayObject() {
+            this._displayObject = this._textField = new RichTextField();
+        }
+        setText() {
+            let str = this._text;
+            if (this._template)
+                str = this.parseTemplate(str);
+            this._textField.maxWidth = this.maxWidth;
+            if (this._ubbEnabled)
+                this._textField.htmlText = defaultParser$1.parse(str);
+            else
+                this._textField.htmlText = str;
+        }
+    }
+
     class GTextInput extends GTextField {
         constructor() {
             super();
@@ -15518,6 +15949,380 @@
             if (buffer.readBool())
                 this.password = true;
         }
+    }
+
+    class GLoader extends GObject {
+        constructor() {
+            super();
+            this._contentSourceWidth = 0;
+            this._contentSourceHeight = 0;
+            this._contentWidth = 0;
+            this._contentHeight = 0;
+            this._url = "";
+            this._fill = exports.LoaderFillType.None;
+            this._align = "left";
+            this._valign = "top";
+        }
+        createDisplayObject() {
+            this._displayObject = new DisplayObject();
+            this._content = new MovieClip();
+            this._displayObject.addChild(this._content);
+        }
+        dispose() {
+            if (this._contentItem && this._content.texture) {
+                this.freeExternal(this._content.texture);
+            }
+            if (this._content2)
+                this._content2.dispose();
+            super.dispose();
+        }
+        get url() {
+            return this._url;
+        }
+        set url(value) {
+            if (this._url == value)
+                return;
+            this._url = value;
+            this.loadContent();
+            this.updateGear(7);
+        }
+        get icon() {
+            return this._url;
+        }
+        set icon(value) {
+            this.url = value;
+        }
+        get align() {
+            return this._align;
+        }
+        set align(value) {
+            if (this._align != value) {
+                this._align = value;
+                this.updateLayout();
+            }
+        }
+        get verticalAlign() {
+            return this._valign;
+        }
+        set verticalAlign(value) {
+            if (this._valign != value) {
+                this._valign = value;
+                this.updateLayout();
+            }
+        }
+        get fill() {
+            return this._fill;
+        }
+        set fill(value) {
+            if (this._fill != value) {
+                this._fill = value;
+                this.updateLayout();
+            }
+        }
+        get shrinkOnly() {
+            return this._shrinkOnly;
+        }
+        set shrinkOnly(value) {
+            if (this._shrinkOnly != value) {
+                this._shrinkOnly = value;
+                this.updateLayout();
+            }
+        }
+        get autoSize() {
+            return this._autoSize;
+        }
+        set autoSize(value) {
+            if (this._autoSize != value) {
+                this._autoSize = value;
+                this.updateLayout();
+            }
+        }
+        get playing() {
+            return this._content.playing;
+        }
+        set playing(value) {
+            if (this._content.playing != value) {
+                this._content.playing = value;
+                this.updateGear(5);
+            }
+        }
+        get frame() {
+            return this._content.frame;
+        }
+        set frame(value) {
+            if (this._content.frame != value) {
+                this._content.frame = value;
+                this.updateGear(5);
+            }
+        }
+        get color() {
+            return this._content.graphics.color;
+        }
+        set color(value) {
+            if (this._content.graphics.color != value) {
+                this._content.graphics.color = value;
+                this.updateGear(4);
+            }
+        }
+        get content() {
+            return this._content;
+        }
+        get component() {
+            return this._content2;
+        }
+        loadContent() {
+            this.clearContent();
+            if (!this._url)
+                return;
+            if (this._url.startsWith("ui://"))
+                this.loadFromPackage(this._url);
+            else
+                this.loadExternal();
+        }
+        loadFromPackage(itemURL) {
+            this._contentItem = UIPackage.getItemByURL(itemURL);
+            if (this._contentItem) {
+                this._contentItem = this._contentItem.getBranch();
+                this._contentSourceWidth = this._contentItem.width;
+                this._contentSourceHeight = this._contentItem.height;
+                this._contentItem = this._contentItem.getHighResolution();
+                this._contentItem.load();
+                if (this._autoSize)
+                    this.setSize(this._contentSourceWidth, this._contentSourceHeight);
+                if (this._contentItem.type == exports.PackageItemType.Image) {
+                    if (this._contentItem.texture == null) {
+                        this.setErrorState();
+                    }
+                    else {
+                        this._content.texture = this._contentItem.texture;
+                        this._content.scale9Grid = this._contentItem.scale9Grid;
+                        this._content.scaleByTile = this._contentItem.scaleByTile;
+                        this._content.tileGridIndice = this._contentItem.tileGridIndice;
+                        this._contentSourceWidth = this._contentItem.width;
+                        this._contentSourceHeight = this._contentItem.height;
+                        this.updateLayout();
+                    }
+                }
+                else if (this._contentItem.type == exports.PackageItemType.MovieClip) {
+                    this._contentSourceWidth = this._contentItem.width;
+                    this._contentSourceHeight = this._contentItem.height;
+                    this._content.interval = this._contentItem.interval;
+                    this._content.swing = this._contentItem.swing;
+                    this._content.repeatDelay = this._contentItem.repeatDelay;
+                    this._content.frames = this._contentItem.frames;
+                    this.updateLayout();
+                }
+                else if (this._contentItem.type == exports.PackageItemType.Component) {
+                    var obj = UIPackage.createObjectFromURL(itemURL);
+                    if (!obj)
+                        this.setErrorState();
+                    else if (!(obj instanceof GComponent)) {
+                        obj.dispose();
+                        this.setErrorState();
+                    }
+                    else {
+                        this._content2 = obj;
+                        this._displayObject.addChild(this._content2.displayObject);
+                        this.updateLayout();
+                    }
+                }
+                else
+                    this.setErrorState();
+            }
+            else
+                this.setErrorState();
+        }
+        loadExternal() {
+            let url = this._url;
+            new three.TextureLoader().load(this._url, tex => {
+                if (url == this._url)
+                    this.onExternalLoadSuccess(new NTexture(tex));
+            });
+        }
+        freeExternal(texture) {
+        }
+        onExternalLoadSuccess(texture) {
+            this._content.texture = texture;
+            this._content.scale9Grid = null;
+            this._content.scaleByTile = false;
+            this._contentSourceWidth = texture.width;
+            this._contentSourceHeight = texture.height;
+            this.updateLayout();
+        }
+        onExternalLoadFailed() {
+            this.setErrorState();
+        }
+        setErrorState() {
+        }
+        clearErrorState() {
+        }
+        updateLayout() {
+            if (!this._content2 && !this._content.texture && !this._content.frames) {
+                if (this._autoSize) {
+                    this._updatingLayout = true;
+                    this.setSize(50, 30);
+                    this._updatingLayout = false;
+                }
+                return;
+            }
+            this._contentWidth = this._contentSourceWidth;
+            this._contentHeight = this._contentSourceHeight;
+            if (this._autoSize) {
+                this._updatingLayout = true;
+                if (this._contentWidth == 0)
+                    this._contentWidth = 50;
+                if (this._contentHeight == 0)
+                    this._contentHeight = 30;
+                this.setSize(this._contentWidth, this._contentHeight);
+                this._updatingLayout = false;
+                if (this._contentWidth == this._width && this._contentHeight == this._height) {
+                    if (this._content2) {
+                        this._content2.setPosition(0, 0);
+                        this._content2.setScale(1, 1);
+                    }
+                    else {
+                        this._content.setSize(this._contentWidth, this._contentHeight);
+                        this._content.setPosition(0, 0);
+                    }
+                    return;
+                }
+            }
+            var sx = 1, sy = 1;
+            if (this._fill != exports.LoaderFillType.None) {
+                sx = this.width / this._contentSourceWidth;
+                sy = this.height / this._contentSourceHeight;
+                if (sx != 1 || sy != 1) {
+                    if (this._fill == exports.LoaderFillType.ScaleMatchHeight)
+                        sx = sy;
+                    else if (this._fill == exports.LoaderFillType.ScaleMatchWidth)
+                        sy = sx;
+                    else if (this._fill == exports.LoaderFillType.Scale) {
+                        if (sx > sy)
+                            sx = sy;
+                        else
+                            sy = sx;
+                    }
+                    else if (this._fill == exports.LoaderFillType.ScaleNoBorder) {
+                        if (sx > sy)
+                            sy = sx;
+                        else
+                            sx = sy;
+                    }
+                    if (this._shrinkOnly) {
+                        if (sx > 1)
+                            sx = 1;
+                        if (sy > 1)
+                            sy = 1;
+                    }
+                    this._contentWidth = this._contentSourceWidth * sx;
+                    this._contentHeight = this._contentSourceHeight * sy;
+                }
+            }
+            if (this._content2)
+                this._content2.setScale(sx, sy);
+            else
+                this._content.setSize(this._contentWidth, this._contentHeight);
+            var nx, ny;
+            if (this._align == "center")
+                nx = Math.floor((this.width - this._contentWidth) / 2);
+            else if (this._align == "right")
+                nx = this.width - this._contentWidth;
+            else
+                nx = 0;
+            if (this._valign == "middle")
+                ny = Math.floor((this.height - this._contentHeight) / 2);
+            else if (this._valign == "bottom")
+                ny = this.height - this._contentHeight;
+            else
+                ny = 0;
+            if (this._content2)
+                this._content2.setPosition(nx, ny);
+            else
+                this._content.setPosition(nx, ny);
+        }
+        clearContent() {
+            this.clearErrorState();
+            if (this._contentItem == null && this._content.texture) {
+                this.freeExternal(this._content.texture);
+            }
+            this._content.texture = null;
+            this._content.frames = null;
+            if (this._content2) {
+                this._content2.dispose();
+                this._content2 = null;
+            }
+            this._contentItem = null;
+        }
+        handleSizeChanged() {
+            super.handleSizeChanged();
+            if (!this._updatingLayout)
+                this.updateLayout();
+        }
+        getProp(index) {
+            switch (index) {
+                case exports.ObjectPropID.Color:
+                    return this.color;
+                case exports.ObjectPropID.Playing:
+                    return this.playing;
+                case exports.ObjectPropID.Frame:
+                    return this.frame;
+                case exports.ObjectPropID.TimeScale:
+                    return this._content.timeScale;
+                default:
+                    return super.getProp(index);
+            }
+        }
+        setProp(index, value) {
+            switch (index) {
+                case exports.ObjectPropID.Color:
+                    this.color = value;
+                    break;
+                case exports.ObjectPropID.Playing:
+                    this.playing = value;
+                    break;
+                case exports.ObjectPropID.Frame:
+                    this.frame = value;
+                    break;
+                case exports.ObjectPropID.TimeScale:
+                    this._content.timeScale = value;
+                    break;
+                case exports.ObjectPropID.DeltaTime:
+                    this._content.advance(value);
+                    break;
+                default:
+                    super.setProp(index, value);
+                    break;
+            }
+        }
+        setup_beforeAdd(buffer, beginPos) {
+            super.setup_beforeAdd(buffer, beginPos);
+            buffer.seek(beginPos, 5);
+            var iv;
+            this._url = buffer.readS();
+            iv = buffer.readByte();
+            this._align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
+            iv = buffer.readByte();
+            this._valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
+            this._fill = buffer.readByte();
+            this._shrinkOnly = buffer.readBool();
+            this._autoSize = buffer.readBool();
+            buffer.readBool(); //_showErrorSign
+            this._content.playing = buffer.readBool();
+            this._content.frame = buffer.readInt();
+            if (buffer.readBool())
+                this.color = buffer.readColor();
+            this._content.fillMethod = buffer.readByte();
+            if (this._content.fillMethod != 0) {
+                this._content.fillOrigin = buffer.readByte();
+                this._content.fillClockwise = buffer.readBool();
+                this._content.fillAmount = buffer.readFloat();
+            }
+            if (this._url)
+                this.loadContent();
+        }
+    }
+
+    class GLoader3D extends GObject {
     }
 
     class GLabel extends GComponent {
@@ -15598,9 +16403,7 @@
         getTextField() {
             if (this._titleObject instanceof GTextField)
                 return this._titleObject;
-            else if (this._titleObject instanceof GLabel)
-                return (this._titleObject).getTextField();
-            else if (this._titleObject instanceof GButton)
+            else if ('getTextField' in this._titleObject)
                 return this._titleObject.getTextField();
             else
                 return null;
@@ -15860,9 +16663,7 @@
         getTextField() {
             if (this._titleObject instanceof GTextField)
                 return this._titleObject;
-            else if (this._titleObject instanceof GLabel)
-                return (this._titleObject).getTextField();
-            else if (this._titleObject instanceof GButton)
+            else if ('getTextField' in this._titleObject)
                 return this._titleObject.getTextField();
             else
                 return null;
@@ -16280,9 +17081,7 @@
         getTextField() {
             if (this._titleObject instanceof GTextField)
                 return this._titleObject;
-            else if (this._titleObject instanceof GLabel)
-                return this._titleObject.getTextField();
-            else if (this._titleObject instanceof GButton)
+            else if ('getTextField' in this._titleObject)
                 return this._titleObject.getTextField();
             else
                 return null;
@@ -16509,6 +17308,515 @@
             if (this._down) {
                 this._down = false;
                 this.setCurrentState();
+            }
+        }
+    }
+
+    let s_vec2$4 = new three.Vector2();
+    class GSlider extends GComponent {
+        constructor() {
+            super();
+            this.changeOnClick = true;
+            this.canDrag = true;
+            this._min = 0;
+            this._max = 0;
+            this._value = 0;
+            this._barMaxWidth = 0;
+            this._barMaxHeight = 0;
+            this._barMaxWidthDelta = 0;
+            this._barMaxHeightDelta = 0;
+            this._clickPercent = 0;
+            this._barStartX = 0;
+            this._barStartY = 0;
+            this._titleType = exports.ProgressTitleType.Percent;
+            this._value = 50;
+            this._max = 100;
+            this._clickPos = new three.Vector2();
+        }
+        get titleType() {
+            return this._titleType;
+        }
+        set titleType(value) {
+            this._titleType = value;
+        }
+        get wholeNumbers() {
+            return this._wholeNumbers;
+        }
+        set wholeNumbers(value) {
+            if (this._wholeNumbers != value) {
+                this._wholeNumbers = value;
+                this.update();
+            }
+        }
+        get min() {
+            return this._min;
+        }
+        set min(value) {
+            if (this._min != value) {
+                this._min = value;
+                this.update();
+            }
+        }
+        get max() {
+            return this._max;
+        }
+        set max(value) {
+            if (this._max != value) {
+                this._max = value;
+                this.update();
+            }
+        }
+        get value() {
+            return this._value;
+        }
+        set value(value) {
+            if (this._value != value) {
+                this._value = value;
+                this.update();
+            }
+        }
+        update() {
+            this.updateWithPercent((this._value - this._min) / (this._max - this._min), false);
+        }
+        updateWithPercent(percent, manual) {
+            percent = clamp01(percent);
+            if (manual) {
+                var newValue = clamp(this._min + (this._max - this._min) * percent, this._min, this._max);
+                if (this._wholeNumbers) {
+                    newValue = Math.round(newValue);
+                    percent = clamp01((newValue - this._min) / (this._max - this._min));
+                }
+                if (newValue != this._value) {
+                    this._value = newValue;
+                    if (this.dispatchEvent("status_changed"))
+                        return;
+                }
+            }
+            if (this._titleObject) {
+                switch (this._titleType) {
+                    case exports.ProgressTitleType.Percent:
+                        this._titleObject.text = Math.floor(percent * 100) + "%";
+                        break;
+                    case exports.ProgressTitleType.ValueAndMax:
+                        this._titleObject.text = this._value + "/" + this._max;
+                        break;
+                    case exports.ProgressTitleType.Value:
+                        this._titleObject.text = "" + this._value;
+                        break;
+                    case exports.ProgressTitleType.Max:
+                        this._titleObject.text = "" + this._max;
+                        break;
+                }
+            }
+            var fullWidth = this.width - this._barMaxWidthDelta;
+            var fullHeight = this.height - this._barMaxHeightDelta;
+            if (!this._reverse) {
+                if (this._barObjectH)
+                    this._barObjectH.width = Math.round(fullWidth * percent);
+                if (this._barObjectV)
+                    this._barObjectV.height = Math.round(fullHeight * percent);
+            }
+            else {
+                if (this._barObjectH) {
+                    this._barObjectH.width = Math.round(fullWidth * percent);
+                    this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
+                }
+                if (this._barObjectV) {
+                    this._barObjectV.height = Math.round(fullHeight * percent);
+                    this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
+                }
+            }
+        }
+        constructExtension(buffer) {
+            buffer.seek(0, 6);
+            this._titleType = buffer.readByte();
+            this._reverse = buffer.readBool();
+            if (buffer.version >= 2) {
+                this._wholeNumbers = buffer.readBool();
+                this.changeOnClick = buffer.readBool();
+            }
+            this._titleObject = this.getChild("title");
+            this._barObjectH = this.getChild("bar");
+            this._barObjectV = this.getChild("bar_v");
+            this._gripObject = this.getChild("grip");
+            if (this._barObjectH) {
+                this._barMaxWidth = this._barObjectH.width;
+                this._barMaxWidthDelta = this.width - this._barMaxWidth;
+                this._barStartX = this._barObjectH.x;
+            }
+            if (this._barObjectV) {
+                this._barMaxHeight = this._barObjectV.height;
+                this._barMaxHeightDelta = this.height - this._barMaxHeight;
+                this._barStartY = this._barObjectV.y;
+            }
+            if (this._gripObject) {
+                this._gripObject.on("touch_begin", this.__gripTouchBegin, this);
+                this._gripObject.on("touch_move", this.__gripTouchMove, this);
+            }
+            this.on("touch_begin", this.__barTouchBegin, this);
+        }
+        handleSizeChanged() {
+            super.handleSizeChanged();
+            if (this._barObjectH)
+                this._barMaxWidth = this.width - this._barMaxWidthDelta;
+            if (this._barObjectV)
+                this._barMaxHeight = this.height - this._barMaxHeightDelta;
+            if (!this._underConstruct)
+                this.update();
+        }
+        setup_afterAdd(buffer, beginPos) {
+            super.setup_afterAdd(buffer, beginPos);
+            if (!buffer.seek(beginPos, 6)) {
+                this.update();
+                return;
+            }
+            if (buffer.readByte() != this.packageItem.objectType) {
+                this.update();
+                return;
+            }
+            this._value = buffer.readInt();
+            this._max = buffer.readInt();
+            if (buffer.version >= 2)
+                this._min = buffer.readInt();
+            this.update();
+        }
+        __gripTouchBegin(evt) {
+            if (evt.input.button != 0)
+                return;
+            this.canDrag = true;
+            evt.stopPropagation();
+            evt.captureTouch();
+            this.globalToLocal(evt.input.x, evt.input.y, this._clickPos);
+            this._clickPercent = clamp01((this._value - this._min) / (this._max - this._min));
+        }
+        __gripTouchMove(evt) {
+            if (!this.canDrag)
+                return;
+            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$4);
+            var deltaX = pt.x - this._clickPos.x;
+            var deltaY = pt.y - this._clickPos.y;
+            if (this._reverse) {
+                deltaX = -deltaX;
+                deltaY = -deltaY;
+            }
+            var percent;
+            if (this._barObjectH)
+                percent = this._clickPercent + deltaX / this._barMaxWidth;
+            else
+                percent = this._clickPercent + deltaY / this._barMaxHeight;
+            this.updateWithPercent(percent, true);
+        }
+        __barTouchBegin(evt) {
+            if (!this.changeOnClick)
+                return;
+            var pt = this._gripObject.globalToLocal(evt.input.x, evt.input.y, s_vec2$4);
+            var percent = clamp01((this._value - this._min) / (this._max - this._min));
+            var delta = 0;
+            if (this._barObjectH != null)
+                delta = (pt.x - this._gripObject.width / 2) / this._barMaxWidth;
+            if (this._barObjectV != null)
+                delta = (pt.y - this._gripObject.height / 2) / this._barMaxHeight;
+            if (this._reverse)
+                percent -= delta;
+            else
+                percent += delta;
+            this.updateWithPercent(percent, true);
+        }
+    }
+
+    class GProgressBar extends GComponent {
+        constructor() {
+            super();
+            this._min = 0;
+            this._max = 0;
+            this._value = 0;
+            this._barMaxWidth = 0;
+            this._barMaxHeight = 0;
+            this._barMaxWidthDelta = 0;
+            this._barMaxHeightDelta = 0;
+            this._barStartX = 0;
+            this._barStartY = 0;
+            this._titleType = exports.ProgressTitleType.Percent;
+            this._value = 50;
+            this._max = 100;
+        }
+        get titleType() {
+            return this._titleType;
+        }
+        set titleType(value) {
+            if (this._titleType != value) {
+                this._titleType = value;
+                this.update(value);
+            }
+        }
+        get min() {
+            return this._min;
+        }
+        set min(value) {
+            if (this._min != value) {
+                this._min = value;
+                this.update(this._value);
+            }
+        }
+        get max() {
+            return this._max;
+        }
+        set max(value) {
+            if (this._max != value) {
+                this._max = value;
+                this.update(this._value);
+            }
+        }
+        get value() {
+            return this._value;
+        }
+        set value(value) {
+            if (this._value != value) {
+                GTween.kill(this, false, this.update);
+                this._value = value;
+                this.update(value);
+            }
+        }
+        tweenValue(value, duration) {
+            var oldValule;
+            var tweener = GTween.getTween(this, this.update);
+            if (tweener) {
+                oldValule = tweener.value.x;
+                tweener.kill();
+            }
+            else
+                oldValule = this._value;
+            this._value = value;
+            return GTween.to(oldValule, this._value, duration).setTarget(this, this.update).setEase(exports.EaseType.Linear);
+        }
+        update(newValue) {
+            var percent = clamp01((newValue - this._min) / (this._max - this._min));
+            if (this._titleObject) {
+                switch (this._titleType) {
+                    case exports.ProgressTitleType.Percent:
+                        this._titleObject.text = Math.floor(percent * 100) + "%";
+                        break;
+                    case exports.ProgressTitleType.ValueAndMax:
+                        this._titleObject.text = Math.floor(newValue) + "/" + Math.floor(this._max);
+                        break;
+                    case exports.ProgressTitleType.Value:
+                        this._titleObject.text = "" + Math.floor(newValue);
+                        break;
+                    case exports.ProgressTitleType.Max:
+                        this._titleObject.text = "" + Math.floor(this._max);
+                        break;
+                }
+            }
+            var fullWidth = this.width - this._barMaxWidthDelta;
+            var fullHeight = this.height - this._barMaxHeightDelta;
+            if (!this._reverse) {
+                if (this._barObjectH) {
+                    if ((this._barObjectH instanceof GImage) && this._barObjectH.fillMethod != exports.FillMethod.None)
+                        this._barObjectH.fillAmount = percent;
+                    else
+                        this._barObjectH.width = Math.floor(fullWidth * percent);
+                }
+                if (this._barObjectV) {
+                    if ((this._barObjectV instanceof GImage) && this._barObjectV.fillMethod != exports.FillMethod.None)
+                        this._barObjectV.fillAmount = percent;
+                    else
+                        this._barObjectV.height = Math.floor(fullHeight * percent);
+                }
+            }
+            else {
+                if (this._barObjectH) {
+                    if ((this._barObjectH instanceof GImage) && this._barObjectH.fillMethod != exports.FillMethod.None)
+                        this._barObjectH.fillAmount = 1 - percent;
+                    else {
+                        this._barObjectH.width = Math.floor(fullWidth * percent);
+                        this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
+                    }
+                }
+                if (this._barObjectV) {
+                    if ((this._barObjectV instanceof GImage) && this._barObjectV.fillMethod != exports.FillMethod.None)
+                        this._barObjectV.fillAmount = 1 - percent;
+                    else {
+                        this._barObjectV.height = Math.floor(fullHeight * percent);
+                        this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
+                    }
+                }
+            }
+            if (this._aniObject)
+                this._aniObject.setProp(exports.ObjectPropID.Frame, Math.floor(percent * 100));
+        }
+        constructExtension(buffer) {
+            buffer.seek(0, 6);
+            this._titleType = buffer.readByte();
+            this._reverse = buffer.readBool();
+            this._titleObject = this.getChild("title");
+            this._barObjectH = this.getChild("bar");
+            this._barObjectV = this.getChild("bar_v");
+            this._aniObject = this.getChild("ani");
+            if (this._barObjectH) {
+                this._barMaxWidth = this._barObjectH.width;
+                this._barMaxWidthDelta = this.width - this._barMaxWidth;
+                this._barStartX = this._barObjectH.x;
+            }
+            if (this._barObjectV) {
+                this._barMaxHeight = this._barObjectV.height;
+                this._barMaxHeightDelta = this.height - this._barMaxHeight;
+                this._barStartY = this._barObjectV.y;
+            }
+        }
+        handleSizeChanged() {
+            super.handleSizeChanged();
+            if (this._barObjectH)
+                this._barMaxWidth = this.width - this._barMaxWidthDelta;
+            if (this._barObjectV)
+                this._barMaxHeight = this.height - this._barMaxHeightDelta;
+            if (!this._underConstruct)
+                this.update(this._value);
+        }
+        setup_afterAdd(buffer, beginPos) {
+            super.setup_afterAdd(buffer, beginPos);
+            if (!buffer.seek(beginPos, 6)) {
+                this.update(this._value);
+                return;
+            }
+            if (buffer.readByte() != this.packageItem.objectType) {
+                this.update(this._value);
+                return;
+            }
+            this._value = buffer.readInt();
+            this._max = buffer.readInt();
+            if (buffer.version >= 2)
+                this._min = buffer.readInt();
+            this.update(this._value);
+        }
+    }
+
+    var s_vec2$5 = new three.Vector2();
+    class GScrollBar extends GComponent {
+        constructor() {
+            super();
+            this._dragOffset = new three.Vector2();
+            this._scrollPerc = 0;
+        }
+        setScrollPane(target, vertical) {
+            this._target = target;
+            this._vertical = vertical;
+        }
+        setDisplayPerc(value) {
+            if (this._vertical) {
+                if (!this._fixedGripSize)
+                    this._grip.height = Math.floor(value * this._bar.height);
+                this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
+            }
+            else {
+                if (!this._fixedGripSize)
+                    this._grip.width = Math.floor(value * this._bar.width);
+                this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
+            }
+            this._grip.visible = value != 0 && value != 1;
+        }
+        setScrollPerc(val) {
+            this._scrollPerc = val;
+            if (this._vertical)
+                this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
+            else
+                this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
+        }
+        get minSize() {
+            if (this._vertical)
+                return (this._arrowButton1 ? this._arrowButton1.height : 0) + (this._arrowButton2 ? this._arrowButton2.height : 0);
+            else
+                return (this._arrowButton1 ? this._arrowButton1.width : 0) + (this._arrowButton2 ? this._arrowButton2.width : 0);
+        }
+        get gripDragging() {
+            return this._gripDragging;
+        }
+        constructExtension(buffer) {
+            buffer.seek(0, 6);
+            this._fixedGripSize = buffer.readBool();
+            this._grip = this.getChild("grip");
+            if (!this._grip) {
+                console.warn("需要定义grip");
+                return;
+            }
+            this._bar = this.getChild("bar");
+            if (!this._bar) {
+                console.warn("需要定义bar");
+                return;
+            }
+            this._arrowButton1 = this.getChild("arrow1");
+            this._arrowButton2 = this.getChild("arrow2");
+            this._grip.on("touch_begin", this.__gripTouchBegin, this);
+            this._grip.on("touch_move", this.__gripTouchMove, this);
+            this._grip.on("touch_end", this.__gripTouchEnd, this);
+            this.on("touch_begin", this.__barTouchBegin, this);
+            if (this._arrowButton1)
+                this._arrowButton1.on("touch_begin", this.__arrowButton1Click, this);
+            if (this._arrowButton2)
+                this._arrowButton2.on("touch_begin", this.__arrowButton2Click, this);
+        }
+        __gripTouchBegin(evt) {
+            if (this._bar == null)
+                return;
+            evt.stopPropagation();
+            this._gripDragging = true;
+            this._target.updateScrollBarVisible();
+            this.globalToLocal(evt.input.x, evt.input.y, this._dragOffset);
+            this._dragOffset.x -= this._grip.x;
+            this._dragOffset.y -= this._grip.y;
+        }
+        __gripTouchMove(evt) {
+            if (!this.onStage)
+                return;
+            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
+            if (this._vertical) {
+                let curY = pt.y - this._dragOffset.y;
+                let diff = this._bar.height - this._grip.height;
+                if (diff == 0)
+                    this._target.percY = 0;
+                else
+                    this._target.percY = (curY - this._bar.y) / diff;
+            }
+            else {
+                let curX = pt.x - this._dragOffset.x;
+                let diff = this._bar.width - this._grip.width;
+                if (diff == 0)
+                    this._target.percX = 0;
+                else
+                    this._target.percX = (curX - this._bar.x) / (this._bar.width - this._grip.width);
+            }
+        }
+        __gripTouchEnd(evt) {
+            this._gripDragging = false;
+            this._target.updateScrollBarVisible();
+        }
+        __arrowButton1Click(evt) {
+            evt.stopPropagation();
+            if (this._vertical)
+                this._target.scrollUp();
+            else
+                this._target.scrollLeft();
+        }
+        __arrowButton2Click(evt) {
+            evt.stopPropagation();
+            if (this._vertical)
+                this._target.scrollDown();
+            else
+                this._target.scrollRight();
+        }
+        __barTouchBegin(evt) {
+            evt.stopPropagation();
+            var pt = this._grip.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
+            if (this._vertical) {
+                if (pt.y < 0)
+                    this._target.scrollUp(4);
+                else
+                    this._target.scrollDown(4);
+            }
+            else {
+                if (pt.x < 0)
+                    this._target.scrollLeft(4);
+                else
+                    this._target.scrollRight(4);
             }
         }
     }
@@ -18609,886 +19917,6 @@
     }
     var s_n = 0;
 
-    class GLoader extends GObject {
-        constructor() {
-            super();
-            this._contentSourceWidth = 0;
-            this._contentSourceHeight = 0;
-            this._contentWidth = 0;
-            this._contentHeight = 0;
-            this._url = "";
-            this._fill = exports.LoaderFillType.None;
-            this._align = "left";
-            this._valign = "top";
-        }
-        createDisplayObject() {
-            this._displayObject = new DisplayObject();
-            this._content = new MovieClip();
-            this._displayObject.addChild(this._content);
-        }
-        dispose() {
-            if (this._contentItem && this._content.texture) {
-                this.freeExternal(this._content.texture);
-            }
-            if (this._content2)
-                this._content2.dispose();
-            super.dispose();
-        }
-        get url() {
-            return this._url;
-        }
-        set url(value) {
-            if (this._url == value)
-                return;
-            this._url = value;
-            this.loadContent();
-            this.updateGear(7);
-        }
-        get icon() {
-            return this._url;
-        }
-        set icon(value) {
-            this.url = value;
-        }
-        get align() {
-            return this._align;
-        }
-        set align(value) {
-            if (this._align != value) {
-                this._align = value;
-                this.updateLayout();
-            }
-        }
-        get verticalAlign() {
-            return this._valign;
-        }
-        set verticalAlign(value) {
-            if (this._valign != value) {
-                this._valign = value;
-                this.updateLayout();
-            }
-        }
-        get fill() {
-            return this._fill;
-        }
-        set fill(value) {
-            if (this._fill != value) {
-                this._fill = value;
-                this.updateLayout();
-            }
-        }
-        get shrinkOnly() {
-            return this._shrinkOnly;
-        }
-        set shrinkOnly(value) {
-            if (this._shrinkOnly != value) {
-                this._shrinkOnly = value;
-                this.updateLayout();
-            }
-        }
-        get autoSize() {
-            return this._autoSize;
-        }
-        set autoSize(value) {
-            if (this._autoSize != value) {
-                this._autoSize = value;
-                this.updateLayout();
-            }
-        }
-        get playing() {
-            return this._content.playing;
-        }
-        set playing(value) {
-            if (this._content.playing != value) {
-                this._content.playing = value;
-                this.updateGear(5);
-            }
-        }
-        get frame() {
-            return this._content.frame;
-        }
-        set frame(value) {
-            if (this._content.frame != value) {
-                this._content.frame = value;
-                this.updateGear(5);
-            }
-        }
-        get color() {
-            return this._content.graphics.color;
-        }
-        set color(value) {
-            if (this._content.graphics.color != value) {
-                this._content.graphics.color = value;
-                this.updateGear(4);
-            }
-        }
-        get content() {
-            return this._content;
-        }
-        get component() {
-            return this._content2;
-        }
-        loadContent() {
-            this.clearContent();
-            if (!this._url)
-                return;
-            if (this._url.startsWith("ui://"))
-                this.loadFromPackage(this._url);
-            else
-                this.loadExternal();
-        }
-        loadFromPackage(itemURL) {
-            this._contentItem = UIPackage.getItemByURL(itemURL);
-            if (this._contentItem) {
-                this._contentItem = this._contentItem.getBranch();
-                this._contentSourceWidth = this._contentItem.width;
-                this._contentSourceHeight = this._contentItem.height;
-                this._contentItem = this._contentItem.getHighResolution();
-                this._contentItem.load();
-                if (this._autoSize)
-                    this.setSize(this._contentSourceWidth, this._contentSourceHeight);
-                if (this._contentItem.type == exports.PackageItemType.Image) {
-                    if (this._contentItem.texture == null) {
-                        this.setErrorState();
-                    }
-                    else {
-                        this._content.texture = this._contentItem.texture;
-                        this._content.scale9Grid = this._contentItem.scale9Grid;
-                        this._content.scaleByTile = this._contentItem.scaleByTile;
-                        this._content.tileGridIndice = this._contentItem.tileGridIndice;
-                        this._contentSourceWidth = this._contentItem.width;
-                        this._contentSourceHeight = this._contentItem.height;
-                        this.updateLayout();
-                    }
-                }
-                else if (this._contentItem.type == exports.PackageItemType.MovieClip) {
-                    this._contentSourceWidth = this._contentItem.width;
-                    this._contentSourceHeight = this._contentItem.height;
-                    this._content.interval = this._contentItem.interval;
-                    this._content.swing = this._contentItem.swing;
-                    this._content.repeatDelay = this._contentItem.repeatDelay;
-                    this._content.frames = this._contentItem.frames;
-                    this.updateLayout();
-                }
-                else if (this._contentItem.type == exports.PackageItemType.Component) {
-                    var obj = UIPackage.createObjectFromURL(itemURL);
-                    if (!obj)
-                        this.setErrorState();
-                    else if (!(obj instanceof GComponent)) {
-                        obj.dispose();
-                        this.setErrorState();
-                    }
-                    else {
-                        this._content2 = obj;
-                        this._displayObject.addChild(this._content2.displayObject);
-                        this.updateLayout();
-                    }
-                }
-                else
-                    this.setErrorState();
-            }
-            else
-                this.setErrorState();
-        }
-        loadExternal() {
-            let url = this._url;
-            new three.TextureLoader().load(this._url, tex => {
-                if (url == this._url)
-                    this.onExternalLoadSuccess(new NTexture(tex));
-            });
-        }
-        freeExternal(texture) {
-        }
-        onExternalLoadSuccess(texture) {
-            this._content.texture = texture;
-            this._content.scale9Grid = null;
-            this._content.scaleByTile = false;
-            this._contentSourceWidth = texture.width;
-            this._contentSourceHeight = texture.height;
-            this.updateLayout();
-        }
-        onExternalLoadFailed() {
-            this.setErrorState();
-        }
-        setErrorState() {
-        }
-        clearErrorState() {
-        }
-        updateLayout() {
-            if (!this._content2 && !this._content.texture && !this._content.frames) {
-                if (this._autoSize) {
-                    this._updatingLayout = true;
-                    this.setSize(50, 30);
-                    this._updatingLayout = false;
-                }
-                return;
-            }
-            this._contentWidth = this._contentSourceWidth;
-            this._contentHeight = this._contentSourceHeight;
-            if (this._autoSize) {
-                this._updatingLayout = true;
-                if (this._contentWidth == 0)
-                    this._contentWidth = 50;
-                if (this._contentHeight == 0)
-                    this._contentHeight = 30;
-                this.setSize(this._contentWidth, this._contentHeight);
-                this._updatingLayout = false;
-                if (this._contentWidth == this._width && this._contentHeight == this._height) {
-                    if (this._content2) {
-                        this._content2.setPosition(0, 0);
-                        this._content2.setScale(1, 1);
-                    }
-                    else {
-                        this._content.setSize(this._contentWidth, this._contentHeight);
-                        this._content.setPosition(0, 0);
-                    }
-                    return;
-                }
-            }
-            var sx = 1, sy = 1;
-            if (this._fill != exports.LoaderFillType.None) {
-                sx = this.width / this._contentSourceWidth;
-                sy = this.height / this._contentSourceHeight;
-                if (sx != 1 || sy != 1) {
-                    if (this._fill == exports.LoaderFillType.ScaleMatchHeight)
-                        sx = sy;
-                    else if (this._fill == exports.LoaderFillType.ScaleMatchWidth)
-                        sy = sx;
-                    else if (this._fill == exports.LoaderFillType.Scale) {
-                        if (sx > sy)
-                            sx = sy;
-                        else
-                            sy = sx;
-                    }
-                    else if (this._fill == exports.LoaderFillType.ScaleNoBorder) {
-                        if (sx > sy)
-                            sy = sx;
-                        else
-                            sx = sy;
-                    }
-                    if (this._shrinkOnly) {
-                        if (sx > 1)
-                            sx = 1;
-                        if (sy > 1)
-                            sy = 1;
-                    }
-                    this._contentWidth = this._contentSourceWidth * sx;
-                    this._contentHeight = this._contentSourceHeight * sy;
-                }
-            }
-            if (this._content2)
-                this._content2.setScale(sx, sy);
-            else
-                this._content.setSize(this._contentWidth, this._contentHeight);
-            var nx, ny;
-            if (this._align == "center")
-                nx = Math.floor((this.width - this._contentWidth) / 2);
-            else if (this._align == "right")
-                nx = this.width - this._contentWidth;
-            else
-                nx = 0;
-            if (this._valign == "middle")
-                ny = Math.floor((this.height - this._contentHeight) / 2);
-            else if (this._valign == "bottom")
-                ny = this.height - this._contentHeight;
-            else
-                ny = 0;
-            if (this._content2)
-                this._content2.setPosition(nx, ny);
-            else
-                this._content.setPosition(nx, ny);
-        }
-        clearContent() {
-            this.clearErrorState();
-            if (this._contentItem == null && this._content.texture) {
-                this.freeExternal(this._content.texture);
-            }
-            this._content.texture = null;
-            this._content.frames = null;
-            if (this._content2) {
-                this._content2.dispose();
-                this._content2 = null;
-            }
-            this._contentItem = null;
-        }
-        handleSizeChanged() {
-            super.handleSizeChanged();
-            if (!this._updatingLayout)
-                this.updateLayout();
-        }
-        getProp(index) {
-            switch (index) {
-                case exports.ObjectPropID.Color:
-                    return this.color;
-                case exports.ObjectPropID.Playing:
-                    return this.playing;
-                case exports.ObjectPropID.Frame:
-                    return this.frame;
-                case exports.ObjectPropID.TimeScale:
-                    return this._content.timeScale;
-                default:
-                    return super.getProp(index);
-            }
-        }
-        setProp(index, value) {
-            switch (index) {
-                case exports.ObjectPropID.Color:
-                    this.color = value;
-                    break;
-                case exports.ObjectPropID.Playing:
-                    this.playing = value;
-                    break;
-                case exports.ObjectPropID.Frame:
-                    this.frame = value;
-                    break;
-                case exports.ObjectPropID.TimeScale:
-                    this._content.timeScale = value;
-                    break;
-                case exports.ObjectPropID.DeltaTime:
-                    this._content.advance(value);
-                    break;
-                default:
-                    super.setProp(index, value);
-                    break;
-            }
-        }
-        setup_beforeAdd(buffer, beginPos) {
-            super.setup_beforeAdd(buffer, beginPos);
-            buffer.seek(beginPos, 5);
-            var iv;
-            this._url = buffer.readS();
-            iv = buffer.readByte();
-            this._align = iv == 0 ? "left" : (iv == 1 ? "center" : "right");
-            iv = buffer.readByte();
-            this._valign = iv == 0 ? "top" : (iv == 1 ? "middle" : "bottom");
-            this._fill = buffer.readByte();
-            this._shrinkOnly = buffer.readBool();
-            this._autoSize = buffer.readBool();
-            buffer.readBool(); //_showErrorSign
-            this._content.playing = buffer.readBool();
-            this._content.frame = buffer.readInt();
-            if (buffer.readBool())
-                this.color = buffer.readColor();
-            this._content.fillMethod = buffer.readByte();
-            if (this._content.fillMethod != 0) {
-                this._content.fillOrigin = buffer.readByte();
-                this._content.fillClockwise = buffer.readBool();
-                this._content.fillAmount = buffer.readFloat();
-            }
-            if (this._url)
-                this.loadContent();
-        }
-    }
-
-    class GProgressBar extends GComponent {
-        constructor() {
-            super();
-            this._min = 0;
-            this._max = 0;
-            this._value = 0;
-            this._barMaxWidth = 0;
-            this._barMaxHeight = 0;
-            this._barMaxWidthDelta = 0;
-            this._barMaxHeightDelta = 0;
-            this._barStartX = 0;
-            this._barStartY = 0;
-            this._titleType = exports.ProgressTitleType.Percent;
-            this._value = 50;
-            this._max = 100;
-        }
-        get titleType() {
-            return this._titleType;
-        }
-        set titleType(value) {
-            if (this._titleType != value) {
-                this._titleType = value;
-                this.update(value);
-            }
-        }
-        get min() {
-            return this._min;
-        }
-        set min(value) {
-            if (this._min != value) {
-                this._min = value;
-                this.update(this._value);
-            }
-        }
-        get max() {
-            return this._max;
-        }
-        set max(value) {
-            if (this._max != value) {
-                this._max = value;
-                this.update(this._value);
-            }
-        }
-        get value() {
-            return this._value;
-        }
-        set value(value) {
-            if (this._value != value) {
-                GTween.kill(this, false, this.update);
-                this._value = value;
-                this.update(value);
-            }
-        }
-        tweenValue(value, duration) {
-            var oldValule;
-            var tweener = GTween.getTween(this, this.update);
-            if (tweener) {
-                oldValule = tweener.value.x;
-                tweener.kill();
-            }
-            else
-                oldValule = this._value;
-            this._value = value;
-            return GTween.to(oldValule, this._value, duration).setTarget(this, this.update).setEase(exports.EaseType.Linear);
-        }
-        update(newValue) {
-            var percent = clamp01((newValue - this._min) / (this._max - this._min));
-            if (this._titleObject) {
-                switch (this._titleType) {
-                    case exports.ProgressTitleType.Percent:
-                        this._titleObject.text = Math.floor(percent * 100) + "%";
-                        break;
-                    case exports.ProgressTitleType.ValueAndMax:
-                        this._titleObject.text = Math.floor(newValue) + "/" + Math.floor(this._max);
-                        break;
-                    case exports.ProgressTitleType.Value:
-                        this._titleObject.text = "" + Math.floor(newValue);
-                        break;
-                    case exports.ProgressTitleType.Max:
-                        this._titleObject.text = "" + Math.floor(this._max);
-                        break;
-                }
-            }
-            var fullWidth = this.width - this._barMaxWidthDelta;
-            var fullHeight = this.height - this._barMaxHeightDelta;
-            if (!this._reverse) {
-                if (this._barObjectH) {
-                    if ((this._barObjectH instanceof GImage) && this._barObjectH.fillMethod != exports.FillMethod.None)
-                        this._barObjectH.fillAmount = percent;
-                    else
-                        this._barObjectH.width = Math.floor(fullWidth * percent);
-                }
-                if (this._barObjectV) {
-                    if ((this._barObjectV instanceof GImage) && this._barObjectV.fillMethod != exports.FillMethod.None)
-                        this._barObjectV.fillAmount = percent;
-                    else
-                        this._barObjectV.height = Math.floor(fullHeight * percent);
-                }
-            }
-            else {
-                if (this._barObjectH) {
-                    if ((this._barObjectH instanceof GImage) && this._barObjectH.fillMethod != exports.FillMethod.None)
-                        this._barObjectH.fillAmount = 1 - percent;
-                    else {
-                        this._barObjectH.width = Math.floor(fullWidth * percent);
-                        this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
-                    }
-                }
-                if (this._barObjectV) {
-                    if ((this._barObjectV instanceof GImage) && this._barObjectV.fillMethod != exports.FillMethod.None)
-                        this._barObjectV.fillAmount = 1 - percent;
-                    else {
-                        this._barObjectV.height = Math.floor(fullHeight * percent);
-                        this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
-                    }
-                }
-            }
-            if (this._aniObject)
-                this._aniObject.setProp(exports.ObjectPropID.Frame, Math.floor(percent * 100));
-        }
-        constructExtension(buffer) {
-            buffer.seek(0, 6);
-            this._titleType = buffer.readByte();
-            this._reverse = buffer.readBool();
-            this._titleObject = this.getChild("title");
-            this._barObjectH = this.getChild("bar");
-            this._barObjectV = this.getChild("bar_v");
-            this._aniObject = this.getChild("ani");
-            if (this._barObjectH) {
-                this._barMaxWidth = this._barObjectH.width;
-                this._barMaxWidthDelta = this.width - this._barMaxWidth;
-                this._barStartX = this._barObjectH.x;
-            }
-            if (this._barObjectV) {
-                this._barMaxHeight = this._barObjectV.height;
-                this._barMaxHeightDelta = this.height - this._barMaxHeight;
-                this._barStartY = this._barObjectV.y;
-            }
-        }
-        handleSizeChanged() {
-            super.handleSizeChanged();
-            if (this._barObjectH)
-                this._barMaxWidth = this.width - this._barMaxWidthDelta;
-            if (this._barObjectV)
-                this._barMaxHeight = this.height - this._barMaxHeightDelta;
-            if (!this._underConstruct)
-                this.update(this._value);
-        }
-        setup_afterAdd(buffer, beginPos) {
-            super.setup_afterAdd(buffer, beginPos);
-            if (!buffer.seek(beginPos, 6)) {
-                this.update(this._value);
-                return;
-            }
-            if (buffer.readByte() != this.packageItem.objectType) {
-                this.update(this._value);
-                return;
-            }
-            this._value = buffer.readInt();
-            this._max = buffer.readInt();
-            if (buffer.version >= 2)
-                this._min = buffer.readInt();
-            this.update(this._value);
-        }
-    }
-
-    var s_vec2$4 = new three.Vector2();
-    class GScrollBar extends GComponent {
-        constructor() {
-            super();
-            this._dragOffset = new three.Vector2();
-            this._scrollPerc = 0;
-        }
-        setScrollPane(target, vertical) {
-            this._target = target;
-            this._vertical = vertical;
-        }
-        setDisplayPerc(value) {
-            if (this._vertical) {
-                if (!this._fixedGripSize)
-                    this._grip.height = Math.floor(value * this._bar.height);
-                this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
-            }
-            else {
-                if (!this._fixedGripSize)
-                    this._grip.width = Math.floor(value * this._bar.width);
-                this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
-            }
-            this._grip.visible = value != 0 && value != 1;
-        }
-        setScrollPerc(val) {
-            this._scrollPerc = val;
-            if (this._vertical)
-                this._grip.y = this._bar.y + (this._bar.height - this._grip.height) * this._scrollPerc;
-            else
-                this._grip.x = this._bar.x + (this._bar.width - this._grip.width) * this._scrollPerc;
-        }
-        get minSize() {
-            if (this._vertical)
-                return (this._arrowButton1 ? this._arrowButton1.height : 0) + (this._arrowButton2 ? this._arrowButton2.height : 0);
-            else
-                return (this._arrowButton1 ? this._arrowButton1.width : 0) + (this._arrowButton2 ? this._arrowButton2.width : 0);
-        }
-        get gripDragging() {
-            return this._gripDragging;
-        }
-        constructExtension(buffer) {
-            buffer.seek(0, 6);
-            this._fixedGripSize = buffer.readBool();
-            this._grip = this.getChild("grip");
-            if (!this._grip) {
-                console.warn("需要定义grip");
-                return;
-            }
-            this._bar = this.getChild("bar");
-            if (!this._bar) {
-                console.warn("需要定义bar");
-                return;
-            }
-            this._arrowButton1 = this.getChild("arrow1");
-            this._arrowButton2 = this.getChild("arrow2");
-            this._grip.on("touch_begin", this.__gripTouchBegin, this);
-            this._grip.on("touch_move", this.__gripTouchMove, this);
-            this._grip.on("touch_end", this.__gripTouchEnd, this);
-            this.on("touch_begin", this.__barTouchBegin, this);
-            if (this._arrowButton1)
-                this._arrowButton1.on("touch_begin", this.__arrowButton1Click, this);
-            if (this._arrowButton2)
-                this._arrowButton2.on("touch_begin", this.__arrowButton2Click, this);
-        }
-        __gripTouchBegin(evt) {
-            if (this._bar == null)
-                return;
-            evt.stopPropagation();
-            this._gripDragging = true;
-            this._target.updateScrollBarVisible();
-            this.globalToLocal(evt.input.x, evt.input.y, this._dragOffset);
-            this._dragOffset.x -= this._grip.x;
-            this._dragOffset.y -= this._grip.y;
-        }
-        __gripTouchMove(evt) {
-            if (!this.onStage)
-                return;
-            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$4);
-            if (this._vertical) {
-                let curY = pt.y - this._dragOffset.y;
-                let diff = this._bar.height - this._grip.height;
-                if (diff == 0)
-                    this._target.percY = 0;
-                else
-                    this._target.percY = (curY - this._bar.y) / diff;
-            }
-            else {
-                let curX = pt.x - this._dragOffset.x;
-                let diff = this._bar.width - this._grip.width;
-                if (diff == 0)
-                    this._target.percX = 0;
-                else
-                    this._target.percX = (curX - this._bar.x) / (this._bar.width - this._grip.width);
-            }
-        }
-        __gripTouchEnd(evt) {
-            this._gripDragging = false;
-            this._target.updateScrollBarVisible();
-        }
-        __arrowButton1Click(evt) {
-            evt.stopPropagation();
-            if (this._vertical)
-                this._target.scrollUp();
-            else
-                this._target.scrollLeft();
-        }
-        __arrowButton2Click(evt) {
-            evt.stopPropagation();
-            if (this._vertical)
-                this._target.scrollDown();
-            else
-                this._target.scrollRight();
-        }
-        __barTouchBegin(evt) {
-            evt.stopPropagation();
-            var pt = this._grip.globalToLocal(evt.input.x, evt.input.y, s_vec2$4);
-            if (this._vertical) {
-                if (pt.y < 0)
-                    this._target.scrollUp(4);
-                else
-                    this._target.scrollDown(4);
-            }
-            else {
-                if (pt.x < 0)
-                    this._target.scrollLeft(4);
-                else
-                    this._target.scrollRight(4);
-            }
-        }
-    }
-
-    let s_vec2$5 = new three.Vector2();
-    class GSlider extends GComponent {
-        constructor() {
-            super();
-            this.changeOnClick = true;
-            this.canDrag = true;
-            this._min = 0;
-            this._max = 0;
-            this._value = 0;
-            this._barMaxWidth = 0;
-            this._barMaxHeight = 0;
-            this._barMaxWidthDelta = 0;
-            this._barMaxHeightDelta = 0;
-            this._clickPercent = 0;
-            this._barStartX = 0;
-            this._barStartY = 0;
-            this._titleType = exports.ProgressTitleType.Percent;
-            this._value = 50;
-            this._max = 100;
-            this._clickPos = new three.Vector2();
-        }
-        get titleType() {
-            return this._titleType;
-        }
-        set titleType(value) {
-            this._titleType = value;
-        }
-        get wholeNumbers() {
-            return this._wholeNumbers;
-        }
-        set wholeNumbers(value) {
-            if (this._wholeNumbers != value) {
-                this._wholeNumbers = value;
-                this.update();
-            }
-        }
-        get min() {
-            return this._min;
-        }
-        set min(value) {
-            if (this._min != value) {
-                this._min = value;
-                this.update();
-            }
-        }
-        get max() {
-            return this._max;
-        }
-        set max(value) {
-            if (this._max != value) {
-                this._max = value;
-                this.update();
-            }
-        }
-        get value() {
-            return this._value;
-        }
-        set value(value) {
-            if (this._value != value) {
-                this._value = value;
-                this.update();
-            }
-        }
-        update() {
-            this.updateWithPercent((this._value - this._min) / (this._max - this._min), false);
-        }
-        updateWithPercent(percent, manual) {
-            percent = clamp01(percent);
-            if (manual) {
-                var newValue = clamp(this._min + (this._max - this._min) * percent, this._min, this._max);
-                if (this._wholeNumbers) {
-                    newValue = Math.round(newValue);
-                    percent = clamp01((newValue - this._min) / (this._max - this._min));
-                }
-                if (newValue != this._value) {
-                    this._value = newValue;
-                    if (this.dispatchEvent("status_changed"))
-                        return;
-                }
-            }
-            if (this._titleObject) {
-                switch (this._titleType) {
-                    case exports.ProgressTitleType.Percent:
-                        this._titleObject.text = Math.floor(percent * 100) + "%";
-                        break;
-                    case exports.ProgressTitleType.ValueAndMax:
-                        this._titleObject.text = this._value + "/" + this._max;
-                        break;
-                    case exports.ProgressTitleType.Value:
-                        this._titleObject.text = "" + this._value;
-                        break;
-                    case exports.ProgressTitleType.Max:
-                        this._titleObject.text = "" + this._max;
-                        break;
-                }
-            }
-            var fullWidth = this.width - this._barMaxWidthDelta;
-            var fullHeight = this.height - this._barMaxHeightDelta;
-            if (!this._reverse) {
-                if (this._barObjectH)
-                    this._barObjectH.width = Math.round(fullWidth * percent);
-                if (this._barObjectV)
-                    this._barObjectV.height = Math.round(fullHeight * percent);
-            }
-            else {
-                if (this._barObjectH) {
-                    this._barObjectH.width = Math.round(fullWidth * percent);
-                    this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
-                }
-                if (this._barObjectV) {
-                    this._barObjectV.height = Math.round(fullHeight * percent);
-                    this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
-                }
-            }
-        }
-        constructExtension(buffer) {
-            buffer.seek(0, 6);
-            this._titleType = buffer.readByte();
-            this._reverse = buffer.readBool();
-            if (buffer.version >= 2) {
-                this._wholeNumbers = buffer.readBool();
-                this.changeOnClick = buffer.readBool();
-            }
-            this._titleObject = this.getChild("title");
-            this._barObjectH = this.getChild("bar");
-            this._barObjectV = this.getChild("bar_v");
-            this._gripObject = this.getChild("grip");
-            if (this._barObjectH) {
-                this._barMaxWidth = this._barObjectH.width;
-                this._barMaxWidthDelta = this.width - this._barMaxWidth;
-                this._barStartX = this._barObjectH.x;
-            }
-            if (this._barObjectV) {
-                this._barMaxHeight = this._barObjectV.height;
-                this._barMaxHeightDelta = this.height - this._barMaxHeight;
-                this._barStartY = this._barObjectV.y;
-            }
-            if (this._gripObject) {
-                this._gripObject.on("touch_begin", this.__gripTouchBegin, this);
-                this._gripObject.on("touch_move", this.__gripTouchMove, this);
-            }
-            this.on("touch_begin", this.__barTouchBegin, this);
-        }
-        handleSizeChanged() {
-            super.handleSizeChanged();
-            if (this._barObjectH)
-                this._barMaxWidth = this.width - this._barMaxWidthDelta;
-            if (this._barObjectV)
-                this._barMaxHeight = this.height - this._barMaxHeightDelta;
-            if (!this._underConstruct)
-                this.update();
-        }
-        setup_afterAdd(buffer, beginPos) {
-            super.setup_afterAdd(buffer, beginPos);
-            if (!buffer.seek(beginPos, 6)) {
-                this.update();
-                return;
-            }
-            if (buffer.readByte() != this.packageItem.objectType) {
-                this.update();
-                return;
-            }
-            this._value = buffer.readInt();
-            this._max = buffer.readInt();
-            if (buffer.version >= 2)
-                this._min = buffer.readInt();
-            this.update();
-        }
-        __gripTouchBegin(evt) {
-            if (evt.input.button != 0)
-                return;
-            this.canDrag = true;
-            evt.stopPropagation();
-            evt.captureTouch();
-            this.globalToLocal(evt.input.x, evt.input.y, this._clickPos);
-            this._clickPercent = clamp01((this._value - this._min) / (this._max - this._min));
-        }
-        __gripTouchMove(evt) {
-            if (!this.canDrag)
-                return;
-            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
-            var deltaX = pt.x - this._clickPos.x;
-            var deltaY = pt.y - this._clickPos.y;
-            if (this._reverse) {
-                deltaX = -deltaX;
-                deltaY = -deltaY;
-            }
-            var percent;
-            if (this._barObjectH)
-                percent = this._clickPercent + deltaX / this._barMaxWidth;
-            else
-                percent = this._clickPercent + deltaY / this._barMaxHeight;
-            this.updateWithPercent(percent, true);
-        }
-        __barTouchBegin(evt) {
-            if (!this.changeOnClick)
-                return;
-            var pt = this._gripObject.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
-            var percent = clamp01((this._value - this._min) / (this._max - this._min));
-            var delta = 0;
-            if (this._barObjectH != null)
-                delta = (pt.x - this._gripObject.width / 2) / this._barMaxWidth;
-            if (this._barObjectV != null)
-                delta = (pt.y - this._gripObject.height / 2) / this._barMaxHeight;
-            if (this._reverse)
-                percent -= delta;
-            else
-                percent += delta;
-            this.updateWithPercent(percent, true);
-        }
-    }
-
     class GTreeNode {
         constructor(hasChild, resURL) {
             this._expanded = false;
@@ -20007,377 +20435,6 @@
         }
     }
 
-    class UIObjectFactory {
-        static setExtension(url, type) {
-            if (url == null)
-                throw new Error("Invaild url: " + url);
-            var pi = UIPackage.getItemByURL(url);
-            if (pi)
-                pi.extensionType = type;
-            UIObjectFactory.extensions[url] = type;
-        }
-        static setLoaderExtension(type) {
-            UIObjectFactory.loaderType = type;
-        }
-        static resolvePackageItemExtension(pi) {
-            var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
-            if (!extensionType)
-                extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];
-            if (extensionType)
-                pi.extensionType = extensionType;
-        }
-        static newObject(type, userClass) {
-            var obj;
-            if (typeof type === 'number') {
-                switch (type) {
-                    case exports.ObjectType.Image:
-                        return new GImage();
-                    case exports.ObjectType.MovieClip:
-                        return new GMovieClip();
-                    case exports.ObjectType.Component:
-                        return new GComponent();
-                    case exports.ObjectType.Text:
-                        return new GTextField();
-                    case exports.ObjectType.RichText:
-                        return new GRichTextField();
-                    case exports.ObjectType.InputText:
-                        return new GTextInput();
-                    case exports.ObjectType.Group:
-                        return new GGroup();
-                    case exports.ObjectType.List:
-                        return new GList();
-                    case exports.ObjectType.Graph:
-                        return new GGraph();
-                    case exports.ObjectType.Loader:
-                        if (UIObjectFactory.loaderType)
-                            return new UIObjectFactory.loaderType();
-                        else
-                            return new GLoader();
-                    case exports.ObjectType.Button:
-                        return new GButton();
-                    case exports.ObjectType.Label:
-                        return new GLabel();
-                    case exports.ObjectType.ProgressBar:
-                        return new GProgressBar();
-                    case exports.ObjectType.Slider:
-                        return new GSlider();
-                    case exports.ObjectType.ScrollBar:
-                        return new GScrollBar();
-                    case exports.ObjectType.ComboBox:
-                        return new GComboBox();
-                    case exports.ObjectType.Tree:
-                        return new GTree();
-                    default:
-                        return null;
-                }
-            }
-            else {
-                if (type.type == exports.PackageItemType.Component) {
-                    if (userClass)
-                        obj = new userClass();
-                    else if (type.extensionType)
-                        obj = new type.extensionType();
-                    else
-                        obj = UIObjectFactory.newObject(type.objectType);
-                }
-                else
-                    obj = UIObjectFactory.newObject(type.objectType);
-                if (obj)
-                    obj.packageItem = type;
-            }
-            return obj;
-        }
-    }
-    UIObjectFactory.extensions = {};
-    Decls$1.UIObjectFactory = UIObjectFactory;
-
-    class HtmlImage {
-        constructor() {
-            this.loader = UIObjectFactory.newObject(exports.ObjectType.Loader);
-            this.loader.fill = exports.LoaderFillType.ScaleFree;
-            this.loader.touchable = false;
-        }
-        get displayObject() {
-            return this.loader.displayObject;
-        }
-        get element() {
-            return this._element;
-        }
-        get width() {
-            return this.loader.width;
-        }
-        get height() {
-            return this.loader.height;
-        }
-        create(owner, element) {
-            this._owner = owner;
-            this._element = element;
-            let sourceWidth = 0;
-            let sourceHeight = 0;
-            let src = element.getAttrString("src");
-            if (src != null) {
-                let pi = UIPackage.getItemByURL(src);
-                if (pi) {
-                    sourceWidth = pi.width;
-                    sourceHeight = pi.height;
-                }
-            }
-            this.loader.url = src;
-            let width = element.getAttrInt("width", sourceWidth);
-            let height = element.getAttrInt("height", sourceHeight);
-            if (width == 0)
-                width = 5;
-            if (height == 0)
-                height = 10;
-            this.loader.setSize(width, height);
-        }
-        setPosition(x, y) {
-            this.loader.setPosition(x, y);
-        }
-        add() {
-            this._owner.addChild(this.loader.displayObject);
-        }
-        remove() {
-            if (this.loader.displayObject.parent)
-                this._owner.removeChild(this.loader.displayObject);
-        }
-        release() {
-            this.loader.offAll();
-            this.loader.url = null;
-            this._owner = null;
-            this._element = null;
-        }
-        dispose() {
-            this.loader.dispose();
-        }
-    }
-
-    var s_rect$7 = new Rect();
-    class SelectionShape extends DisplayObject {
-        constructor() {
-            super();
-            this.rects = new Array();
-            this._graphics = new NGraphics(this._obj3D);
-            this._graphics.texture = EmptyTexture;
-        }
-        refresh() {
-            let count = this.rects.length;
-            if (count > 0) {
-                s_rect$7.copy(this.rects[0]);
-                for (let i = 1; i < count; i++)
-                    s_rect$7.union(this.rects[i]);
-                this.setSize(s_rect$7.xMax, s_rect$7.yMax);
-            }
-            else
-                this.setSize(0, 0);
-            this.graphics.setMeshDirty();
-        }
-        clear() {
-            this.rects.length = 0;
-            this.graphics.setMeshDirty();
-        }
-        onPopulateMesh(vb) {
-            let count = this.rects.length;
-            if (count == 0)
-                return;
-            for (let i = 0; i < count; i++)
-                vb.addQuad(this.rects[i]);
-            vb.addTriangles();
-        }
-        hitTest(context) {
-            let pt = context.getLocal(this);
-            if (this._contentRect.contains(pt)) {
-                let count = this.rects.length;
-                for (let i = 0; i < count; i++) {
-                    if (this.rects[i].contains(pt))
-                        return this;
-                }
-            }
-            return null;
-        }
-    }
-
-    class HtmlLink {
-        constructor() {
-            this._shape = new SelectionShape();
-            this._shape.on("click", () => {
-                bubbleEvent(this._owner.obj3D, "click_link", this._element.getAttrString("href"));
-            });
-        }
-        get displayObject() {
-            return this._shape;
-        }
-        get element() {
-            return this._element;
-        }
-        get width() {
-            return 0;
-        }
-        get height() {
-            return 0;
-        }
-        create(owner, element) {
-            this._owner = owner;
-            this._element = element;
-        }
-        setArea(startLine, startCharX, endLine, endCharX) {
-            if (startLine == endLine && startCharX > endCharX) {
-                let tmp = startCharX;
-                startCharX = endCharX;
-                endCharX = tmp;
-            }
-            this._shape.rects.length = 0;
-            this._owner.getLinesShape(startLine, startCharX, endLine, endCharX, true, this._shape.rects);
-            this._shape.refresh();
-        }
-        setPosition(x, y) {
-            this._shape.setPosition(x, y);
-        }
-        add() {
-            this._owner.addChild(this._shape);
-        }
-        remove() {
-            if (this._shape.parent)
-                this._owner.removeChild(this._shape);
-        }
-        release() {
-            this._shape.offAll();
-            this._owner = null;
-            this._element = null;
-        }
-        dispose() {
-            this._shape.dispose();
-        }
-    }
-
-    class HtmlPageContext {
-        constructor() {
-            this._imagePool = new Pool(HtmlImage);
-            this._linkPool = new Pool(HtmlLink);
-        }
-        createObject(owner, element) {
-            let ret = null;
-            if (element.type == HtmlElementType.Image)
-                ret = this._imagePool.borrow();
-            else if (element.type == HtmlElementType.Link)
-                ret = this._linkPool.borrow();
-            if (ret)
-                ret.create(owner, element);
-            return ret;
-        }
-        freeObject(obj) {
-            obj.release();
-            if (obj instanceof HtmlImage)
-                this._imagePool.returns(obj);
-            else if (obj instanceof HtmlLink)
-                this._linkPool.returns(obj);
-        }
-    }
-    var defaultContext = new HtmlPageContext();
-
-    class RichTextField extends TextField {
-        constructor() {
-            super();
-            this._touchDisabled = false;
-            this._rich = true;
-            this.htmlPageContext = defaultContext;
-            this.htmlParseOptions = new HtmlParseOptions();
-        }
-        getHtmlElement(name) {
-            let elements = this.htmlElements;
-            let count = elements.length;
-            for (let i = 0; i < count; i++) {
-                let element = elements[i];
-                if (name == element.name)
-                    return element;
-            }
-            return null;
-        }
-        showHtmlObject(index, show) {
-            let element = this.htmlElements[index];
-            if (element.htmlObject && element.type != HtmlElementType.Link) {
-                //set hidden flag
-                if (show)
-                    element.status &= 253; //~(1<<1)
-                else
-                    element.status |= 2;
-                if ((element.status & 3) == 0) //not (hidden and clipped)
-                 {
-                    if ((element.status & 4) == 0) //not added
-                     {
-                        element.status |= 4;
-                        element.htmlObject.add();
-                    }
-                }
-                else {
-                    if ((element.status & 4) != 0) //added
-                     {
-                        element.status &= 251;
-                        element.htmlObject.remove();
-                    }
-                }
-            }
-        }
-        dispose() {
-            this.cleanupObjects();
-            super.dispose();
-        }
-        cleanupObjects() {
-            let elements = this.htmlElements;
-            let count = elements.length;
-            for (let i = 0; i < count; i++) {
-                let element = elements[i];
-                if (element.htmlObject) {
-                    element.htmlObject.remove();
-                    this.htmlPageContext.freeObject(element.htmlObject);
-                }
-            }
-        }
-        refreshObjects() {
-            let elements = this.htmlElements;
-            let count = elements.length;
-            for (let i = 0; i < count; i++) {
-                let element = elements[i];
-                if (element.htmlObject) {
-                    if ((element.status & 3) == 0) //not (hidden and clipped)
-                     {
-                        if ((element.status & 4) == 0) //not added
-                         {
-                            element.status |= 4;
-                            element.htmlObject.add();
-                        }
-                    }
-                    else {
-                        if ((element.status & 4) != 0) //added
-                         {
-                            element.status &= 251;
-                            element.htmlObject.remove();
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    class GRichTextField extends GTextField {
-        constructor() {
-            super();
-        }
-        createDisplayObject() {
-            this._displayObject = this._textField = new RichTextField();
-        }
-        setText() {
-            let str = this._text;
-            if (this._template)
-                str = this.parseTemplate(str);
-            this._textField.maxWidth = this.maxWidth;
-            if (this._ubbEnabled)
-                this._textField.htmlText = defaultParser$1.parse(str);
-            else
-                this._textField.htmlText = str;
-        }
-    }
-
     class PopupMenu {
         constructor(resourceURL) {
             if (!resourceURL) {
@@ -20520,6 +20577,92 @@
             this._list.resizeToFit(100000, 10);
         }
     }
+
+    class UIObjectFactory {
+        static setExtension(url, type) {
+            if (url == null)
+                throw new Error("Invaild url: " + url);
+            var pi = UIPackage.getItemByURL(url);
+            if (pi)
+                pi.extensionType = type;
+            UIObjectFactory.extensions[url] = type;
+        }
+        static setLoaderExtension(type) {
+            UIObjectFactory.loaderType = type;
+        }
+        static resolvePackageItemExtension(pi) {
+            var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
+            if (!extensionType)
+                extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];
+            if (extensionType)
+                pi.extensionType = extensionType;
+        }
+        static newObject(type, userClass) {
+            var obj;
+            if (typeof type === 'number') {
+                switch (type) {
+                    case exports.ObjectType.Image:
+                        return new GImage();
+                    case exports.ObjectType.MovieClip:
+                        return new GMovieClip();
+                    case exports.ObjectType.Component:
+                        return new GComponent();
+                    case exports.ObjectType.Text:
+                        return new GTextField();
+                    case exports.ObjectType.RichText:
+                        return new GRichTextField();
+                    case exports.ObjectType.InputText:
+                        return new GTextInput();
+                    case exports.ObjectType.Group:
+                        return new GGroup();
+                    case exports.ObjectType.List:
+                        return new GList();
+                    case exports.ObjectType.Graph:
+                        return new GGraph();
+                    case exports.ObjectType.Loader:
+                        if (UIObjectFactory.loaderType)
+                            return new UIObjectFactory.loaderType();
+                        else
+                            return new GLoader();
+                    case exports.ObjectType.Button:
+                        return new GButton();
+                    case exports.ObjectType.Label:
+                        return new GLabel();
+                    case exports.ObjectType.ProgressBar:
+                        return new GProgressBar();
+                    case exports.ObjectType.Slider:
+                        return new GSlider();
+                    case exports.ObjectType.ScrollBar:
+                        return new GScrollBar();
+                    case exports.ObjectType.ComboBox:
+                        return new GComboBox();
+                    case exports.ObjectType.Tree:
+                        return new GTree();
+                    case exports.ObjectType.Loader3D:
+                        return new GLoader3D();
+                    default:
+                        return null;
+                }
+            }
+            else {
+                if (type.type == exports.PackageItemType.Component) {
+                    if (userClass)
+                        obj = new userClass();
+                    else if (type.extensionType)
+                        obj = new type.extensionType();
+                    else
+                        obj = UIObjectFactory.newObject(type.objectType);
+                }
+                else
+                    obj = UIObjectFactory.newObject(type.objectType);
+                if (obj)
+                    obj.packageItem = type;
+            }
+            return obj;
+        }
+    }
+    UIObjectFactory.extensions = {};
+    Decls$1.UIObjectFactory = UIObjectFactory;
 
     var _inst$1;
     class DragDropManager {
@@ -20762,6 +20905,7 @@
     exports.GLabel = GLabel;
     exports.GList = GList;
     exports.GLoader = GLoader;
+    exports.GLoader3D = GLoader3D;
     exports.GMovieClip = GMovieClip;
     exports.GObject = GObject;
     exports.GObjectPool = GObjectPool;

@@ -1,5 +1,4 @@
 import { ObjectPropID } from "./FieldTypes";
-import { GButton } from "./GButton";
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { GTextField } from "./GTextField";
@@ -102,10 +101,8 @@ export class GLabel extends GComponent {
     public getTextField(): GTextField {
         if (this._titleObject instanceof GTextField)
             return <GTextField>this._titleObject;
-        else if (this._titleObject instanceof GLabel)
-            return (<GLabel>(this._titleObject)).getTextField();
-        else if (this._titleObject instanceof GButton)
-            return (<GButton>this._titleObject).getTextField();
+        else if ('getTextField' in this._titleObject)
+            return <GTextField>(<any>this._titleObject).getTextField();
         else
             return null;
     }

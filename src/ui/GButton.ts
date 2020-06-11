@@ -1,7 +1,6 @@
 import { Controller } from "./Controller";
 import { ButtonMode, ObjectPropID } from "./FieldTypes";
 import { GComponent } from "./GComponent";
-import { GLabel } from "./GLabel";
 import { GObject } from "./GObject";
 import { GRoot } from "./GRoot";
 import { GTextField } from "./GTextField";
@@ -232,10 +231,8 @@ export class GButton extends GComponent {
     public getTextField(): GTextField {
         if (this._titleObject instanceof GTextField)
             return <GTextField>this._titleObject;
-        else if (this._titleObject instanceof GLabel)
-            return (<GLabel>(this._titleObject)).getTextField();
-        else if (this._titleObject instanceof GButton)
-            return (<GButton>this._titleObject).getTextField();
+        else if ('getTextField' in this._titleObject)
+            return <GTextField>(<any>this._titleObject).getTextField();
         else
             return null;
     }

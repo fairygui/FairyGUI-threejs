@@ -1,16 +1,10 @@
-import { GObject } from "../ui/GObject";
 import { GearBase } from "./GearBase";
 
 export class GearDisplay extends GearBase {
     public pages: string[];
 
     private _visible: number = 0;
-    private _displayLockToken: number = 0;
-
-    constructor(owner: GObject) {
-        super(owner);
-        this._displayLockToken = 1;
-    }
+    private _displayLockToken: number = 1;
 
     protected init(): void {
         this.pages = null;

@@ -12,7 +12,8 @@ export class RichTextField extends TextField {
         super();
 
         this._touchDisabled = false;
-        this._rich = true;
+        this.opaque = true;
+        this.isRich = true;
 
         this.htmlPageContext = defaultContext;
         this.htmlParseOptions = new HtmlParseOptions();
