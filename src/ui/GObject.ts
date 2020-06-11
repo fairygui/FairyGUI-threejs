@@ -179,14 +179,6 @@ namespace fgui {
             this.setSize(this._rawWidth, value);
         }
 
-        public MakeFullScreen()
-        {
-            if(GRoot.inst)
-            {
-                this.setSize(GRoot.inst.width,GRoot.inst.height)
-            }
-        }
-
         public setSize(wv: number, hv: number, ignorePivot?: boolean): void {
             if (this._rawWidth != wv || this._rawHeight != hv) {
                 this._rawWidth = wv;
