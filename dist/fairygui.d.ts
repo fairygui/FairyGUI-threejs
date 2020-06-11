@@ -347,9 +347,12 @@ declare namespace fgui {
         static fontRebuilt?: boolean;
         static audioListener: THREE.AudioListener;
         static disableMatrixValidation: boolean;
+        static readonly eventDispatcher: EventDispatcher;
         static init(renderer: THREE.Renderer): void;
         static set scene(value: THREE.Scene);
         static get scene(): THREE.Scene;
+        static get domElement(): HTMLCanvasElement;
+        static get devicePixelRatio(): number;
         static get camera(): THREE.Camera;
         static set camera(value: THREE.Camera);
         static get width(): number;
@@ -363,7 +366,7 @@ declare namespace fgui {
         static cancelClick(touchId: number): void;
         static update(): void;
         static hitTest(x: number, y: number, forTouch?: boolean): DisplayObject;
-        static setFocus(newFocus: DisplayObject): void;
+        static setFocus(obj: DisplayObject): void;
     }
     type HitTestRay = {
         origin: THREE.Vector3;
@@ -646,28 +649,28 @@ declare namespace fgui {
 }
 declare namespace fgui {
     class TextField extends DisplayObject implements IMeshFactory {
-        private _verticalAlign;
-        private _textFormat;
-        private _text;
-        private _autoSize;
-        private _wordWrap;
-        private _singleLine;
-        private _html;
-        private _maxWidth;
-        private _elements;
-        private _lines;
-        private _charPositions;
-        private _font;
-        private _textWidth;
-        private _textHeight;
-        private _textChanged;
-        private _yOffset;
-        private _fontSizeScale;
-        private _fontVersion;
-        private _parsedText;
-        private _updatingSize?;
-        protected _input?: boolean;
-        protected _rich?: boolean;
+        protected _verticalAlign: VertAlignType;
+        protected _textFormat: TextFormat;
+        protected _text: string;
+        protected _autoSize: AutoSizeType;
+        protected _wordWrap: boolean;
+        protected _singleLine: boolean;
+        protected _html: boolean;
+        protected _maxWidth: number;
+        protected _elements: Array<HtmlElement>;
+        protected _lines: Array<LineInfo>;
+        protected _charPositions: Array<CharPosition>;
+        protected _font: BaseFont;
+        protected _textWidth: number;
+        protected _textHeight: number;
+        protected _textChanged: boolean;
+        protected _yOffset: number;
+        protected _fontSizeScale: number;
+        protected _fontVersion: number;
+        protected _parsedText: string;
+        protected _updatingSize?: boolean;
+        protected isInput?: boolean;
+        protected isRich?: boolean;
         constructor();
         get textFormat(): TextFormat;
         applyFormat(): void;
@@ -732,23 +735,36 @@ declare namespace fgui {
 }
 declare namespace fgui {
     class InputTextField extends TextField {
-        promptText: string;
         maxLength: number;
         keyboardType: string;
         restrict: string;
         editable: boolean;
+        private _text2;
         private _password;
         private _promptText;
-        private _decodedPromptText;
+        private _decodedPromptText?;
         private _border;
         private _corner;
         private _borderColor;
         private _backgroundColor;
         private _editing;
+        private _element;
         constructor();
+        get text(): string;
+        set text(value: string);
+        get promptText(): string;
+        set promptText(value: string);
         get password(): boolean;
         set password(value: boolean);
+        private updateText;
         protected onSizeChanged(): void;
+        applyFormat(): void;
+        private createElement;
+        private setFormat;
+        dispose(): void;
+        private __focusIn;
+        private __focusOut;
+        private __removed;
     }
 }
 declare namespace fgui {
@@ -794,7 +810,7 @@ declare namespace fgui {
     }
 }
 declare namespace fgui {
-    type EventType = "touch_begin" | "touch_end" | "touch_move" | "click" | "right_click" | "roll_over" | "roll_out" | "mouse_wheel" | "content_scale_factor_changed" | "added_to_stage" | "removed_from_stage" | "pos_changed" | "size_changed" | "status_changed" | "focus_changed" | "drag_start" | "drag_move" | "drag_end" | "drop" | "scroll" | "scroll_end" | "pull_down_release" | "pull_up_release" | "click_item" | "click_link" | "play_end" | "gear_stop";
+    type EventType = "touch_begin" | "touch_end" | "touch_move" | "click" | "right_click" | "roll_over" | "roll_out" | "mouse_wheel" | "content_scale_factor_changed" | "added_to_stage" | "removed_from_stage" | "pos_changed" | "size_changed" | "status_changed" | "focus_in" | "focus_out" | "drag_start" | "drag_move" | "drag_end" | "drop" | "scroll" | "scroll_end" | "pull_down_release" | "pull_up_release" | "click_item" | "click_link" | "play_end" | "gear_stop";
     interface InputInfo {
         x: number;
         y: number;
@@ -832,14 +848,14 @@ declare namespace fgui {
 declare namespace fgui {
     class GearBase {
         static disableAllTweenEffect?: boolean;
-        protected _owner: GObject;
+        _owner: GObject;
         protected _controller: Controller;
         protected _tweenConfig: GearTweenConfig;
-        constructor(owner: GObject);
         dispose(): void;
         get controller(): Controller;
         set controller(val: Controller);
         get tweenConfig(): GearTweenConfig;
+        protected get allowTween(): boolean;
         setup(buffer: ByteBuffer): void;
         updateFromRelations(dx: number, dy: number): void;
         protected addStatus(pageId: string, buffer: ByteBuffer): void;
@@ -863,7 +879,6 @@ declare namespace fgui {
     class GearAnimation extends GearBase {
         private _storage;
         private _default;
-        constructor(owner: GObject);
         protected init(): void;
         protected addStatus(pageId: string, buffer: ByteBuffer): void;
         apply(): void;
@@ -874,7 +889,6 @@ declare namespace fgui {
     class GearColor extends GearBase {
         private _storage;
         private _default;
-        constructor(owner: GObject);
         protected init(): void;
         protected addStatus(pageId: string, buffer: ByteBuffer): void;
         apply(): void;
@@ -886,7 +900,6 @@ declare namespace fgui {
         pages: string[];
         private _visible;
         private _displayLockToken;
-        constructor(owner: GObject);
         protected init(): void;
         addLock(): number;
         releaseLock(token: number): void;
@@ -899,7 +912,6 @@ declare namespace fgui {
         pages: string[];
         condition: number;
         private _visible;
-        constructor(owner: GObject);
         protected init(): void;
         apply(): void;
         evaluate(connected: boolean): boolean;
@@ -909,7 +921,6 @@ declare namespace fgui {
     class GearFontSize extends GearBase {
         private _storage;
         private _default;
-        constructor(owner: GObject);
         protected init(): void;
         protected addStatus(pageId: string, buffer: ByteBuffer): void;
         apply(): void;
@@ -920,7 +931,6 @@ declare namespace fgui {
     class GearIcon extends GearBase {
         private _storage;
         private _default;
-        constructor(owner: GObject);
         protected init(): void;
         protected addStatus(pageId: string, buffer: ByteBuffer): void;
         apply(): void;
@@ -931,7 +941,6 @@ declare namespace fgui {
     class GearLook extends GearBase {
         private _storage;
         private _default;
-        constructor(owner: GObject);
         protected init(): void;
         protected addStatus(pageId: string, buffer: ByteBuffer): void;
         apply(): void;
@@ -944,7 +953,6 @@ declare namespace fgui {
     class GearSize extends GearBase {
         private _storage;
         private _default;
-        constructor(owner: GObject);
         protected init(): void;
         protected addStatus(pageId: string, buffer: ByteBuffer): void;
         apply(): void;
@@ -958,7 +966,6 @@ declare namespace fgui {
     class GearText extends GearBase {
         private _storage;
         private _default;
-        constructor(owner: GObject);
         protected init(): void;
         protected addStatus(pageId: string, buffer: ByteBuffer): void;
         apply(): void;
@@ -970,7 +977,6 @@ declare namespace fgui {
         positionsInPercent: boolean;
         private _storage;
         private _default;
-        constructor(owner: GObject);
         protected init(): void;
         protected addStatus(pageId: string, buffer: ByteBuffer): void;
         addExtStatus(pageId: string, buffer: ByteBuffer): void;
@@ -1250,6 +1256,8 @@ declare namespace fgui {
     }
 }
 declare namespace fgui {
+    type AlignType = "left" | "center" | "right";
+    type VertAlignType = "top" | "middle" | "bottom";
     enum ButtonMode {
         Common = 0,
         Check = 1,
@@ -1260,16 +1268,6 @@ declare namespace fgui {
         Both = 1,
         Height = 2,
         Shrink = 3
-    }
-    enum AlignType {
-        Left = 0,
-        Center = 1,
-        Right = 2
-    }
-    enum VertAlignType {
-        Top = 0,
-        Middle = 1,
-        Bottom = 2
     }
     enum LoaderFillType {
         None = 0,
@@ -1831,7 +1829,7 @@ declare namespace fgui {
         get value(): string;
         set value(val: string);
         getTextField(): GTextField;
-        protected setState(val: ButtonStatus): void;
+        protected setState(val: string): void;
         protected setCurrentState(): void;
         get selectionController(): Controller;
         set selectionController(value: Controller);
@@ -2001,10 +1999,10 @@ declare namespace fgui {
         set lineGap(value: number);
         get columnGap(): number;
         set columnGap(value: number);
-        get align(): string;
-        set align(value: string);
-        get verticalAlign(): string;
-        set verticalAlign(value: string);
+        get align(): AlignType;
+        set align(value: AlignType);
+        get verticalAlign(): VertAlignType;
+        set verticalAlign(value: VertAlignType);
         get virtualItemSize(): THREE.Vector2;
         set virtualItemSize(value: THREE.Vector2);
         get defaultItem(): string;
@@ -2100,10 +2098,10 @@ declare namespace fgui {
         set url(value: string);
         get icon(): string;
         set icon(value: string);
-        get align(): string;
-        set align(value: string);
-        get verticalAlign(): string;
-        set verticalAlign(value: string);
+        get align(): AlignType;
+        set align(value: AlignType);
+        get verticalAlign(): VertAlignType;
+        set verticalAlign(value: VertAlignType);
         get fill(): number;
         set fill(value: number);
         get shrinkOnly(): boolean;
@@ -2848,7 +2846,6 @@ declare namespace fgui {
         static get scaleLevel(): number;
         static scaleWithScreenSize(designResolutionX: number, designResolutionY: number, screenMatchMode?: ScreenMatchMode): void;
         static setConstant(constantScaleFactor?: number): void;
-        static _refresh(): void;
     }
 }
 declare namespace fgui {

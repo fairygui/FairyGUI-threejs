@@ -2,6 +2,12 @@
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
+function set(target, property, value, receiver) { if (typeof Reflect !== "undefined" && Reflect.set) { set = Reflect.set; } else { set = function set(target, property, value, receiver) { var base = _superPropBase(target, property); var desc; if (base) { desc = Object.getOwnPropertyDescriptor(base, property); if (desc.set) { desc.set.call(receiver, value); return true; } else if (!desc.writable) { return false; } } desc = Object.getOwnPropertyDescriptor(receiver, property); if (desc) { if (!desc.writable) { return false; } desc.value = value; Object.defineProperty(receiver, property, desc); } else { _defineProperty(receiver, property, value); } return true; }; } return set(target, property, value, receiver); }
+
+function _set(target, property, value, receiver, isStrict) { var s = set(target, property, value, receiver || target); if (!s && isStrict) { throw new Error('failed to set property'); } return value; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
 
 function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
@@ -2274,7 +2280,9 @@ window.THREE = require("three");
       }
     }, {
       key: "setFocus",
-      value: function setFocus(newFocus) {}
+      value: function setFocus(obj) {
+        _setFocus(obj);
+      }
     }, {
       key: "scene",
       set: function set(value) {
@@ -2282,6 +2290,16 @@ window.THREE = require("three");
       },
       get: function get() {
         return _scene;
+      }
+    }, {
+      key: "domElement",
+      get: function get() {
+        return _canvas;
+      }
+    }, {
+      key: "devicePixelRatio",
+      get: function get() {
+        return _devicePixelRatio;
       }
     }, {
       key: "camera",
@@ -2321,6 +2339,7 @@ window.THREE = require("three");
     return Stage;
   }();
 
+  Stage.eventDispatcher = new fgui.EventDispatcher();
   fgui.Stage = Stage;
 
   var HitTestContext = /*#__PURE__*/function () {
@@ -2397,6 +2416,7 @@ window.THREE = require("three");
 
   var _touchscreen;
 
+  var _devicePixelRatio = 1;
   var hit_tmp = new THREE.Vector3();
   var hit_tmp2 = new THREE.Vector2();
 
@@ -2407,6 +2427,7 @@ window.THREE = require("three");
     _camera.layers.set(fgui.UILayer);
 
     _touchscreen = is_touch_enabled();
+    if (renderer instanceof THREE.WebGLRenderer) _devicePixelRatio = renderer.getPixelRatio();
     _touches = [];
 
     for (var i = 0; i < 5; i++) {
@@ -2501,7 +2522,8 @@ window.THREE = require("three");
       _camera.updateProjectionMatrix();
     }
 
-    if (evt) fgui.UIContentScaler._refresh();
+    if (activeTextInput) _setFocus(null);
+    if (evt) Stage.eventDispatcher.dispatchEvent("size_changed");
   }
 
   function is_touch_enabled() {
@@ -2509,7 +2531,7 @@ window.THREE = require("three");
   }
 
   function handleMouse(ev, type) {
-    ev.preventDefault();
+    if (!activeTextInput || !activeTextInput.stage) ev.preventDefault();
 
     _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
 
@@ -2531,7 +2553,9 @@ window.THREE = require("three");
         _touchCount = 1;
         touch.begin();
         touch.button = ev.button;
-        Stage.setFocus(touch.target);
+
+        _setFocus(touch.target);
+
         setLastInput(touch);
         if (touch.target) bubbleEvent(touch.target.obj3D, "touch_begin");
       }
@@ -2552,7 +2576,7 @@ window.THREE = require("three");
   }
 
   function handleWheel(ev) {
-    ev.preventDefault();
+    if (!activeTextInput || !activeTextInput.stage) ev.preventDefault();
 
     _touchPos.set(ev.pageX - _offsetX, ev.pageY - _offsetY);
 
@@ -2582,7 +2606,7 @@ window.THREE = require("three");
   }
 
   function handleTouch(ev, type) {
-    ev.preventDefault();
+    if (!activeTextInput || !activeTextInput.stage) ev.preventDefault();
     var touches = ev.changedTouches;
 
     for (var i = 0; i < touches.length; ++i) {
@@ -2625,7 +2649,9 @@ window.THREE = require("three");
           _touchCount++;
           touch.begin();
           touch.button = 0;
-          Stage.setFocus(touch.target);
+
+          _setFocus(touch.target);
+
           setLastInput(touch);
           if (touch.target) bubbleEvent(touch.target.obj3D, "touch_begin");
         }
@@ -2724,6 +2750,22 @@ window.THREE = require("three");
     var ret = fgui.traverseHitTest(_scene, _hitTestContext);
     Stage.disableMatrixValidation = false;
     return ret;
+  }
+
+  var activeTextInput;
+
+  function _setFocus(obj) {
+    if (activeTextInput == obj) return;
+
+    if (activeTextInput) {
+      var t = activeTextInput;
+      activeTextInput = null;
+      t.dispatchEvent("focus_out");
+    }
+
+    if (!obj || !obj["isInput"]) return;
+    activeTextInput = obj;
+    activeTextInput.dispatchEvent("focus_in");
   }
 
   var s_v3 = new THREE.Vector3();
@@ -4321,7 +4363,7 @@ window.THREE = require("three");
 
 (function (fgui) {
   var s_rect = new fgui.Rect();
-  var s_scale = window.devicePixelRatio;
+  var s_scale = 1;
 
   var DynamicFont = /*#__PURE__*/function () {
     function DynamicFont() {
@@ -4338,6 +4380,7 @@ window.THREE = require("three");
       this._context = this._canvas.getContext("2d");
       this._context.globalCompositeOperation = "lighter";
       this.createTexture(512);
+      s_scale = fgui.Stage.devicePixelRatio;
     }
 
     _createClass(DynamicFont, [{
@@ -4413,7 +4456,7 @@ window.THREE = require("three");
         this._context.font = size + "px " + this._name;
 
         if (!glyph) {
-          glyph = this.measureChar(ch);
+          glyph = this.measureChar(ch, size);
           this._glyphs[key] = glyph;
         }
 
@@ -4428,10 +4471,10 @@ window.THREE = require("three");
           return null;
         }
 
-        this._context.textBaseline = "top";
+        this._context.textBaseline = "alphabetic";
         this._context.fillStyle = node.z == 0 ? "#FF0000" : node.z == 1 ? "#00FF00" : "#0000FF";
 
-        this._context.fillText(ch, node.x + glyph.sourceRect.x, node.y + glyph.sourceRect.y);
+        this._context.fillText(ch, node.x + glyph.sourceRect.x, node.y + glyph.baseline);
 
         this._texture.needsUpdate = true;
         glyph.chl = node.z / 3;
@@ -4467,11 +4510,11 @@ window.THREE = require("three");
 
         if (this.keepCrisp) size *= s_scale;
         this._context.font = size + "px " + this._name;
-        this._context.textBaseline = "top";
+        this._context.textBaseline = "alphabetic";
         this._context.strokeStyle = node.z == 0 ? "#FF0000" : node.z == 1 ? "#00FF00" : "#0000FF";
         this._context.lineWidth = outline2;
 
-        this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.sourceRect.y + outline2);
+        this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.baseline + outline2);
 
         this._texture.needsUpdate = true;
         outlineGlyph.chl = node.z / 3;
@@ -4481,19 +4524,31 @@ window.THREE = require("three");
       }
     }, {
       key: "measureChar",
-      value: function measureChar(ch) {
+      value: function measureChar(ch, size) {
+        var left, top, w, h, baseline;
         this._context.textBaseline = "alphabetic";
 
         var met = this._context.measureText(ch);
 
-        this._context.textBaseline = "top";
+        if ('actualBoundingBoxLeft' in met) {
+          this._context.textBaseline = "top";
 
-        var met1 = this._context.measureText(ch);
+          var met1 = this._context.measureText(ch);
 
-        var left = met.actualBoundingBoxLeft > 0 ? Math.ceil(met.actualBoundingBoxLeft) : 0;
-        var top = Math.ceil(met1.actualBoundingBoxAscent) + 1;
-        var w = Math.ceil(left + met.actualBoundingBoxRight) + 1;
-        var h = Math.ceil(met.actualBoundingBoxAscent + met.actualBoundingBoxDescent) + 2;
+          left = met.actualBoundingBoxLeft > 0 ? Math.ceil(met.actualBoundingBoxLeft) : 0;
+          top = Math.ceil(met1.actualBoundingBoxAscent) + 1;
+          w = Math.ceil(left + met.actualBoundingBoxRight) + 1;
+          h = Math.ceil(met.actualBoundingBoxAscent + met.actualBoundingBoxDescent) + 2;
+          baseline = Math.ceil(met.actualBoundingBoxAscent);
+        } else {
+          baseline = getBaseline(ch, this._name, size);
+          left = 0;
+          if (ch == 'j') left = Math.ceil(size / 20);
+          top = 0;
+          w = met["width"];
+          h = size * 1.25 + 2;
+        }
+
         var glyph;
 
         if (w == 0) {
@@ -4503,9 +4558,10 @@ window.THREE = require("three");
         } else {
           glyph = {
             uvRect: new fgui.Rect(),
-            vertRect: new fgui.Rect(-left, -met.actualBoundingBoxAscent, w, h),
+            vertRect: new fgui.Rect(-left, -baseline, w, h),
             advance: met.width,
             sourceRect: new fgui.Rect(left, top, w, h),
+            baseline: baseline,
             ver: this.version
           };
 
@@ -4647,6 +4703,38 @@ window.THREE = require("three");
 
     return BinPacker;
   }();
+
+  var eSpan;
+  var eBlock;
+
+  function getBaseline(ch, font, size) {
+    if (!eSpan) {
+      eSpan = document.createElement('span');
+      eBlock = document.createElement("div");
+      eBlock.style.display = 'inline-block';
+      eBlock.style.width = '1px';
+      eBlock.style.height = '0px';
+      var div = document.createElement('div');
+      div.id = 'measureText';
+      div.style.position = 'absolute';
+      div.style.visibility = 'hidden';
+      div.style.left = div.style.top = '0px';
+      div.appendChild(eSpan);
+      div.appendChild(eBlock);
+      document.body.appendChild(div);
+    }
+
+    eSpan.innerHTML = ch;
+    eSpan.style.fontFamily = font;
+    eSpan.style.fontSize = size + "px";
+    var ascent, height;
+    var offset = eSpan.offsetTop;
+    eBlock.style['vertical-align'] = 'baseline';
+    ascent = eBlock.offsetTop - offset;
+    eBlock.style['vertical-align'] = 'bottom';
+    height = eBlock.offsetTop - offset;
+    return ascent + Math.floor((size * 1.25 - height) / 2);
+  }
 })(fgui || (fgui = {}));
 
 (function (fgui) {
@@ -4738,15 +4826,7 @@ window.THREE = require("three");
     }, {
       key: "redraw",
       value: function redraw() {
-        if (this._font == null) {
-          this._font = fgui.FontManager.getFont(fgui.UIConfig.defaultFont);
-          this._graphics.texture = this._font.mainTexture;
-
-          this._graphics.setKeyword("TEXT", this._font.isDynamic);
-
-          this._fontVersion = this._font.version;
-          this._textChanged = true;
-        }
+        if (!this._font) this.applyFormat();
 
         if (this._font.version != this._fontVersion) {
           this._fontVersion = this._font.version;
@@ -4806,7 +4886,7 @@ window.THREE = require("three");
       value: function onSizeChanged() {
         if (!this._updatingSize) {
           if (this._autoSize == fgui.AutoSizeType.Shrink || this._wordWrap) this._textChanged = true;else if (this._autoSize != fgui.AutoSizeType.None) this._graphics.setMeshDirty();
-          if (this._verticalAlign != fgui.VertAlignType.Top) this.applyVertAlign();
+          if (this._verticalAlign != "top") this.applyVertAlign();
         }
 
         _get(_getPrototypeOf(TextField.prototype), "onSizeChanged", this).call(this);
@@ -4847,14 +4927,7 @@ window.THREE = require("three");
     }, {
       key: "buildLines",
       value: function buildLines() {
-        if (this._font == null) {
-          this._font = fgui.FontManager.getFont(fgui.UIConfig.defaultFont);
-          this._fontVersion = this._font.version;
-          this._graphics.texture = this._font.mainTexture;
-
-          this._graphics.setKeyword("TEXT", this._font.isDynamic);
-        }
-
+        if (!this._font) this.applyFormat();
         this._textChanged = false;
 
         this._graphics.setMeshDirty();
@@ -4881,7 +4954,7 @@ window.THREE = require("three");
         if (this._autoSize == fgui.AutoSizeType.Both) {
           this._updatingSize = true;
 
-          if (this._input) {
+          if (this.isInput) {
             var w = Math.max(this._textFormat.size, this._textWidth);
             var h = Math.max(this._font.getLineHeight(this._textFormat.size) + fgui.GUTTER_Y * 2, this._textHeight);
             this.setSize(w, h);
@@ -4890,7 +4963,7 @@ window.THREE = require("three");
           this._updatingSize = false;
         } else if (this._autoSize == fgui.AutoSizeType.Height) {
           this._updatingSize = true;
-          if (this._input) this.height = Math.max(this._font.getLineHeight(this._textFormat.size) + fgui.GUTTER_Y * 2, this._textHeight);else this.height = this._textHeight;
+          if (this.isInput) this.height = Math.max(this._font.getLineHeight(this._textFormat.size) + fgui.GUTTER_Y * 2, this._textHeight);else this.height = this._textHeight;
           this._updatingSize = false;
         }
 
@@ -4901,14 +4974,14 @@ window.THREE = require("three");
       key: "parseText",
       value: function parseText() {
         if (this._html) {
-          fgui.htmldefaultParser.parse(this._text, this._textFormat, this._elements, this._rich ? this.htmlParseOptions : null);
+          fgui.htmldefaultParser.parse(this._text, this._textFormat, this._elements, this.isRich ? this.htmlParseOptions : null);
           this._parsedText = "";
         } else this._parsedText = this._text;
 
         var elementCount = this._elements.length;
 
         if (elementCount == 0) {
-          if (this._input) this._parsedText = this._parsedText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+          if (this.isInput) this._parsedText = this._parsedText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
         } else {
           var i = 0;
 
@@ -4917,7 +4990,7 @@ window.THREE = require("three");
             element.charIndex = this._parsedText.length;
 
             if (element.type == fgui.HtmlElementType.Text) {
-              if (this._input) this._parsedText += element.text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");else this._parsedText += element.text;
+              if (this.isInput) this._parsedText += element.text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");else this._parsedText += element.text;
             } else if (element.isEntity) this._parsedText += ' ';
 
             i++;
@@ -4976,7 +5049,7 @@ window.THREE = require("three");
             } else {
               var htmlObject = element.htmlObject;
 
-              if (this._rich && !htmlObject) {
+              if (this.isRich && !htmlObject) {
                 element.space = rectWidth - line.width - 4;
                 htmlObject = this.htmlPageContext.createObject(this, element);
                 element.htmlObject = htmlObject;
@@ -5161,7 +5234,7 @@ window.THREE = require("three");
         var linkStartLine = 0;
         var posx = 0;
         var indent_x;
-        var clipping = !this._input && this._autoSize == fgui.AutoSizeType.None;
+        var clipping = !this.isInput && this._autoSize == fgui.AutoSizeType.None;
         var lineClipped;
         var lineAlign;
         var vertCount;
@@ -5186,7 +5259,7 @@ window.THREE = require("three");
           lineClipped = clipping && i != 0 && line.y + line.height > rectHeight;
           lineAlign = format.align;
           if (element && element.charIndex == line.charIndex) lineAlign = element.format.align;else lineAlign = format.align;
-          if (lineAlign == fgui.AlignType.Center) indent_x = Math.floor((rectWidth - line.width) / 2);else if (lineAlign == fgui.AlignType.Right) indent_x = rectWidth - line.width;else indent_x = 0;
+          if (lineAlign == "center") indent_x = Math.floor((rectWidth - line.width) / 2);else if (lineAlign == "right") indent_x = rectWidth - line.width;else indent_x = 0;
           if (indent_x < 0) indent_x = 0;
           posx = fgui.GUTTER_X + indent_x;
           var lineCharCount = line.charCount;
@@ -5369,11 +5442,11 @@ window.THREE = require("three");
       key: "applyVertAlign",
       value: function applyVertAlign() {
         var oldOffset = this._yOffset;
-        if (this._autoSize == fgui.AutoSizeType.Both || this._autoSize == fgui.AutoSizeType.Height || this._verticalAlign == fgui.VertAlignType.Top) this._yOffset = 0;else {
+        if (this._autoSize == fgui.AutoSizeType.Both || this._autoSize == fgui.AutoSizeType.Height || this._verticalAlign == "top") this._yOffset = 0;else {
           var dh;
           if (this._textHeight == 0 && this._lines.length > 0) dh = this._contentRect.height - this._lines[0].height;else dh = this._contentRect.height - this._textHeight;
           if (dh < 0) dh = 0;
-          if (this._verticalAlign == fgui.VertAlignType.Middle) this._yOffset = Math.floor(dh / 2);else this._yOffset = dh;
+          if (this._verticalAlign == "middle") this._yOffset = Math.floor(dh / 2);else this._yOffset = dh;
         }
 
         if (oldOffset != this._yOffset) {
@@ -5564,15 +5637,29 @@ window.THREE = require("three");
 
       _this10 = _super10.call(this);
       _this10._touchDisabled = false;
-      _this10._input = true;
+      _this10.opaque = true;
+      _this10.isInput = true;
+      _this10._text2 = '';
       _this10.maxLength = 0;
       _this10.editable = true;
       _this10._borderColor = new fgui.Color4();
       _this10._backgroundColor = new fgui.Color4(0xFFFFFF, 0);
+
+      _this10.on("focus_in", _this10.__focusIn, _assertThisInitialized(_this10), true);
+
+      _this10.on("focus_out", _this10.__focusOut, _assertThisInitialized(_this10), true);
+
+      _this10.on("removed_from_stage", _this10.__removed, _assertThisInitialized(_this10));
+
       return _this10;
     }
 
     _createClass(InputTextField, [{
+      key: "updateText",
+      value: function updateText() {
+        if (this._editing) this._element.value = this._text2;else if (this._text2.length == 0 && this._promptText) _set(_getPrototypeOf(InputTextField.prototype), "htmlText", this._decodedPromptText, this, true);else if (this._password) _set(_getPrototypeOf(InputTextField.prototype), "text", "*".repeat(this._text2.length), this, true);else _set(_getPrototypeOf(InputTextField.prototype), "text", this._text2, this, true);
+      }
+    }, {
       key: "onSizeChanged",
       value: function onSizeChanged() {
         _get(_getPrototypeOf(InputTextField.prototype), "onSizeChanged", this).call(this);
@@ -5585,6 +5672,119 @@ window.THREE = require("three");
         this._clipRect.y += fgui.GUTTER_Y;
         this._clipRect.width -= fgui.GUTTER_X * 2;
         this._clipRect.height -= fgui.GUTTER_Y * 2;
+      }
+    }, {
+      key: "applyFormat",
+      value: function applyFormat() {
+        _get(_getPrototypeOf(InputTextField.prototype), "applyFormat", this).call(this);
+
+        if (this._element) this.setFormat();
+      }
+    }, {
+      key: "createElement",
+      value: function createElement() {
+        var e;
+
+        if (this.singleLine) {
+          e = this._element = document.createElement("input");
+        } else {
+          e = this._element = document.createElement("textarea");
+          e.style.resize = "none";
+          e.style.overflow = "scroll";
+        }
+
+        e.id = 'InputText';
+        e.style.outline = "none";
+        e.style.borderWidth = "0px";
+        e.style.padding = "0px";
+        e.style.margin = "0px";
+        e.style.position = "absolute";
+        e.style.display = "none";
+        e.style.background = 'transparent';
+        e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
+        fgui.Stage.domElement.parentNode.appendChild(e);
+        this.setFormat();
+      }
+    }, {
+      key: "setFormat",
+      value: function setFormat() {
+        var e = this._element;
+        e.style.font = this._textFormat.size + "px " + this._font.name;
+        e.style.color = fgui.convertToHtmlColor(this._textFormat.color);
+        e.style.webkitTextStroke = this._textFormat.outline + "px " + fgui.convertToHtmlColor(this._textFormat.outlineColor);
+        e.style.textAlign = this._textFormat.align;
+      }
+    }, {
+      key: "dispose",
+      value: function dispose() {
+        _get(_getPrototypeOf(InputTextField.prototype), "dispose", this).call(this);
+
+        if (this._element) {
+          this._element.style.display = 'none';
+          if (this._element.parentNode) this._element.parentNode.removeChild(this._element);
+          this._element = null;
+        }
+      }
+    }, {
+      key: "__focusIn",
+      value: function __focusIn() {
+        if (!this.editable || this._editing) return;
+        if (!this._font) this.applyFormat();
+        if (!this._element) this.createElement();
+        this.localToGlobal(0, 0, s_v2);
+        this.localToGlobal(1, 1, s_v2_2);
+        s_v2_2.sub(s_v2);
+        var e = this._element;
+        e.style.width = this.width.toFixed(2) + "px";
+        e.style.height = this.height.toFixed(2) + "px";
+        e.style.display = "inline-block";
+        e.style.left = s_v2.x + 2 + "px";
+        e.style.top = s_v2.y + "px";
+        e.style.transform = "scale(" + s_v2_2.x.toFixed(3) + "," + s_v2_2.y.toFixed(3) + ")";
+        e.value = this._text2;
+        e.focus();
+        this._editing = true;
+        this._graphics.material.visible = false;
+        this.dispatchEvent("focus_in");
+      }
+    }, {
+      key: "__focusOut",
+      value: function __focusOut() {
+        if (!this._editing) return;
+        this._element.style.display = "none";
+
+        this._element.blur();
+
+        this._text2 = this._element.value;
+        this._editing = false;
+        this.updateText();
+        this._graphics.material.visible = true;
+        if (this.stage) this.dispatchEvent("focus_out");
+      }
+    }, {
+      key: "__removed",
+      value: function __removed() {
+        if (this._editing) fgui.Stage.setFocus(null);
+      }
+    }, {
+      key: "text",
+      get: function get() {
+        if (this._editing) this._text2 = this._element.value;
+        return this._text2;
+      },
+      set: function set(value) {
+        this._text2 = value;
+        this.updateText();
+      }
+    }, {
+      key: "promptText",
+      get: function get() {
+        return this._promptText;
+      },
+      set: function set(value) {
+        this._promptText = value;
+        this._decodedPromptText = fgui.defaultParser.parse(value);
+        this.updateText();
       }
     }, {
       key: "password",
@@ -5600,6 +5800,8 @@ window.THREE = require("three");
   }(fgui.TextField);
 
   fgui.InputTextField = InputTextField;
+  var s_v2 = new THREE.Vector2();
+  var s_v2_2 = new THREE.Vector2();
 })(fgui || (fgui = {}));
 
 (function (fgui) {
@@ -5615,7 +5817,8 @@ window.THREE = require("three");
 
       _this11 = _super11.call(this);
       _this11._touchDisabled = false;
-      _this11._rich = true;
+      _this11.opaque = true;
+      _this11.isRich = true;
       _this11.htmlPageContext = fgui.defaultContext;
       _this11.htmlParseOptions = new fgui.HtmlParseOptions();
       return _this11;
@@ -5905,10 +6108,8 @@ window.THREE = require("three");
 
 (function (fgui) {
   var GearBase = /*#__PURE__*/function () {
-    function GearBase(owner) {
+    function GearBase() {
       _classCallCheck(this, GearBase);
-
-      this._owner = owner;
     }
 
     _createClass(GearBase, [{
@@ -5996,6 +6197,11 @@ window.THREE = require("three");
         if (!this._tweenConfig) this._tweenConfig = new GearTweenConfig();
         return this._tweenConfig;
       }
+    }, {
+      key: "allowTween",
+      get: function get() {
+        return this._tweenConfig && this._tweenConfig.tween && fgui.constructingDepth.n == 0 && !GearBase.disableAllTweenEffect;
+      }
     }]);
 
     return GearBase;
@@ -6021,10 +6227,10 @@ window.THREE = require("three");
 
     var _super13 = _createSuper(GearAnimation);
 
-    function GearAnimation(owner) {
+    function GearAnimation() {
       _classCallCheck(this, GearAnimation);
 
-      return _super13.call(this, owner);
+      return _super13.apply(this, arguments);
     }
 
     _createClass(GearAnimation, [{
@@ -6086,10 +6292,10 @@ window.THREE = require("three");
 
     var _super14 = _createSuper(GearColor);
 
-    function GearColor(owner) {
+    function GearColor() {
       _classCallCheck(this, GearColor);
 
-      return _super14.call(this, owner);
+      return _super14.apply(this, arguments);
     }
 
     _createClass(GearColor, [{
@@ -6151,14 +6357,13 @@ window.THREE = require("three");
 
     var _super15 = _createSuper(GearDisplay);
 
-    function GearDisplay(owner) {
+    function GearDisplay() {
       var _this13;
 
       _classCallCheck(this, GearDisplay);
 
-      _this13 = _super15.call(this, owner);
+      _this13 = _super15.apply(this, arguments);
       _this13._visible = 0;
-      _this13._displayLockToken = 0;
       _this13._displayLockToken = 1;
       return _this13;
     }
@@ -6205,12 +6410,12 @@ window.THREE = require("three");
 
     var _super16 = _createSuper(GearDisplay2);
 
-    function GearDisplay2(owner) {
+    function GearDisplay2() {
       var _this14;
 
       _classCallCheck(this, GearDisplay2);
 
-      _this14 = _super16.call(this, owner);
+      _this14 = _super16.apply(this, arguments);
       _this14._visible = 0;
       return _this14;
     }
@@ -6246,12 +6451,12 @@ window.THREE = require("three");
 
     var _super17 = _createSuper(GearFontSize);
 
-    function GearFontSize(owner) {
+    function GearFontSize() {
       var _this15;
 
       _classCallCheck(this, GearFontSize);
 
-      _this15 = _super17.call(this, owner);
+      _this15 = _super17.apply(this, arguments);
       _this15._default = 0;
       return _this15;
     }
@@ -6294,10 +6499,10 @@ window.THREE = require("three");
 
     var _super18 = _createSuper(GearIcon);
 
-    function GearIcon(owner) {
+    function GearIcon() {
       _classCallCheck(this, GearIcon);
 
-      return _super18.call(this, owner);
+      return _super18.apply(this, arguments);
     }
 
     _createClass(GearIcon, [{
@@ -6338,10 +6543,10 @@ window.THREE = require("three");
 
     var _super19 = _createSuper(GearLook);
 
-    function GearLook(owner) {
+    function GearLook() {
       _classCallCheck(this, GearLook);
 
-      return _super19.call(this, owner);
+      return _super19.apply(this, arguments);
     }
 
     _createClass(GearLook, [{
@@ -6373,7 +6578,7 @@ window.THREE = require("three");
       value: function apply() {
         var gv = this._storage[this._controller.selectedPageId] || this._default;
 
-        if (this._tweenConfig && this._tweenConfig.tween && fgui.constructingDepth.n == 0 && !fgui.GearBase.disableAllTweenEffect) {
+        if (this.allowTween) {
           this._owner._gearLocked = true;
           this._owner.grayed = gv.grayed;
           this._owner.touchable = gv.touchable;
@@ -6452,10 +6657,10 @@ window.THREE = require("three");
 
     var _super20 = _createSuper(GearSize);
 
-    function GearSize(owner) {
+    function GearSize() {
       _classCallCheck(this, GearSize);
 
-      return _super20.call(this, owner);
+      return _super20.apply(this, arguments);
     }
 
     _createClass(GearSize, [{
@@ -6487,7 +6692,7 @@ window.THREE = require("three");
       value: function apply() {
         var gv = this._storage[this._controller.selectedPageId] || this._default;
 
-        if (this._tweenConfig && this._tweenConfig.tween && fgui.constructingDepth.n == 0 && !fgui.GearBase.disableAllTweenEffect) {
+        if (this.allowTween) {
           if (this._tweenConfig._tweener) {
             if (this._tweenConfig._tweener.endValue.x != gv.width || this._tweenConfig._tweener.endValue.y != gv.height || this._tweenConfig._tweener.endValue.z != gv.scaleX || this._tweenConfig._tweener.endValue.w != gv.scaleY) {
               this._tweenConfig._tweener.kill(true);
@@ -6577,10 +6782,10 @@ window.THREE = require("three");
 
     var _super21 = _createSuper(GearText);
 
-    function GearText(owner) {
+    function GearText() {
       _classCallCheck(this, GearText);
 
-      return _super21.call(this, owner);
+      return _super21.apply(this, arguments);
     }
 
     _createClass(GearText, [{
@@ -6621,10 +6826,10 @@ window.THREE = require("three");
 
     var _super22 = _createSuper(GearXY);
 
-    function GearXY(owner) {
+    function GearXY() {
       _classCallCheck(this, GearXY);
 
-      return _super22.call(this, owner);
+      return _super22.apply(this, arguments);
     }
 
     _createClass(GearXY, [{
@@ -6672,7 +6877,7 @@ window.THREE = require("three");
           ey = pt.y;
         }
 
-        if (this._tweenConfig && this._tweenConfig.tween && fgui.constructingDepth.n == 0 && !fgui.GearBase.disableAllTweenEffect) {
+        if (this.allowTween) {
           if (this._tweenConfig._tweener) {
             if (this._tweenConfig._tweener.endValue.x != ex || this._tweenConfig._tweener.endValue.y != ey) {
               this._tweenConfig._tweener.kill(true);
@@ -7986,7 +8191,7 @@ window.THREE = require("three");
             _activeTweens[i] = null;
             if (freePosStart == -1) freePosStart = i;
           } else {
-            if (tweener._target instanceof fgui.GObject && tweener._target.isDisposed) tweener._killed = true;else if (!tweener._paused) tweener._update(dt);
+            if ('isDisposed' in tweener._target && tweener._target.isDisposed) tweener._killed = true;else if (!tweener._paused) tweener._update(dt);
 
             if (freePosStart != -1) {
               _activeTweens[freePosStart] = tweener;
@@ -8696,22 +8901,6 @@ window.THREE = require("three");
     AutoSizeType[AutoSizeType["Height"] = 2] = "Height";
     AutoSizeType[AutoSizeType["Shrink"] = 3] = "Shrink";
   })(AutoSizeType = fgui.AutoSizeType || (fgui.AutoSizeType = {}));
-
-  var AlignType;
-
-  (function (AlignType) {
-    AlignType[AlignType["Left"] = 0] = "Left";
-    AlignType[AlignType["Center"] = 1] = "Center";
-    AlignType[AlignType["Right"] = 2] = "Right";
-  })(AlignType = fgui.AlignType || (fgui.AlignType = {}));
-
-  var VertAlignType;
-
-  (function (VertAlignType) {
-    VertAlignType[VertAlignType["Top"] = 0] = "Top";
-    VertAlignType[VertAlignType["Middle"] = 1] = "Middle";
-    VertAlignType[VertAlignType["Bottom"] = 2] = "Bottom";
-  })(VertAlignType = fgui.VertAlignType || (fgui.VertAlignType = {}));
 
   var LoaderFillType;
 
@@ -9983,7 +10172,9 @@ window.THREE = require("three");
   var GearClasses = [fgui.GearDisplay, fgui.GearXY, fgui.GearSize, fgui.GearLook, fgui.GearColor, fgui.GearAnimation, fgui.GearText, fgui.GearIcon, fgui.GearDisplay2, fgui.GearFontSize];
 
   function createGear(owner, index) {
-    return new GearClasses[index](owner);
+    var ret = new GearClasses[index]();
+    ret._owner = owner;
+    return ret;
   }
 
   var s_vec2 = new THREE.Vector2();
@@ -11140,7 +11331,7 @@ window.THREE = require("three");
     _createClass(GButton, [{
       key: "getTextField",
       value: function getTextField() {
-        if (this._titleObject instanceof fgui.GTextField) return this._titleObject;else if (this._titleObject instanceof fgui.GLabel) return this._titleObject.getTextField();else if (this._titleObject instanceof GButton) return this._titleObject.getTextField();else return null;
+        if (this._titleObject instanceof fgui.GTextField) return this._titleObject;else if ('getTextField' in this._titleObject) return this._titleObject.getTextField();else return null;
       }
     }, {
       key: "fireClick",
@@ -11596,7 +11787,7 @@ window.THREE = require("three");
     _createClass(GComboBox, [{
       key: "getTextField",
       value: function getTextField() {
-        if (this._titleObject instanceof fgui.GTextField) return this._titleObject;else if (this._titleObject instanceof fgui.GLabel) return this._titleObject.getTextField();else if (this._titleObject instanceof fgui.GButton) return this._titleObject.getTextField();else return null;
+        if (this._titleObject instanceof fgui.GTextField) return this._titleObject;else if ('getTextField' in this._titleObject) return this._titleObject.getTextField();else return null;
       }
     }, {
       key: "setState",
@@ -12643,7 +12834,7 @@ window.THREE = require("three");
     _createClass(GLabel, [{
       key: "getTextField",
       value: function getTextField() {
-        if (this._titleObject instanceof fgui.GTextField) return this._titleObject;else if (this._titleObject instanceof GLabel) return this._titleObject.getTextField();else if (this._titleObject instanceof fgui.GButton) return this._titleObject.getTextField();else return null;
+        if (this._titleObject instanceof fgui.GTextField) return this._titleObject;else if ('getTextField' in this._titleObject) return this._titleObject.getTextField();else return null;
       }
     }, {
       key: "getProp",
@@ -16004,8 +16195,10 @@ window.THREE = require("three");
         tf.font = buffer.readS();
         tf.size = buffer.readShort();
         tf.color = buffer.readColor();
-        this.align = buffer.readByte();
-        this.verticalAlign = buffer.readByte();
+        var c = buffer.readByte();
+        this.align = c == 0 ? "left" : c == 1 ? "center" : "right";
+        c = buffer.readByte();
+        this.verticalAlign = c == 0 ? "top" : c == 1 ? "middle" : "bottom";
         tf.lineSpacing = buffer.readShort();
         tf.letterSpacing = buffer.readShort();
         this.ubbEnabled = buffer.readBool();
@@ -21613,11 +21806,6 @@ window.THREE = require("three");
         refresh();
       }
     }, {
-      key: "_refresh",
-      value: function _refresh() {
-        refresh();
-      }
-    }, {
       key: "scaleFactor",
       get: function get() {
         return _scaleFactor;
@@ -21645,6 +21833,7 @@ window.THREE = require("three");
 
   var _scaleFactor = 1;
   var _scaleLevel = 0;
+  fgui.Stage.eventDispatcher.on("size_changed", refresh);
 
   function refresh() {
     var screenWidth = fgui.Stage.width;
@@ -22503,8 +22692,7 @@ window.THREE = require("three");
     }, {
       key: "hideImmediately",
       value: function hideImmediately() {
-        var r = this.parent instanceof fgui.GRoot ? this.parent : null;
-        if (!r) r = fgui.GRoot.inst;
+        var r = fgui.GRoot.findFor(this.parent);
         r.hideWindowImmediately(this);
       }
     }, {
@@ -23600,7 +23788,7 @@ window.THREE = require("three");
     function HtmlImage() {
       _classCallCheck(this, HtmlImage);
 
-      this.loader = fgui.UIObjectFactory.newObject(fgui.ObjectType.Loader);
+      this.loader = fgui.Decls.UIObjectFactory.newObject(fgui.ObjectType.Loader);
       this.loader.fill = fgui.LoaderFillType.ScaleFree;
       this.loader.touchable = false;
     }
@@ -23996,18 +24184,7 @@ window.THREE = require("three");
             case "p":
               if (fgui.XMLIterator.tagType == fgui.XMLTagType.Start) {
                 this.pushTextFormat();
-                var align = fgui.XMLIterator.getAttribute("align");
-
-                switch (align) {
-                  case "center":
-                    this._format.align = fgui.AlignType.Center;
-                    break;
-
-                  case "right":
-                    this._format.align = fgui.AlignType.Right;
-                    break;
-                }
-
+                this._format.align = fgui.XMLIterator.getAttribute("align");
                 if (!this.isNewLine()) this.appendText("\n");
               } else if (fgui.XMLIterator.tagType == fgui.XMLTagType.End) {
                 this.appendText("\n");

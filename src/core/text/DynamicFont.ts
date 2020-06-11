@@ -1,402 +1,396 @@
-import { NTexture } from "../NTexture";
-import { TextFormat } from "./TextFormat";
-import { GlyphInfo } from "./BaseFont";
-import { VertexBuffer } from "../mesh/VertexBuffer";
-import { Texture, LinearFilter } from "three";
-import { Rect } from "../../utils/Rect";
-import { Color4 } from "../../utils/Color";
-import { Stage } from "../Stage";
+namespace fgui {
 
-type OutlineGlyph = {
-    uvRect: Rect;
-    vertRect: Rect;
-    chl?: number,
-    ver: number;
-}
-
-type Glyph = {
-    uvRect?: Rect;
-    vertRect?: Rect;
-    advance?: number;
-    sourceRect?: Rect;
-    chl?: number,
-    baseline?: number,
-    ver: number;
-
-    outlines?: { [index: number]: OutlineGlyph }
-}
-
-var s_rect = new Rect();
-var s_scale: number = 1;
-
-export class DynamicFont {
-    public version: number = 0;
-    public mainTexture: NTexture;
-    public isDynamic: boolean = true;
-    public keepCrisp: boolean = true;
-
-    private _canvas: HTMLCanvasElement;
-    private _context: CanvasRenderingContext2D;
-    private _texture: Texture;
-    private _packers: Array<BinPacker>;
-    private _glyphs: { [index: number]: Glyph };
-
-    private _name: string;
-    private _format: TextFormat;
-    private _size: number;
-    private _glyph: Glyph;
-    private _color: Color4;
-    private _outlineColor: Color4;
-
-    public constructor() {
-        this._glyphs = {};
-        this._color = new Color4();
-        this._outlineColor = new Color4();
-        this._packers = [new BinPacker(), new BinPacker(), new BinPacker()];
-
-        this._canvas = document.createElement("canvas");
-        this._context = this._canvas.getContext("2d");
-        this._context.globalCompositeOperation = "lighter";
-        this.createTexture(512);
-
-        s_scale = Stage.devicePixelRatio;
+    type OutlineGlyph = {
+        uvRect: Rect;
+        vertRect: Rect;
+        chl?: number,
+        ver: number;
     }
 
-    public get name(): string {
-        return this._name;
+    type Glyph = {
+        uvRect?: Rect;
+        vertRect?: Rect;
+        advance?: number;
+        sourceRect?: Rect;
+        chl?: number,
+        baseline?: number,
+        ver: number;
+
+        outlines?: { [index: number]: OutlineGlyph }
     }
 
-    public set name(value: string) {
-        this._name = value;
-        this._canvas.id = value;
-    }
+    var s_rect = new Rect();
+    var s_scale: number = 1;
 
-    private createTexture(size: number): void {
-        this._canvas.width = this._canvas.height = size;
+    export class DynamicFont {
+        public version: number = 0;
+        public mainTexture: NTexture;
+        public isDynamic: boolean = true;
+        public keepCrisp: boolean = true;
 
-        if (!this.mainTexture) {
-            this._texture = new Texture(this._canvas);
-            this._texture.generateMipmaps = false;
-            this._texture.magFilter = LinearFilter;
-            this._texture.minFilter = LinearFilter;
-            this.mainTexture = new NTexture(this._texture);
-        }
-        else {
-            this._texture.needsUpdate = true;
-            this.mainTexture.reload(this._texture);
+        private _canvas: HTMLCanvasElement;
+        private _context: CanvasRenderingContext2D;
+        private _texture: THREE.Texture;
+        private _packers: Array<BinPacker>;
+        private _glyphs: { [index: number]: Glyph };
+
+        private _name: string;
+        private _format: TextFormat;
+        private _size: number;
+        private _glyph: Glyph;
+        private _color: Color4;
+        private _outlineColor: Color4;
+
+        public constructor() {
+            this._glyphs = {};
+            this._color = new Color4();
+            this._outlineColor = new Color4();
+            this._packers = [new BinPacker(), new BinPacker(), new BinPacker()];
+
+            this._canvas = document.createElement("canvas");
+            this._context = this._canvas.getContext("2d");
+            this._context.globalCompositeOperation = "lighter";
+            this.createTexture(512);
+
+            s_scale = Stage.devicePixelRatio;
         }
 
-        this.clearTexture();
-    }
+        public get name(): string {
+            return this._name;
+        }
 
-    private clearTexture(): void {
-        this._context.fillStyle = 'black';
-        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
-        this._context.globalCompositeOperation = "lighter";
+        public set name(value: string) {
+            this._name = value;
+            this._canvas.id = value;
+        }
 
-        for (let i = 0; i < 3; i++)
-            this._packers[i].init(this._canvas.width, this._canvas.height);
-    }
+        private createTexture(size: number): void {
+            this._canvas.width = this._canvas.height = size;
 
-    private rebuild(): void {
-        if (this._canvas.width < 2048)
-            this.createTexture(this._canvas.width * 2);
-        else
+            if (!this.mainTexture) {
+                this._texture = new THREE.Texture(this._canvas);
+                this._texture.generateMipmaps = false;
+                this._texture.magFilter = THREE.LinearFilter;
+                this._texture.minFilter = THREE.LinearFilter;
+                this.mainTexture = new NTexture(this._texture);
+            }
+            else {
+                this._texture.needsUpdate = true;
+                this.mainTexture.reload(this._texture);
+            }
+
             this.clearTexture();
-        this.version++;
-        Stage.fontRebuilt = true;
-        console.log("font atlas rebuilt : %s (%d)", this.name, this._canvas.width);
-    }
-
-    public setFormat(format: TextFormat, fontSizeScale: number) {
-        this._format = format;
-        let size = format.size * fontSizeScale;
-        this._size = Math.floor(size);
-        if (this._size == 0)
-            this._size = 1;
-        this._color.setHex(format.color);
-        this._outlineColor.setHex(format.outlineColor);
-    }
-
-    public prepareCharacters(text: string) {
-        let len = text.length;
-        for (let i = 0; i < len; i++) {
-            let ch = text[i];
-            let glyph = this.prepareChar(ch, this._size);
-            if (!glyph)
-                break;
-
-            if (this._format.outline > 0)
-                this.prepareOutline(ch, glyph, this._size, this._format.outline);
-        }
-    }
-
-    private prepareChar(ch: string, size: number): Glyph {
-        let key: number = (size << 16) + ch.charCodeAt(0);
-        let glyph: Glyph = this._glyphs[key];
-        if (glyph && glyph.ver == this.version)
-            return glyph;
-
-        if (this.keepCrisp)
-            size *= s_scale;
-        this._context.font = size + "px " + this._name;
-
-        if (!glyph) {
-            glyph = this.measureChar(ch, size);
-            this._glyphs[key] = glyph;
-        }
-        glyph.ver = this.version;
-
-        let w: number = glyph.sourceRect.width;
-        let h: number = glyph.sourceRect.height;
-        if (w == 0)
-            return glyph;
-
-        let node: Node = this.addNode(w + 2, h + 2);
-        if (!node) {
-            this.rebuild();
-            return null;
         }
 
-        this._context.textBaseline = "alphabetic";
-        this._context.fillStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
-        this._context.fillText(ch, node.x + glyph.sourceRect.x, node.y + glyph.baseline);
-        this._texture.needsUpdate = true;
+        private clearTexture(): void {
+            this._context.fillStyle = 'black';
+            this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+            this._context.globalCompositeOperation = "lighter";
 
-        glyph.chl = node.z / 3;
-        glyph.uvRect.set(node.x / this.mainTexture.width, 1 - (node.y + h) / this.mainTexture.height,
-            w / this.mainTexture.width, h / this.mainTexture.height);
-
-        return glyph;
-    }
-
-    private prepareOutline(ch: string, glyph: Glyph, size: number, outline: number): void {
-        if (!glyph.outlines)
-            glyph.outlines = {};
-
-        let outlineGlyph: OutlineGlyph = glyph.outlines[outline];
-        if (outlineGlyph && outlineGlyph.ver == this.version || glyph.sourceRect.width == 0)
-            return;
-
-        if (!outlineGlyph) {
-            outlineGlyph = { vertRect: new Rect(), uvRect: new Rect(), ver: this.version };
-            glyph.outlines[outline] = outlineGlyph;
-        }
-        else
-            outlineGlyph.ver = this.version;
-
-        let outline2 = outline;
-        if (this.keepCrisp)
-            outline2 *= s_scale;
-        let w: number = glyph.sourceRect.width + outline2 * 2;
-        let h: number = glyph.sourceRect.height + outline2 * 2;
-
-        let node: Node = this.addNode(w + 2, h + 2);
-        if (!node) {
-            this.rebuild();
-            return null;
+            for (let i = 0; i < 3; i++)
+                this._packers[i].init(this._canvas.width, this._canvas.height);
         }
 
-        if (this.keepCrisp)
-            size *= s_scale;
-        this._context.font = size + "px " + this._name;
-        this._context.textBaseline = "alphabetic";
-        this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
-        this._context.lineWidth = outline2;
-        this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.baseline + outline2);
-        this._texture.needsUpdate = true;
-
-        outlineGlyph.chl = node.z / 3;
-        outlineGlyph.vertRect.copy(glyph.vertRect);
-        outlineGlyph.vertRect.extend(outline, outline);
-        outlineGlyph.uvRect.set(node.x / this.mainTexture.width, 1 - (node.y + h) / this.mainTexture.height,
-            w / this.mainTexture.width, h / this.mainTexture.height);
-    }
-
-    private measureChar(ch: string, size: number): Glyph {
-        let left: number, top: number, w: number, h: number, baseline: number;
-        this._context.textBaseline = "alphabetic";
-        let met: TextMetrics = this._context.measureText(ch);
-        if ('actualBoundingBoxLeft' in met) {
-            this._context.textBaseline = "top";
-            let met1: TextMetrics = this._context.measureText(ch);
-
-            left = met.actualBoundingBoxLeft > 0 ? Math.ceil(met.actualBoundingBoxLeft) : 0;
-            top = Math.ceil(met1.actualBoundingBoxAscent) + 1;
-            w = Math.ceil(left + met.actualBoundingBoxRight) + 1;
-            h = Math.ceil(met.actualBoundingBoxAscent + met.actualBoundingBoxDescent) + 2;
-            baseline = Math.ceil(met.actualBoundingBoxAscent);
-        }
-        else {
-            baseline = getBaseline(ch, this._name, size);
-            left = 0;
-            if (ch == 'j')
-                left = Math.ceil(size / 20); //guess
-            top = 0;
-            w = met["width"];
-            h = size * 1.25 + 2;
+        private rebuild(): void {
+            if (this._canvas.width < 2048)
+                this.createTexture(this._canvas.width * 2);
+            else
+                this.clearTexture();
+            this.version++;
+            Stage.fontRebuilt = true;
+            console.log("font atlas rebuilt : %s (%d)", this.name, this._canvas.width);
         }
 
-        let glyph: Glyph;
-        if (w == 0) {
-            glyph = { ver: this.version };
+        public setFormat(format: TextFormat, fontSizeScale: number) {
+            this._format = format;
+            let size = format.size * fontSizeScale;
+            this._size = Math.floor(size);
+            if (this._size == 0)
+                this._size = 1;
+            this._color.setHex(format.color);
+            this._outlineColor.setHex(format.outlineColor);
         }
-        else {
-            glyph = {
-                uvRect: new Rect(),
-                vertRect: new Rect(-left, -baseline, w, h),
-                advance: met.width,
-                sourceRect: new Rect(left, top, w, h),
-                baseline: baseline,
-                ver: this.version
-            };
 
-            if (this.keepCrisp) {
-                glyph.vertRect.x /= s_scale;
-                glyph.vertRect.y /= s_scale;
-                glyph.vertRect.width /= s_scale;
-                glyph.vertRect.height /= s_scale;
-                glyph.advance /= s_scale;
+        public prepareCharacters(text: string) {
+            let len = text.length;
+            for (let i = 0; i < len; i++) {
+                let ch = text[i];
+                let glyph = this.prepareChar(ch, this._size);
+                if (!glyph)
+                    break;
+
+                if (this._format.outline > 0)
+                    this.prepareOutline(ch, glyph, this._size, this._format.outline);
             }
         }
 
-        return glyph;
-    }
+        private prepareChar(ch: string, size: number): Glyph {
+            let key: number = (size << 16) + ch.charCodeAt(0);
+            let glyph: Glyph = this._glyphs[key];
+            if (glyph && glyph.ver == this.version)
+                return glyph;
 
-    private addNode(w: number, h: number): Node {
-        let node: Node;
-        for (let i: number = 0; i < 3; i++) {
-            let packer = this._packers[i];
-            if (!packer.full && (node = packer.add(w, h))) {
-                node.z = i;
-                break;
+            if (this.keepCrisp)
+                size *= s_scale;
+            this._context.font = size + "px " + this._name;
+
+            if (!glyph) {
+                glyph = this.measureChar(ch, size);
+                this._glyphs[key] = glyph;
             }
+            glyph.ver = this.version;
+
+            let w: number = glyph.sourceRect.width;
+            let h: number = glyph.sourceRect.height;
+            if (w == 0)
+                return glyph;
+
+            let node: Node = this.addNode(w + 2, h + 2);
+            if (!node) {
+                this.rebuild();
+                return null;
+            }
+
+            this._context.textBaseline = "alphabetic";
+            this._context.fillStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
+            this._context.fillText(ch, node.x + glyph.sourceRect.x, node.y + glyph.baseline);
+            this._texture.needsUpdate = true;
+
+            glyph.chl = node.z / 3;
+            glyph.uvRect.set(node.x / this.mainTexture.width, 1 - (node.y + h) / this.mainTexture.height,
+                w / this.mainTexture.width, h / this.mainTexture.height);
+
+            return glyph;
         }
 
-        return node;
-    }
+        private prepareOutline(ch: string, glyph: Glyph, size: number, outline: number): void {
+            if (!glyph.outlines)
+                glyph.outlines = {};
 
-    public getGlyph(ch: string, ret: GlyphInfo): boolean {
-        let key: number = (this._size << 16) + ch.charCodeAt(0);
-        this._glyph = this._glyphs[key];
+            let outlineGlyph: OutlineGlyph = glyph.outlines[outline];
+            if (outlineGlyph && outlineGlyph.ver == this.version || glyph.sourceRect.width == 0)
+                return;
 
-        if (!this._glyph)
-            return false;
+            if (!outlineGlyph) {
+                outlineGlyph = { vertRect: new Rect(), uvRect: new Rect(), ver: this.version };
+                glyph.outlines[outline] = outlineGlyph;
+            }
+            else
+                outlineGlyph.ver = this.version;
 
-        ret.width = this._glyph.advance;
-        ret.height = Math.round(this._size * 1.25);
-        ret.baseline = Math.round(this._size);
+            let outline2 = outline;
+            if (this.keepCrisp)
+                outline2 *= s_scale;
+            let w: number = glyph.sourceRect.width + outline2 * 2;
+            let h: number = glyph.sourceRect.height + outline2 * 2;
 
-        return true;
-    }
+            let node: Node = this.addNode(w + 2, h + 2);
+            if (!node) {
+                this.rebuild();
+                return null;
+            }
 
-    public drawGlyph(x: number, y: number, vb: VertexBuffer): number {
-        if (!this._glyph.vertRect)
-            return 0;
+            if (this.keepCrisp)
+                size *= s_scale;
+            this._context.font = size + "px " + this._name;
+            this._context.textBaseline = "alphabetic";
+            this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
+            this._context.lineWidth = outline2;
+            this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.baseline + outline2);
+            this._texture.needsUpdate = true;
 
-        if (this._format.outline > 0) {
-            let outlineGlyph = this._glyph.outlines[this._format.outline];
+            outlineGlyph.chl = node.z / 3;
+            outlineGlyph.vertRect.copy(glyph.vertRect);
+            outlineGlyph.vertRect.extend(outline, outline);
+            outlineGlyph.uvRect.set(node.x / this.mainTexture.width, 1 - (node.y + h) / this.mainTexture.height,
+                w / this.mainTexture.width, h / this.mainTexture.height);
+        }
 
-            s_rect.copy(outlineGlyph.vertRect);
+        private measureChar(ch: string, size: number): Glyph {
+            let left: number, top: number, w: number, h: number, baseline: number;
+            this._context.textBaseline = "alphabetic";
+            let met: TextMetrics = this._context.measureText(ch);
+            if ('actualBoundingBoxLeft' in met) {
+                this._context.textBaseline = "top";
+                let met1: TextMetrics = this._context.measureText(ch);
+
+                left = met.actualBoundingBoxLeft > 0 ? Math.ceil(met.actualBoundingBoxLeft) : 0;
+                top = Math.ceil(met1.actualBoundingBoxAscent) + 1;
+                w = Math.ceil(left + met.actualBoundingBoxRight) + 1;
+                h = Math.ceil(met.actualBoundingBoxAscent + met.actualBoundingBoxDescent) + 2;
+                baseline = Math.ceil(met.actualBoundingBoxAscent);
+            }
+            else {
+                baseline = getBaseline(ch, this._name, size);
+                left = 0;
+                if (ch == 'j')
+                    left = Math.ceil(size / 20); //guess
+                top = 0;
+                w = met["width"];
+                h = size * 1.25 + 2;
+            }
+
+            let glyph: Glyph;
+            if (w == 0) {
+                glyph = { ver: this.version };
+            }
+            else {
+                glyph = {
+                    uvRect: new Rect(),
+                    vertRect: new Rect(-left, -baseline, w, h),
+                    advance: met.width,
+                    sourceRect: new Rect(left, top, w, h),
+                    baseline: baseline,
+                    ver: this.version
+                };
+
+                if (this.keepCrisp) {
+                    glyph.vertRect.x /= s_scale;
+                    glyph.vertRect.y /= s_scale;
+                    glyph.vertRect.width /= s_scale;
+                    glyph.vertRect.height /= s_scale;
+                    glyph.advance /= s_scale;
+                }
+            }
+
+            return glyph;
+        }
+
+        private addNode(w: number, h: number): Node {
+            let node: Node;
+            for (let i: number = 0; i < 3; i++) {
+                let packer = this._packers[i];
+                if (!packer.full && (node = packer.add(w, h))) {
+                    node.z = i;
+                    break;
+                }
+            }
+
+            return node;
+        }
+
+        public getGlyph(ch: string, ret: GlyphInfo): boolean {
+            let key: number = (this._size << 16) + ch.charCodeAt(0);
+            this._glyph = this._glyphs[key];
+
+            if (!this._glyph)
+                return false;
+
+            ret.width = this._glyph.advance;
+            ret.height = Math.round(this._size * 1.25);
+            ret.baseline = Math.round(this._size);
+
+            return true;
+        }
+
+        public drawGlyph(x: number, y: number, vb: VertexBuffer): number {
+            if (!this._glyph.vertRect)
+                return 0;
+
+            if (this._format.outline > 0) {
+                let outlineGlyph = this._glyph.outlines[this._format.outline];
+
+                s_rect.copy(outlineGlyph.vertRect);
+                s_rect.x += x;
+                s_rect.y -= y;
+                this._outlineColor.a = outlineGlyph.chl;
+                vb.addQuad(s_rect, outlineGlyph.uvRect, this._outlineColor);
+                vb.addTriangles(-4);
+            }
+
+            s_rect.copy(this._glyph.vertRect);
             s_rect.x += x;
             s_rect.y -= y;
-            this._outlineColor.a = outlineGlyph.chl;
-            vb.addQuad(s_rect, outlineGlyph.uvRect, this._outlineColor);
+            this._color.a = this._glyph.chl;
+            vb.addQuad(s_rect, this._glyph.uvRect, this._color);
             vb.addTriangles(-4);
+
+            return 4;
         }
 
-        s_rect.copy(this._glyph.vertRect);
-        s_rect.x += x;
-        s_rect.y -= y;
-        this._color.a = this._glyph.chl;
-        vb.addQuad(s_rect, this._glyph.uvRect, this._color);
-        vb.addTriangles(-4);
+        public drawLine(x: number, y: number, width: number, fontSize: number, type: number, vb: VertexBuffer): number {
+            return 0;
+        }
 
-        return 4;
+        public getLineHeight(size: number): number {
+            return Math.round(size * 1.25);
+        }
     }
 
-    public drawLine(x: number, y: number, width: number, fontSize: number, type: number, vb: VertexBuffer): number {
-        return 0;
+    type Node = { x: number, y: number, z?: number };
+
+    class BinPacker {
+        public full?: boolean;
+        private _root: any;
+
+        public init(w: number, h: number) {
+            this._root = { x: 0, y: 0, w: w, h: h };
+            delete this.full;
+        }
+
+        public add(w: number, h: number): Node {
+            let node: Node;
+            if (node = this.findNode(this._root, w, h))
+                node = this.splitNode(node, w, h);
+
+            if (!node)
+                this.full = true;
+
+            return node;
+        }
+
+        private findNode(root: any, w: number, h: number): any {
+            if (root.used)
+                return this.findNode(root.right, w, h) || this.findNode(root.down, w, h);
+            else if ((w <= root.w) && (h <= root.h))
+                return root;
+            else
+                return null;
+        }
+
+        private splitNode(node: any, w: number, h: number): Node {
+            node.used = true;
+            node.down = { x: node.x, y: node.y + h, w: node.w, h: node.h - h };
+            node.right = { x: node.x + w, y: node.y, w: node.w - w, h: h };
+            return node;
+        }
     }
 
-    public getLineHeight(size: number): number {
-        return Math.round(size * 1.25);
+
+    let eSpan: HTMLSpanElement;
+    let eBlock: HTMLDivElement;
+
+    function getBaseline(ch: string, font: string, size: number): number {
+        if (!eSpan) {
+            eSpan = document.createElement('span');
+            eBlock = document.createElement("div");
+            eBlock.style.display = 'inline-block';
+            eBlock.style.width = '1px';
+            eBlock.style.height = '0px';
+
+            var div = document.createElement('div');
+            div.id = 'measureText';
+            div.style.position = 'absolute';
+            div.style.visibility = 'hidden';
+            div.style.left = div.style.top = '0px';
+            div.appendChild(eSpan);
+            div.appendChild(eBlock);
+            document.body.appendChild(div);
+        }
+
+        eSpan.innerHTML = ch;
+        eSpan.style.fontFamily = font;
+        eSpan.style.fontSize = size + "px";
+
+        let ascent: number, height: number;
+        let offset = eSpan.offsetTop;
+
+        eBlock.style['vertical-align'] = 'baseline';
+        ascent = eBlock.offsetTop - offset;
+
+        eBlock.style['vertical-align'] = 'bottom';
+        height = eBlock.offsetTop - offset;
+
+        return ascent + Math.floor((size * 1.25 - height) / 2);
     }
-}
-
-type Node = { x: number, y: number, z?: number };
-
-class BinPacker {
-    public full?: boolean;
-    private _root: any;
-
-    public init(w: number, h: number) {
-        this._root = { x: 0, y: 0, w: w, h: h };
-        delete this.full;
-    }
-
-    public add(w: number, h: number): Node {
-        let node: Node;
-        if (node = this.findNode(this._root, w, h))
-            node = this.splitNode(node, w, h);
-
-        if (!node)
-            this.full = true;
-
-        return node;
-    }
-
-    private findNode(root: any, w: number, h: number): any {
-        if (root.used)
-            return this.findNode(root.right, w, h) || this.findNode(root.down, w, h);
-        else if ((w <= root.w) && (h <= root.h))
-            return root;
-        else
-            return null;
-    }
-
-    private splitNode(node: any, w: number, h: number): Node {
-        node.used = true;
-        node.down = { x: node.x, y: node.y + h, w: node.w, h: node.h - h };
-        node.right = { x: node.x + w, y: node.y, w: node.w - w, h: h };
-        return node;
-    }
-}
-
-
-let eSpan: HTMLSpanElement;
-let eBlock: HTMLDivElement;
-
-function getBaseline(ch: string, font: string, size: number): number {
-    if (!eSpan) {
-        eSpan = document.createElement('span');
-        eBlock = document.createElement("div");
-        eBlock.style.display = 'inline-block';
-        eBlock.style.width = '1px';
-        eBlock.style.height = '0px';
-
-        var div = document.createElement('div');
-        div.id = 'measureText';
-        div.style.position = 'absolute';
-        div.style.visibility = 'hidden';
-        div.style.left = div.style.top = '0px';
-        div.appendChild(eSpan);
-        div.appendChild(eBlock);
-        document.body.appendChild(div);
-    }
-
-    eSpan.innerHTML = ch;
-    eSpan.style.fontFamily = font;
-    eSpan.style.fontSize = size + "px";
-
-    let ascent: number, height: number;
-    let offset = eSpan.offsetTop;
-
-    eBlock.style['vertical-align'] = 'baseline';
-    ascent = eBlock.offsetTop - offset;
-
-    eBlock.style['vertical-align'] = 'bottom';
-    height = eBlock.offsetTop - offset;
-
-    return ascent + Math.floor((size * 1.25 - height) / 2);
 }
