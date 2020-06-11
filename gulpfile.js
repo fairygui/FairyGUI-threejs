@@ -17,7 +17,7 @@ gulp.task('buildJs', () => {
         .pipe(replace('var fgui;', function () {
             if (first) {
                 first = false;
-                return "window.fgui = {};";
+                return "window.fgui = {};\nwindow.THREE = require(\"three\");\n";
             }
             else
                 return "";

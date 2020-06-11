@@ -33,6 +33,13 @@ declare namespace fgui {
     }
 }
 declare namespace fgui {
+    interface IDecls {
+        UIObjectFactory?: IObjectFactoryType;
+        GRoot?: IGRoot;
+    }
+    var Decls: IDecls;
+}
+declare namespace fgui {
     type Listeners = {
         dispatching?: number;
         callbacks: Array<any>;
@@ -2903,11 +2910,6 @@ declare namespace fgui {
         resolvePackageItemExtension(pi: PackageItem): void;
         newObject(type: number | PackageItem, userClass?: new () => GObject): GObject;
     }
-    interface IDecls {
-        UIObjectFactory?: IObjectFactoryType;
-        GRoot?: IGRoot;
-    }
-    var Decls: IDecls;
 }
 declare namespace fgui {
     interface IUISource {
