@@ -259,7 +259,7 @@ namespace fgui {
             setFocus(null);
 
         if (evt)
-            Stage.eventDispatcher.dispatchEvent("size_changed");
+            Stage.eventDispatcher.dispatchEvent(DisplayObjectEvent.XY_CHANGED);
     }
 
     function is_touch_enabled() {
@@ -297,7 +297,7 @@ namespace fgui {
                 setLastInput(touch);
 
                 if (touch.target)
-                    bubbleEvent(touch.target.obj3D, "touch_begin");
+                    bubbleEvent(touch.target.obj3D, InteractiveEvents.Down);
             }
         }
         else if (type == 1) {
@@ -310,9 +310,9 @@ namespace fgui {
                     setLastInput(touch);
 
                     if (ev.button == 1 || ev.button == 2)
-                        bubbleEvent(clickTarget.obj3D, "right_click");
+                        bubbleEvent(clickTarget.obj3D, InteractiveEvents.RightClick);
                     else
-                        bubbleEvent(clickTarget.obj3D, "click");
+                        bubbleEvent(clickTarget.obj3D, InteractiveEvents.Click);
                 }
 
                 touch.button = -1;
@@ -336,7 +336,7 @@ namespace fgui {
         if (_touchTarget != null) {
             touch.mouseWheelDelta = ev.deltaY;
             setLastInput(touch);
-            bubbleEvent(_touchTarget.obj3D, "mouse_wheel");
+            bubbleEvent(_touchTarget.obj3D, DisplayObjectEvent.MOUSE_WHEEL);
             touch.mouseWheelDelta = 0;
         }
     }
@@ -404,7 +404,7 @@ namespace fgui {
 
                     setLastInput(touch);
                     if (touch.target)
-                        bubbleEvent(touch.target.obj3D, "touch_begin");
+                        bubbleEvent(touch.target.obj3D, InteractiveEvents.Down);
                 }
             }
             else if (type == 1 || type == 3) {
@@ -416,7 +416,7 @@ namespace fgui {
                         let clickTarget = touch.clickTest();
                         if (clickTarget != null) {
                             setLastInput(touch);
-                            bubbleEvent(clickTarget.obj3D, "click");
+                            bubbleEvent(clickTarget.obj3D,InteractiveEvents.Click);
                         }
                     }
 
@@ -465,7 +465,7 @@ namespace fgui {
             for (let i = 0; i < cnt; i++) {
                 let element = _rollOutChain[i];
                 if (element.stage)
-                    element.dispatchEvent("roll_out", null);
+                    element.dispatchEvent(RollEvent.RollOut, null);
             }
             _rollOutChain.length = 0;
         }
@@ -475,7 +475,7 @@ namespace fgui {
             for (let i = 0; i < cnt; i++) {
                 let element = _rollOverChain[i];
                 if (element.stage)
-                    element.dispatchEvent("roll_over", null);
+                    element.dispatchEvent(RollEvent.RollOver, null);
             }
             _rollOverChain.length = 0;
         };
@@ -511,7 +511,7 @@ namespace fgui {
             return;
 
         activeTextInput = obj;
-        activeTextInput.dispatchEvent("focus_in");
+        activeTextInput.dispatchEvent(FocusEvent.FocusIn);
     }
 
     var s_v3: THREE.Vector3 = new THREE.Vector3();
@@ -632,7 +632,7 @@ namespace fgui {
                         this.touchMonitors[i] = null;
                 }
 
-                bubbleEvent(null, "touch_move", null, this.touchMonitors);
+                bubbleEvent(null, InteractiveEvents.Move, null, this.touchMonitors);
             }
         }
 
@@ -679,12 +679,12 @@ namespace fgui {
                     if ((e instanceof DisplayObject) && !e.stage)
                         this.touchMonitors[i] = null;
                 }
-                bubbleEvent(bubbleFrom, "touch_end", null, this.touchMonitors);
+                bubbleEvent(bubbleFrom, InteractiveEvents.Up, null, this.touchMonitors);
 
                 this.touchMonitors.length = 0;
             }
             else
-                bubbleEvent(bubbleFrom, "touch_end");
+                bubbleEvent(bubbleFrom, InteractiveEvents.Up);
         }
 
         public clickTest(): DisplayObject {
@@ -767,7 +767,7 @@ namespace fgui {
                 obj._dispatch(col, ev, true);
                 if (ev._touchCapture) {
                     ev._touchCapture = false;
-                    if (type == "touch_begin")
+                    if (type == InteractiveEvents.Down)
                         Stage.addTouchMonitor(ev.input.touchId, obj);
                 }
             }
@@ -781,7 +781,7 @@ namespace fgui {
                     obj._dispatch(col, ev, false);
                     if (ev._touchCapture) {
                         ev._touchCapture = false;
-                        if (type == "touch_begin")
+                        if (type == InteractiveEvents.Down)
                             Stage.addTouchMonitor(ev.input.touchId, obj);
                     }
 

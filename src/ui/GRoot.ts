@@ -43,7 +43,7 @@ namespace fgui {
             this._popupStack = [];
             this._justClosedPopups = [];
 
-            this.on("touch_begin", this.__stageTouchBegin, this, true);
+            this.on(InteractiveEvents.Down, this.__stageTouchBegin, this, true);
 
             this._modalLayer = new GGraph();
             this._modalLayer.setSize(this.width, this.height);
@@ -51,7 +51,7 @@ namespace fgui {
             this._modalLayer.addRelation(this, RelationType.Size);
 
             this.applyScaleFactor();
-            this.on("content_scale_factor_changed", this.applyScaleFactor, this);
+            this.on(StageEvent.ContentScaleChanged, this.applyScaleFactor, this);
         }
 
         private applyScaleFactor() {

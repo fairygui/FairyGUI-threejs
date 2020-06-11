@@ -127,7 +127,7 @@ export class GTree extends GList {
 
         cc = child.getController("expanded");
         if (cc) {
-            cc.on("status_changed", this.__expandedStateChanged, this);
+            cc.on(StateChangeEvent.CHANGED, this.__expandedStateChanged, this);
             cc.selectedIndex = node.expanded ? 1 : 0;
         }
 
@@ -136,7 +136,7 @@ export class GTree extends GList {
             cc.selectedIndex = node.isFolder ? 0 : 1;
 
         if (node.isFolder)
-            child.on("touch_begin", this.__cellMouseDown, this);
+            child.on(InteractiveEvents.Down, this.__cellMouseDown, this);
 
         if (this.treeNodeRender)
             this.treeNodeRender(node, child);

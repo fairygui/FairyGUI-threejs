@@ -33,9 +33,9 @@ namespace fgui {
             this._borderColor = new Color4();
             this._backgroundColor = new Color4(0xFFFFFF, 0);
 
-            this.on("focus_in", this.__focusIn, this, true);
-            this.on("focus_out", this.__focusOut, this, true);
-            this.on("removed_from_stage", this.__removed, this);
+            this.on(FocusEvent.FocusIn, this.__focusIn, this, true);
+            this.on(FocusEvent.FocusOut, this.__focusOut, this, true);
+            this.on(StageEvent.RemoveFromStage, this.__removed, this);
         }
 
         public get text(): string {
@@ -172,7 +172,7 @@ namespace fgui {
 
             this._editing = true;
             this._graphics.material.visible = false;
-            this.dispatchEvent("focus_in");
+            this.dispatchEvent(FocusEvent.FocusIn);
         }
 
         private __focusOut() {

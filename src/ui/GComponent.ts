@@ -46,11 +46,15 @@ namespace fgui {
                 trans.dispose();
             }
 
+            this._transitions.length =0;
+
             cnt = this._controllers.length;
             for (i = 0; i < cnt; ++i) {
                 var cc: Controller = this._controllers[i];
                 cc.dispose();
             }
+
+            this._controllers.length =0;
 
             if (this.scrollPane)
                 this.scrollPane.dispose();
@@ -61,7 +65,7 @@ namespace fgui {
                 obj.parent = null;//avoid removeFromParent call
                 obj.dispose();
             }
-
+            this._children.length =0;
             this._boundsChanged = false;
             super.dispose();
         }
@@ -1089,8 +1093,8 @@ namespace fgui {
             }
 
             if (this._transitions.length > 0) {
-                this.on("added_to_stage", () => { this._transitions.forEach(e => e.onOwnerAddedToStage()); });
-                this.on("removed_from_stage", () => { this._transitions.forEach(e => e.onOwnerRemovedFromStage()); });
+                this.on(StageEvent.AddtoStage, () => { this._transitions.forEach(e => e.onOwnerAddedToStage()); });
+                this.on(StageEvent.RemoveFromStage, () => { this._transitions.forEach(e => e.onOwnerRemovedFromStage()); });
             }
 
             this.applyAllControllers();

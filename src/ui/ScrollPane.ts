@@ -108,10 +108,10 @@ namespace fgui
             this._scrollStep = UIConfig.defaultScrollStep;
             this._decelerationRate = UIConfig.defaultScrollDecelerationRate;
     
-            this._owner.on("touch_begin", this.__touchBegin, this);
-            this._owner.on("touch_move", this.__touchMove, this);
-            this._owner.on("touch_end", this.__touchEnd, this);
-            this._owner.on("mouse_wheel", this.__mouseWheel, this);
+            this._owner.on(InteractiveEvents.Down, this.__touchBegin, this);
+            this._owner.on(InteractiveEvents.Move, this.__touchMove, this);
+            this._owner.on(InteractiveEvents.Up, this.__touchEnd, this);
+            this._owner.on(DisplayObjectEvent.MOUSE_WHEEL, this.__mouseWheel, this);
         }
     
         public setup(buffer: ByteBuffer): void {
@@ -904,7 +904,7 @@ namespace fgui
     
             this.refresh2();
     
-            this._owner.dispatchEvent("scroll");
+            this._owner.dispatchEvent(ScrollEvent.SCROLL);
             if (this._needRefresh) //在onScroll事件里开发者可能修改位置，这里再刷新一次，避免闪烁
             {
                 this._needRefresh = false;
@@ -1158,7 +1158,7 @@ namespace fgui
             if (this._pageMode)
                 this.updatePageController();
     
-            this._owner.dispatchEvent("scroll");
+            this._owner.dispatchEvent(ScrollEvent.SCROLL);
         }
     
         private __touchEnd(): void {
@@ -1198,12 +1198,12 @@ namespace fgui
                 this._tweenChange.set(s_endPos.x - this._tweenStart.x, s_endPos.y - this._tweenStart.y);
                 if (this._tweenChange.x < -UIConfig.touchDragSensitivity || this._tweenChange.y < -UIConfig.touchDragSensitivity) {
                     this._refreshEventDispatching = true;
-                    this._owner.dispatchEvent("pull_down_release");
+                    this._owner.dispatchEvent(ScrollEvent.PULL_DOWN_RELEASE);
                     this._refreshEventDispatching = false;
                 }
                 else if (this._tweenChange.x > UIConfig.touchDragSensitivity || this._tweenChange.y > UIConfig.touchDragSensitivity) {
                     this._refreshEventDispatching = true;
-                    this._owner.dispatchEvent("pull_up_release");
+                    this._owner.dispatchEvent(ScrollEvent.PULL_UP_RELEASE);
                     this._refreshEventDispatching = false;
                 }
     
@@ -1578,7 +1578,7 @@ namespace fgui
             if (this._tweening == 1) //取消类型为1的tween需立刻设置到终点
             {
                 this._container.setPosition(this._tweenStart.x + this._tweenChange.x, this._tweenStart.y + this._tweenChange.y);
-                this._owner.dispatchEvent("scroll");
+                this._owner.dispatchEvent(ScrollEvent.SCROLL);
             }
     
             this._tweening = 0;
@@ -1586,7 +1586,7 @@ namespace fgui
     
             this.updateScrollBarVisible();
     
-            this._owner.dispatchEvent("scroll_end");
+            this._owner.dispatchEvent(ScrollEvent.SCROLL_END);
         }
     
         private checkRefreshBar(): void {
@@ -1662,13 +1662,13 @@ namespace fgui
                 this.updateScrollBarPos();
                 this.updateScrollBarVisible();
     
-                this._owner.dispatchEvent("scroll");
-                this._owner.dispatchEvent("scroll_end");
+                this._owner.dispatchEvent(ScrollEvent.SCROLL);
+                this._owner.dispatchEvent(ScrollEvent.SCROLL_END);
     
             }
             else {
                 this.updateScrollBarPos();
-                this._owner.dispatchEvent("scroll");
+                this._owner.dispatchEvent(ScrollEvent.SCROLL);
             }
         }
     

@@ -302,7 +302,7 @@ namespace fgui {
                     console.warn(this.resourceURL + ": should container a list component named list.");
                     return;
                 }
-                this._list.on("click_item", this.__clickItem, this);
+                this._list.on(ListEvent.ItemClick, this.__clickItem, this);
 
                 this._list.addRelation(this.dropdown, RelationType.Width);
                 this._list.removeRelation(this.dropdown, RelationType.Height);
@@ -310,13 +310,13 @@ namespace fgui {
                 this.dropdown.addRelation(this._list, RelationType.Height);
                 this.dropdown.removeRelation(this._list, RelationType.Width);
 
-                this.dropdown.on("removed_from_stage", this.__popupWinClosed, this);
+                this.dropdown.on(StageEvent.RemoveFromStage, this.__popupWinClosed, this);
             }
 
-            this.on("roll_over", this.__rollover, this);
-            this.on("roll_out", this.__rollout, this);
-            this.on("touch_begin", this.__mousedown, this);
-            this.on("touch_end", this.__mouseup, this);
+            this.on(RollEvent.RollOver, this.__rollover, this);
+            this.on(RollEvent.RollOut, this.__rollout, this);
+            this.on(InteractiveEvents.Down, this.__mousedown, this);
+            this.on(InteractiveEvents.Up, this.__mouseup, this);
         }
 
         public setup_afterAdd(buffer: ByteBuffer, beginPos: number): void {
@@ -410,7 +410,7 @@ namespace fgui {
 
             this._selectedIndex = -1;
             this.selectedIndex = this._list.getChildIndex(evt.data);
-            this.dispatchEvent("status_changed");
+            this.dispatchEvent(StateChangeEvent.CHANGED);
         }
 
         private __rollover(): void {

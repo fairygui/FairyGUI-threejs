@@ -40,7 +40,7 @@ namespace fgui {
                 this._selectedIndex = value;
                 this.parent.applyController(this);
 
-                this.dispatchEvent("status_changed");
+                this.dispatchEvent(StateChangeEvent.CHANGED);
 
                 this.changing = false;
             }

@@ -8,8 +8,8 @@ namespace fgui
     
         public constructor() {
             this._shape = new SelectionShape();
-            this._shape.on("click", () => {
-                bubbleEvent(this._owner.obj3D, "click_link", this._element.getAttrString("href"));
+            this._shape.on(InteractiveEvents.Click, () => {
+                bubbleEvent(this._owner.obj3D,LinkEvent.ClickLink, this._element.getAttrString("href"));
             });
         }
     

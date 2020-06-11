@@ -468,7 +468,7 @@ namespace fgui {
             child._obj3D.layers.mask = this._obj3D.layers.mask;
 
             if (this.stage)
-                broadcastEvent(child.obj3D, "added_to_stage");
+                broadcastEvent(child.obj3D, StageEvent.AddtoStage);
         }
 
         public removeChild(child: DisplayObject) {
@@ -482,7 +482,7 @@ namespace fgui {
         public removeChildAt(index: number) {
             let child: THREE.Object3D = this._obj3D.children[index];
             if (this.stage)
-                broadcastEvent(child, "removed_from_stage");
+                broadcastEvent(child,StageEvent.RemoveFromStage);
 
             this._obj3D.children.splice(index, 1);
             child.parent = null;

@@ -1,3 +1,6 @@
+
+/// <reference path="../events/DisplayObjectEvent.ts" />
+
 namespace fgui {
 
     export enum ScaleMode {
@@ -43,7 +46,7 @@ namespace fgui {
     var _scaleFactor: number = 1;
     var _scaleLevel: number = 0;
 
-    Stage.eventDispatcher.on("size_changed", refresh);
+    Stage.eventDispatcher.on(DisplayObjectEvent.SIZE_CHANGED, refresh);
 
     function refresh() {
         let screenWidth: number = Stage.width;
@@ -95,6 +98,6 @@ namespace fgui {
         else
             _scaleLevel = 0;
 
-        broadcastEvent(Stage.scene, "content_scale_factor_changed");
+        broadcastEvent(Stage.scene, StageEvent.ContentScaleChanged);
     }
 }
