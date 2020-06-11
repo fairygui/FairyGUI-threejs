@@ -33,8 +33,8 @@ namespace fgui {
             this._borderColor = new Color4();
             this._backgroundColor = new Color4(0xFFFFFF, 0);
 
-            this.on(FocusEvent.FocusIn, this.__focusIn, this, true);
-            this.on(FocusEvent.FocusOut, this.__focusOut, this, true);
+            this.on(TextEvent.FocusIn, this.__focusIn, this, true);
+            this.on(TextEvent.FocusOut, this.__focusOut, this, true);
             this.on(StageEvent.RemoveFromStage, this.__removed, this);
         }
 
@@ -172,7 +172,7 @@ namespace fgui {
 
             this._editing = true;
             this._graphics.material.visible = false;
-            this.dispatchEvent(FocusEvent.FocusIn);
+            this.dispatchEvent(TextEvent.FocusIn);
         }
 
         private __focusOut() {

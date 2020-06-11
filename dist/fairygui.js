@@ -2765,7 +2765,7 @@ window.THREE = require("three");
 
     if (!obj || !obj["isInput"]) return;
     activeTextInput = obj;
-    activeTextInput.dispatchEvent(fgui.FocusEvent.FocusIn);
+    activeTextInput.dispatchEvent(fgui.TextEvent.FocusIn);
   }
 
   var s_v3 = new THREE.Vector3();
@@ -5645,9 +5645,9 @@ window.THREE = require("three");
       _this10._borderColor = new fgui.Color4();
       _this10._backgroundColor = new fgui.Color4(0xFFFFFF, 0);
 
-      _this10.on(fgui.FocusEvent.FocusIn, _this10.__focusIn, _assertThisInitialized(_this10), true);
+      _this10.on(fgui.TextEvent.FocusIn, _this10.__focusIn, _assertThisInitialized(_this10), true);
 
-      _this10.on(fgui.FocusEvent.FocusOut, _this10.__focusOut, _assertThisInitialized(_this10), true);
+      _this10.on(fgui.TextEvent.FocusOut, _this10.__focusOut, _assertThisInitialized(_this10), true);
 
       _this10.on(fgui.StageEvent.RemoveFromStage, _this10.__removed, _assertThisInitialized(_this10));
 
@@ -5745,7 +5745,7 @@ window.THREE = require("three");
         e.focus();
         this._editing = true;
         this._graphics.material.visible = false;
-        this.dispatchEvent(fgui.FocusEvent.FocusIn);
+        this.dispatchEvent(fgui.TextEvent.FocusIn);
       }
     }, {
       key: "__focusOut",
@@ -6133,8 +6133,6 @@ window.THREE = require("three");
 
   (function (FocusEvent) {
     FocusEvent["CHANGED"] = "focus_changed";
-    FocusEvent["FocusIn"] = "focus_in";
-    FocusEvent["FocusOut"] = "focus_out";
   })(FocusEvent = fgui.FocusEvent || (fgui.FocusEvent = {}));
 })(fgui || (fgui = {}));
 
@@ -6159,14 +6157,6 @@ window.THREE = require("three");
   InteractiveEvents.RightUp = "rightup";
   InteractiveEvents.RightClick = "right_click";
   fgui.InteractiveEvents = InteractiveEvents;
-})(fgui || (fgui = {}));
-
-(function (fgui) {
-  var LinkEvent;
-
-  (function (LinkEvent) {
-    LinkEvent["ClickLink"] = "click_link";
-  })(LinkEvent = fgui.LinkEvent || (fgui.LinkEvent = {}));
 })(fgui || (fgui = {}));
 
 (function (fgui) {
@@ -6226,7 +6216,12 @@ window.THREE = require("three");
 (function (fgui) {
   var TextEvent;
 
-  (function (TextEvent) {})(TextEvent = fgui.TextEvent || (fgui.TextEvent = {}));
+  (function (TextEvent) {
+    TextEvent["LinkClick"] = "click_link";
+    TextEvent["Change"] = "textChange";
+    TextEvent["FocusIn"] = "FocusIn";
+    TextEvent["FocusOut"] = "FocusOut";
+  })(TextEvent = fgui.TextEvent || (fgui.TextEvent = {}));
 })(fgui || (fgui = {}));
 
 (function (fgui) {
@@ -24014,7 +24009,7 @@ window.THREE = require("three");
       this._shape = new fgui.SelectionShape();
 
       this._shape.on(fgui.InteractiveEvents.Click, function () {
-        fgui.bubbleEvent(_this33._owner.obj3D, fgui.LinkEvent.ClickLink, _this33._element.getAttrString("href"));
+        fgui.bubbleEvent(_this33._owner.obj3D, fgui.TextEvent.LinkClick, _this33._element.getAttrString("href"));
       });
     }
 

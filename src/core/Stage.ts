@@ -511,7 +511,7 @@ namespace fgui {
             return;
 
         activeTextInput = obj;
-        activeTextInput.dispatchEvent(FocusEvent.FocusIn);
+        activeTextInput.dispatchEvent(TextEvent.FocusIn);
     }
 
     var s_v3: THREE.Vector3 = new THREE.Vector3();

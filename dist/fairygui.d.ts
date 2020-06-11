@@ -863,9 +863,7 @@ declare namespace fgui {
 }
 declare namespace fgui {
     enum FocusEvent {
-        CHANGED = "focus_changed",
-        FocusIn = "focus_in",
-        FocusOut = "focus_out"
+        CHANGED = "focus_changed"
     }
 }
 declare namespace fgui {
@@ -882,11 +880,6 @@ declare namespace fgui {
         static RightDown: string;
         static RightUp: string;
         static RightClick: string;
-    }
-}
-declare namespace fgui {
-    enum LinkEvent {
-        ClickLink = "click_link"
     }
 }
 declare namespace fgui {
@@ -927,6 +920,10 @@ declare namespace fgui {
 }
 declare namespace fgui {
     enum TextEvent {
+        LinkClick = "click_link",
+        Change = "textChange",
+        FocusIn = "FocusIn",
+        FocusOut = "FocusOut"
     }
 }
 declare namespace fgui {
