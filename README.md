@@ -29,7 +29,7 @@ animate();
 function init() {
     //THREE initialization code here
 
-    fgui.Stage.init(renderer);
+    fgui.Stage.init(renderer, { screenMode:'horizontal' });  //screenMode is optional if you dont want to rotate the screen 
     fgui.Stage.scene = scene;
 
     fgui.UIPackage.loadPackage('path/to/UI').then(()=> {
@@ -95,6 +95,12 @@ function animate() {
 
 You should see [this](https://fairygui.com/threejs-demo/3d/)
 
+If a perspective camera is using for all UI,
+
+```javascript
+    Stage.init(renderer, { defaultLayer:0 });
+    Stage.camera = yourCamera;
+```
 
 # License
 MIT
