@@ -289,7 +289,6 @@ function updateCanvasMatrix() {
         _renderer.setSize(_width, _height);
 
     _canvasTransform.multiply(new Matrix4().makeTranslation(-offsetX, -offsetY, 0));
-    console.log(_canvasTransform);
 }
 
 function onWindowResize(evt?: UIEvent) {
