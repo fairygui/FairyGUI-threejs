@@ -806,7 +806,6 @@ function updateCanvasMatrix() {
     else
         _renderer.setSize(_width, _height);
     _canvasTransform.multiply(new Matrix4().makeTranslation(-offsetX, -offsetY, 0));
-    console.log(_canvasTransform);
 }
 function onWindowResize(evt) {
     _width = _canvas.clientWidth;
@@ -2771,7 +2770,7 @@ class TweenManager {
                     freePosStart = i;
             }
             else {
-                if (('isDisposed' in tweener._target) && tweener._target.isDisposed)
+                if (tweener._target && ('isDisposed' in tweener._target) && tweener._target.isDisposed)
                     tweener._killed = true;
                 else if (!tweener._paused)
                     tweener._update(dt);
