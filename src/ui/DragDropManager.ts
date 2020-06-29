@@ -10,7 +10,7 @@ var _inst: DragDropManager;
 export class DragDropManager {
 
     private _agent: GLoader;
-    private _sourceData: Object;
+    private _sourceData: any;
 
     public static get inst(): DragDropManager {
         if (!_inst)

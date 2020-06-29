@@ -26,8 +26,8 @@ import { Relations } from "./Relations";
 import { UIConfig } from "./UIConfig";
 
 export class GObject {
-    public data: Object;
-    public packageItem: PackageItem;
+    public data?: any;
+    public packageItem?: PackageItem;
     public static draggingObject: GObject;
 
     private _x: number = 0;
@@ -136,7 +136,7 @@ export class GObject {
 
             this.handlePositionChanged();
             if (this instanceof GGroup)
-                (<GGroup>(this)).moveChildren(dx, dy);
+                this.moveChildren(dx, dy);
 
             this.updateGear(1);
 
@@ -179,7 +179,7 @@ export class GObject {
         if (this._parent)
             r = this.parent;
         else
-            r = <GComponent><any>Decls.GRoot.inst;
+            r = <GComponent>Decls.GRoot.inst;
 
         this.setPosition(Math.floor((r.width - this.width) / 2), Math.floor((r.height - this.height) / 2));
         if (restraint) {
@@ -234,7 +234,7 @@ export class GObject {
             }
 
             if (this instanceof GGroup)
-                (<GGroup>(this)).resizeChildren(dWidth, dHeight);
+                this.resizeChildren(dWidth, dHeight);
 
             this.updateGear(2);
 
@@ -1069,7 +1069,7 @@ export class GObject {
             let yy = evt.input.y - sGlobalDragStart.y + sGlobalRect.y;
 
             if (this._dragBounds) {
-                let rect: Rect = (<GObject><any>Decls.GRoot.findFor(this)).localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
+                let rect: Rect = (<GObject>Decls.GRoot.findFor(this)).localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
                     this._dragBounds.width, this._dragBounds.height, s_rect);
                 if (xx < rect.x)
                     xx = rect.x;

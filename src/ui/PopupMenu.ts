@@ -155,7 +155,7 @@ export class PopupMenu {
             this._list.selectedIndex = -1;
             return;
         }
-        var c: Controller = (<GComponent>itemObject).getController("checked");
+        var c: Controller = itemObject.getController("checked");
         if (c && c.selectedIndex != 0) {
             if (c.selectedIndex == 1)
                 c.selectedIndex = 2;

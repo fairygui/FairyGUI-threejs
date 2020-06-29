@@ -29,7 +29,7 @@ export class GList extends GComponent {
     private _autoResizeItem: boolean;
     private _selectionMode: number;
     private _align: AlignType;
-    private _verticalAlign: VertAlignType;
+    private _valign: VertAlignType;
     private _selectionController: Controller;
 
     private _lastSelectedIndex: number = 0;
@@ -61,7 +61,7 @@ export class GList extends GComponent {
         this.opaque = true;
         this.scrollItemToViewOnClick = true;
         this._align = "left";
-        this._verticalAlign = "top";
+        this._valign = "top";
 
         this._container = new DisplayObject();
         this._displayObject.addChild(this._container);
@@ -155,12 +155,12 @@ export class GList extends GComponent {
     }
 
     public get verticalAlign(): VertAlignType {
-        return this._verticalAlign;
+        return this._valign;
     }
 
     public set verticalAlign(value: VertAlignType) {
-        if (this._verticalAlign != value) {
-            this._verticalAlign = value;
+        if (this._valign != value) {
+            this._valign = value;
             this.setBoundsChangedFlag();
             if (this._virtual)
                 this.setVirtualListChangedFlag(true);
@@ -238,9 +238,8 @@ export class GList extends GComponent {
         super.addChildAt(child, index);
 
         if (child instanceof GButton) {
-            var button: GButton = <GButton>(child);
-            button.selected = false;
-            button.changeStateOnClick = false;
+            child.selected = false;
+            child.changeStateOnClick = false;
         }
         child.on("click", this.__clickItem, this);
 
@@ -293,8 +292,7 @@ export class GList extends GComponent {
         if (this._virtual) {
             for (i = 0; i < this._realNumItems; i++) {
                 var ii: ItemInfo = this._virtualItems[i];
-                if ((ii.obj instanceof GButton) && (<GButton>ii.obj).selected
-                    || ii.obj == null && ii.selected) {
+                if ((ii.obj instanceof GButton) && ii.obj.selected || ii.obj == null && ii.selected) {
                     if (this._loop)
                         return i % this._numItems;
                     else
@@ -305,8 +303,8 @@ export class GList extends GComponent {
         else {
             var cnt: number = this._children.length;
             for (i = 0; i < cnt; i++) {
-                var obj: GButton = <GButton>this._children[i];
-                if (obj && obj.selected)
+                var obj: GObject = this._children[i];
+                if ((obj instanceof GButton) && obj.selected)
                     return i;
             }
         }
@@ -331,7 +329,7 @@ export class GList extends GComponent {
         if (this._virtual) {
             for (i = 0; i < this._realNumItems; i++) {
                 var ii: ItemInfo = this._virtualItems[i];
-                if ((ii.obj instanceof GButton) && (<GButton>ii.obj).selected
+                if ((ii.obj instanceof GButton) && ii.obj.selected
                     || ii.obj == null && ii.selected) {
                     var j: number = i;
                     if (this._loop) {
@@ -346,8 +344,8 @@ export class GList extends GComponent {
         else {
             var cnt: number = this._children.length;
             for (i = 0; i < cnt; i++) {
-                var obj: GButton = <GButton>this._children[i];
-                if (obj && obj.selected)
+                var obj: GObject = this._children[i];
+                if ((obj instanceof GButton) && obj.selected)
                     result.push(i);
             }
         }
@@ -367,17 +365,17 @@ export class GList extends GComponent {
             this.scrollToView(index);
 
         this._lastSelectedIndex = index;
-        var obj: GButton = null;
+        var obj: GObject;
         if (this._virtual) {
             var ii: ItemInfo = this._virtualItems[index];
             if (ii.obj)
-                obj = <GButton>ii.obj;
+                obj = ii.obj;
             ii.selected = true;
         }
         else
-            obj = <GButton>this.getChildAt(index);
+            obj = this.getChildAt(index);
 
-        if (obj && !obj.selected) {
+        if ((obj instanceof GButton) && !obj.selected) {
             obj.selected = true;
             this.updateSelectionController(index);
         }
@@ -387,17 +385,17 @@ export class GList extends GComponent {
         if (this._selectionMode == ListSelectionMode.None)
             return;
 
-        var obj: GButton = null;
+        var obj: GObject;
         if (this._virtual) {
             var ii: ItemInfo = this._virtualItems[index];
             if (ii.obj)
-                obj = <GButton>ii.obj;
+                obj = ii.obj;
             ii.selected = false;
         }
         else
-            obj = <GButton>this.getChildAt(index);
+            obj = this.getChildAt(index);
 
-        if (obj)
+        if (obj instanceof GButton)
             obj.selected = false;
     }
 
@@ -407,15 +405,15 @@ export class GList extends GComponent {
             for (i = 0; i < this._realNumItems; i++) {
                 var ii: ItemInfo = this._virtualItems[i];
                 if (ii.obj instanceof GButton)
-                    (<GButton>ii.obj).selected = false;
+                    ii.obj.selected = false;
                 ii.selected = false;
             }
         }
         else {
             var cnt: number = this._children.length;
             for (i = 0; i < cnt; i++) {
-                var obj: GButton = <GButton>this._children[i];
-                if (obj)
+                var obj: GObject = this._children[i];
+                if (obj instanceof GButton)
                     obj.selected = false;
             }
         }
@@ -428,7 +426,7 @@ export class GList extends GComponent {
                 var ii: ItemInfo = this._virtualItems[i];
                 if (ii.obj != g) {
                     if ((ii.obj instanceof GButton))
-                        (<GButton>ii.obj).selected = false;
+                        ii.obj.selected = false;
                     ii.selected = false;
                 }
             }
@@ -436,8 +434,8 @@ export class GList extends GComponent {
         else {
             var cnt: number = this._children.length;
             for (i = 0; i < cnt; i++) {
-                var obj: GButton = <GButton>this._children[i];
-                if (obj && obj != g)
+                var obj: GObject = this._children[i];
+                if ((obj instanceof GButton) && obj != g)
                     obj.selected = false;
             }
         }
@@ -451,8 +449,8 @@ export class GList extends GComponent {
         if (this._virtual) {
             for (i = 0; i < this._realNumItems; i++) {
                 var ii: ItemInfo = this._virtualItems[i];
-                if ((ii.obj instanceof GButton) && !(<GButton>ii.obj).selected) {
-                    (<GButton>ii.obj).selected = true;
+                if ((ii.obj instanceof GButton) && !ii.obj.selected) {
+                    ii.obj.selected = true;
                     last = i;
                 }
                 ii.selected = true;
@@ -461,8 +459,8 @@ export class GList extends GComponent {
         else {
             var cnt: number = this._children.length;
             for (i = 0; i < cnt; i++) {
-                var obj: GButton = <GButton>this._children[i];
-                if (obj && !obj.selected) {
+                var obj: GObject = this._children[i];
+                if ((obj instanceof GButton) && !obj.selected) {
                     obj.selected = true;
                     last = i;
                 }
@@ -486,8 +484,8 @@ export class GList extends GComponent {
             for (i = 0; i < this._realNumItems; i++) {
                 var ii: ItemInfo = this._virtualItems[i];
                 if (ii.obj instanceof GButton) {
-                    (<GButton>ii.obj).selected = !(<GButton>ii.obj).selected;
-                    if ((<GButton>ii.obj).selected)
+                    ii.obj.selected = !ii.obj.selected;
+                    if (ii.obj.selected)
                         last = i;
                 }
                 ii.selected = !ii.selected;
@@ -496,8 +494,8 @@ export class GList extends GComponent {
         else {
             var cnt: number = this._children.length;
             for (i = 0; i < cnt; i++) {
-                var obj: GButton = <GButton>this._children[i];
-                if (obj) {
+                var obj: GObject = this._children[i];
+                if (obj instanceof GButton) {
                     obj.selected = !obj.selected;
                     if (obj.selected)
                         last = i;
@@ -661,18 +659,17 @@ export class GList extends GComponent {
             return;
 
         var dontChangeLastIndex: boolean = false;
-        var button: GButton = <GButton>(item);
         var index: number = this.childIndexToItemIndex(this.getChildIndex(item));
 
         if (this._selectionMode == ListSelectionMode.Single) {
-            if (!button.selected) {
-                this.clearSelectionExcept(button);
-                button.selected = true;
+            if (!item.selected) {
+                this.clearSelectionExcept(item);
+                item.selected = true;
             }
         }
         else {
             if (evt.input.shiftKey) {
-                if (!button.selected) {
+                if (!item.selected) {
                     if (this._lastSelectedIndex != -1) {
                         var min: number = Math.min(this._lastSelectedIndex, index);
                         var max: number = Math.max(this._lastSelectedIndex, index);
@@ -682,14 +679,14 @@ export class GList extends GComponent {
                             for (i = min; i <= max; i++) {
                                 var ii: ItemInfo = this._virtualItems[i];
                                 if (ii.obj instanceof GButton)
-                                    (<GButton>ii.obj).selected = true;
+                                    ii.obj.selected = true;
                                 ii.selected = true;
                             }
                         }
                         else {
                             for (i = min; i <= max; i++) {
-                                var obj: GButton = <GButton>this.getChildAt(i);
-                                if (obj)
+                                var obj: GObject = this.getChildAt(i);
+                                if (obj instanceof GButton)
                                     obj.selected = true;
                             }
                         }
@@ -697,27 +694,27 @@ export class GList extends GComponent {
                         dontChangeLastIndex = true;
                     }
                     else {
-                        button.selected = true;
+                        item.selected = true;
                     }
                 }
             }
             else if ((evt.input.ctrlKey || evt.input.commandKey) || this._selectionMode == ListSelectionMode.Multiple_SingleClick) {
-                button.selected = !button.selected;
+                item.selected = !item.selected;
             }
             else {
-                if (!button.selected) {
-                    this.clearSelectionExcept(button);
-                    button.selected = true;
+                if (!item.selected) {
+                    this.clearSelectionExcept(item);
+                    item.selected = true;
                 }
                 else
-                    this.clearSelectionExcept(button);
+                    this.clearSelectionExcept(item);
             }
         }
 
         if (!dontChangeLastIndex)
             this._lastSelectedIndex = index;
 
-        if (button.selected)
+        if (item.selected)
             this.updateSelectionController(index);
     }
 
@@ -1418,7 +1415,7 @@ export class GList extends GComponent {
 
                 if (ii.obj && ii.obj.resourceURL != url) {
                     if (ii.obj instanceof GButton)
-                        ii.selected = (<GButton>ii.obj).selected;
+                        ii.selected = ii.obj.selected;
                     this.removeChildToPool(ii.obj);
                     ii.obj = null;
                 }
@@ -1431,7 +1428,7 @@ export class GList extends GComponent {
                         ii2 = this._virtualItems[j];
                         if (ii2.obj && ii2.flag != this.itemInfoVer && ii2.obj.resourceURL == url) {
                             if (ii2.obj instanceof GButton)
-                                ii2.selected = (<GButton>ii2.obj).selected;
+                                ii2.selected = ii2.obj.selected;
                             ii.obj = ii2.obj;
                             ii2.obj = null;
                             if (j == reuseIndex)
@@ -1445,7 +1442,7 @@ export class GList extends GComponent {
                         ii2 = this._virtualItems[j];
                         if (ii2.obj && ii2.flag != this.itemInfoVer && ii2.obj.resourceURL == url) {
                             if (ii2.obj instanceof GButton)
-                                ii2.selected = (<GButton>ii2.obj).selected;
+                                ii2.selected = ii2.obj.selected;
                             ii.obj = ii2.obj;
                             ii2.obj = null;
                             if (j == reuseIndex)
@@ -1466,7 +1463,7 @@ export class GList extends GComponent {
                         this.addChild(ii.obj);
                 }
                 if (ii.obj instanceof GButton)
-                    (<GButton>ii.obj).selected = ii.selected;
+                    ii.obj.selected = ii.selected;
 
                 needRender = true;
             }
@@ -1507,7 +1504,7 @@ export class GList extends GComponent {
             ii = this._virtualItems[oldFirstIndex + i];
             if (ii.flag != this.itemInfoVer && ii.obj) {
                 if (ii.obj instanceof GButton)
-                    ii.selected = (<GButton>ii.obj).selected;
+                    ii.selected = ii.obj.selected;
                 this.removeChildToPool(ii.obj);
                 ii.obj = null;
             }
@@ -1572,7 +1569,7 @@ export class GList extends GComponent {
 
                 if (ii.obj && ii.obj.resourceURL != url) {
                     if (ii.obj instanceof GButton)
-                        ii.selected = (<GButton>ii.obj).selected;
+                        ii.selected = ii.obj.selected;
                     this.removeChildToPool(ii.obj);
                     ii.obj = null;
                 }
@@ -1584,7 +1581,7 @@ export class GList extends GComponent {
                         ii2 = this._virtualItems[j];
                         if (ii2.obj && ii2.flag != this.itemInfoVer && ii2.obj.resourceURL == url) {
                             if (ii2.obj instanceof GButton)
-                                ii2.selected = (<GButton>ii2.obj).selected;
+                                ii2.selected = ii2.obj.selected;
                             ii.obj = ii2.obj;
                             ii2.obj = null;
                             if (j == reuseIndex)
@@ -1598,7 +1595,7 @@ export class GList extends GComponent {
                         ii2 = this._virtualItems[j];
                         if (ii2.obj && ii2.flag != this.itemInfoVer && ii2.obj.resourceURL == url) {
                             if (ii2.obj instanceof GButton)
-                                ii2.selected = (<GButton>ii2.obj).selected;
+                                ii2.selected = ii2.obj.selected;
                             ii.obj = ii2.obj;
                             ii2.obj = null;
                             if (j == reuseIndex)
@@ -1619,7 +1616,7 @@ export class GList extends GComponent {
                         this.addChild(ii.obj);
                 }
                 if (ii.obj instanceof GButton)
-                    (<GButton>ii.obj).selected = ii.selected;
+                    ii.obj.selected = ii.selected;
 
                 needRender = true;
             }
@@ -1660,7 +1657,7 @@ export class GList extends GComponent {
             ii = this._virtualItems[oldFirstIndex + i];
             if (ii.flag != this.itemInfoVer && ii.obj) {
                 if (ii.obj instanceof GButton)
-                    ii.selected = (<GButton>ii.obj).selected;
+                    ii.selected = ii.obj.selected;
                 this.removeChildToPool(ii.obj);
                 ii.obj = null;
             }
@@ -1750,7 +1747,7 @@ export class GList extends GComponent {
                     ii2 = this._virtualItems[reuseIndex];
                     if (ii2.obj && ii2.flag != this.itemInfoVer) {
                         if (ii2.obj instanceof GButton)
-                            ii2.selected = (<GButton>ii2.obj).selected;
+                            ii2.selected = ii2.obj.selected;
                         ii.obj = ii2.obj;
                         ii2.obj = null;
                         break;
@@ -1778,7 +1775,7 @@ export class GList extends GComponent {
                 insertIndex++;
 
                 if (ii.obj instanceof GButton)
-                    (<GButton>ii.obj).selected = ii.selected;
+                    ii.obj.selected = ii.selected;
 
                 needRender = true;
             }
@@ -1839,7 +1836,7 @@ export class GList extends GComponent {
             ii = this._virtualItems[i];
             if (ii.flag != this.itemInfoVer && ii.obj) {
                 if (ii.obj instanceof GButton)
-                    ii.selected = (<GButton>ii.obj).selected;
+                    ii.selected = ii.obj.selected;
                 this.removeChildToPool(ii.obj);
                 ii.obj = null;
             }
@@ -1893,9 +1890,9 @@ export class GList extends GComponent {
         var newOffsetY: number = 0;
 
         if (contentHeight < this.viewHeight) {
-            if (this._verticalAlign == "middle")
+            if (this._valign == "middle")
                 newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
-            else if (this._verticalAlign == "bottom")
+            else if (this._valign == "bottom")
                 newOffsetY = this.viewHeight - contentHeight;
         }
 
@@ -2249,7 +2246,7 @@ export class GList extends GComponent {
         i1 = buffer.readByte();
         this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
         i1 = buffer.readByte();
-        this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
+        this._valign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
         this._lineGap = buffer.readShort();
         this._columnGap = buffer.readShort();
         this._lineCount = buffer.readShort();
@@ -2327,13 +2324,13 @@ export class GList extends GComponent {
             obj.text = str;
         str = buffer.readS();
         if (str != null && (obj instanceof GButton))
-            (<GButton>obj).selectedTitle = str;
+            obj.selectedTitle = str;
         str = buffer.readS();
         if (str != null)
             obj.icon = str;
         str = buffer.readS();
         if (str != null && (obj instanceof GButton))
-            (<GButton>obj).selectedIcon = str;
+            obj.selectedIcon = str;
         str = buffer.readS();
         if (str != null)
             obj.name = str;
@@ -2344,7 +2341,7 @@ export class GList extends GComponent {
         if (obj instanceof GComponent) {
             cnt = buffer.readShort();
             for (i = 0; i < cnt; i++) {
-                var cc: Controller = (<GComponent>obj).getController(buffer.readS());
+                var cc: Controller = obj.getController(buffer.readS());
                 str = buffer.readS();
                 if (cc)
                     cc.selectedPageId = str;
@@ -2356,7 +2353,7 @@ export class GList extends GComponent {
                     var target: string = buffer.readS();
                     var propertyId: number = buffer.readShort();
                     var value: string = buffer.readS();
-                    var obj2: GObject = (<GComponent>obj).getChildByPath(target);
+                    var obj2: GObject = obj.getChildByPath(target);
                     if (obj2)
                         obj2.setProp(propertyId, value);
                 }

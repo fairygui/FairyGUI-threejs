@@ -264,7 +264,7 @@ export class Transition {
     public setValue(label: string, ...args: any[]): void {
         var cnt: number = this._items.length;
         var found: boolean = false;
-        var value: any;
+        var value: TValue;
         for (var i: number = 0; i < cnt; i++) {
             var item: Item = this._items[i];
             if (item.label == label) {
@@ -663,7 +663,7 @@ export class Transition {
         var frame: number;
         var playStartTime: number;
         var playTotalTime: number;
-        var value: any;
+        var value: TValue;
         var target: GObject;
         var item: Item;
 
@@ -907,7 +907,7 @@ export class Transition {
 
     private applyValue(item: Item): void {
         item.target._gearLocked = true;
-        var value: any = item.value;
+        var value: TValue = item.value;
 
         switch (item.type) {
             case ActionType.XY:
@@ -1124,7 +1124,7 @@ export class Transition {
         }
     }
 
-    private decodeValue(item: Item, buffer: ByteBuffer, value: any): void {
+    private decodeValue(item: Item, buffer: ByteBuffer, value: TValue): void {
         switch (item.type) {
             case ActionType.XY:
             case ActionType.Size:

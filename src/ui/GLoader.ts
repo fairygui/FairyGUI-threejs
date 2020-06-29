@@ -16,16 +16,9 @@ export class GLoader extends GObject {
     private _autoSize: boolean;
     private _fill: number;
     private _shrinkOnly: boolean;
-
     private _contentItem: PackageItem;
-    private _contentSourceWidth: number = 0;
-    private _contentSourceHeight: number = 0;
-    private _contentWidth: number = 0;
-    private _contentHeight: number = 0;
-
     private _content: MovieClip;
     private _content2?: GComponent;
-
     private _updatingLayout: boolean;
 
     constructor() {
@@ -162,6 +155,38 @@ export class GLoader extends GObject {
         }
     }
 
+    public get fillMethod(): number {
+        return this._content.fillMethod;
+    }
+
+    public set fillMethod(value: number) {
+        this._content.fillMethod = value;
+    }
+
+    public get fillOrigin(): number {
+        return this._content.fillOrigin;
+    }
+
+    public set fillOrigin(value: number) {
+        this._content.fillOrigin = value;
+    }
+
+    public get fillClockwise(): boolean {
+        return this._content.fillClockwise;
+    }
+
+    public set fillClockwise(value: boolean) {
+        this._content.fillClockwise = value;
+    }
+
+    public get fillAmount(): number {
+        return this._content.fillAmount;
+    }
+
+    public set fillAmount(value: number) {
+        this._content.fillAmount = value;
+    }
+
     public get content(): MovieClip {
         return this._content;
     }
@@ -186,13 +211,13 @@ export class GLoader extends GObject {
         this._contentItem = UIPackage.getItemByURL(itemURL);
         if (this._contentItem) {
             this._contentItem = this._contentItem.getBranch();
-            this._contentSourceWidth = this._contentItem.width;
-            this._contentSourceHeight = this._contentItem.height;
+            this.sourceWidth = this._contentItem.width;
+            this.sourceHeight = this._contentItem.height;
             this._contentItem = this._contentItem.getHighResolution();
             this._contentItem.load();
 
             if (this._autoSize)
-                this.setSize(this._contentSourceWidth, this._contentSourceHeight);
+                this.setSize(this.sourceWidth, this.sourceHeight);
 
             if (this._contentItem.type == PackageItemType.Image) {
                 if (this._contentItem.texture == null) {
@@ -203,14 +228,14 @@ export class GLoader extends GObject {
                     this._content.scale9Grid = this._contentItem.scale9Grid;
                     this._content.scaleByTile = this._contentItem.scaleByTile;
                     this._content.tileGridIndice = this._contentItem.tileGridIndice;
-                    this._contentSourceWidth = this._contentItem.width;
-                    this._contentSourceHeight = this._contentItem.height;
+                    this.sourceWidth = this._contentItem.width;
+                    this.sourceHeight = this._contentItem.height;
                     this.updateLayout();
                 }
             }
             else if (this._contentItem.type == PackageItemType.MovieClip) {
-                this._contentSourceWidth = this._contentItem.width;
-                this._contentSourceHeight = this._contentItem.height;
+                this.sourceWidth = this._contentItem.width;
+                this.sourceHeight = this._contentItem.height;
                 this._content.interval = this._contentItem.interval;
                 this._content.swing = this._contentItem.swing;
                 this._content.repeatDelay = this._contentItem.repeatDelay;
@@ -253,8 +278,8 @@ export class GLoader extends GObject {
         this._content.texture = texture;
         this._content.scale9Grid = null;
         this._content.scaleByTile = false;
-        this._contentSourceWidth = texture.width;
-        this._contentSourceHeight = texture.height;
+        this.sourceWidth = texture.width;
+        this.sourceHeight = texture.height;
         this.updateLayout();
     }
 
@@ -278,25 +303,25 @@ export class GLoader extends GObject {
             return;
         }
 
-        this._contentWidth = this._contentSourceWidth;
-        this._contentHeight = this._contentSourceHeight;
+        let cw = this.sourceWidth;
+        let ch = this.sourceHeight;
 
         if (this._autoSize) {
             this._updatingLayout = true;
-            if (this._contentWidth == 0)
-                this._contentWidth = 50;
-            if (this._contentHeight == 0)
-                this._contentHeight = 30;
-            this.setSize(this._contentWidth, this._contentHeight);
+            if (cw == 0)
+                cw = 50;
+            if (ch == 0)
+                ch = 30;
+            this.setSize(cw, ch);
             this._updatingLayout = false;
 
-            if (this._contentWidth == this._width && this._contentHeight == this._height) {
+            if (cw == this._width && ch == this._height) {
                 if (this._content2) {
                     this._content2.setPosition(0, 0);
                     this._content2.setScale(1, 1);
                 }
                 else {
-                    this._content.setSize(this._contentWidth, this._contentHeight);
+                    this._content.setSize(cw, ch);
                     this._content.setPosition(0, 0);
                 }
                 return;
@@ -305,8 +330,8 @@ export class GLoader extends GObject {
 
         var sx: number = 1, sy: number = 1;
         if (this._fill != LoaderFillType.None) {
-            sx = this.width / this._contentSourceWidth;
-            sy = this.height / this._contentSourceHeight;
+            sx = this.width / this.sourceWidth;
+            sy = this.height / this.sourceHeight;
 
             if (sx != 1 || sy != 1) {
                 if (this._fill == LoaderFillType.ScaleMatchHeight)
@@ -333,27 +358,27 @@ export class GLoader extends GObject {
                         sy = 1;
                 }
 
-                this._contentWidth = this._contentSourceWidth * sx;
-                this._contentHeight = this._contentSourceHeight * sy;
+                cw = this.sourceWidth * sx;
+                ch = this.sourceHeight * sy;
             }
         }
 
         if (this._content2)
             this._content2.setScale(sx, sy);
         else
-            this._content.setSize(this._contentWidth, this._contentHeight);
+            this._content.setSize(cw, ch);
 
         var nx: number, ny: number;
         if (this._align == "center")
-            nx = Math.floor((this.width - this._contentWidth) / 2);
+            nx = Math.floor((this.width - cw) / 2);
         else if (this._align == "right")
-            nx = this.width - this._contentWidth;
+            nx = this.width - cw;
         else
             nx = 0;
         if (this._valign == "middle")
-            ny = Math.floor((this.height - this._contentHeight) / 2);
+            ny = Math.floor((this.height - ch) / 2);
         else if (this._valign == "bottom")
-            ny = this.height - this._contentHeight;
+            ny = this.height - ch;
         else
             ny = 0;
 
@@ -366,7 +391,7 @@ export class GLoader extends GObject {
     private clearContent(): void {
         this.clearErrorState();
 
-        if (this._contentItem == null && this._content.texture) {
+        if (!this._contentItem && this._content.texture) {
             this.freeExternal(this._content.texture);
         }
         this._content.texture = null;

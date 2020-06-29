@@ -46,7 +46,7 @@ export class GPath {
             var current: GPathPoint = points[i];
 
             if (prev.curveType != CurveType.CRSpline) {
-                var seg: Segment = new Segment();
+                var seg: Segment = {};
                 seg.type = prev.curveType;
                 seg.ptStart = this._points.length;
                 if (prev.curveType == CurveType.Straight) {
@@ -95,7 +95,7 @@ export class GPath {
         splinePoints.push(splinePoints[cnt]);
         cnt += 3;
 
-        var seg: Segment = new Segment();
+        var seg: Segment = {};
         seg.type = CurveType.CRSpline;
         seg.ptStart = this._points.length;
         seg.ptCount = cnt;
@@ -287,9 +287,9 @@ export class GPath {
     }
 }
 
-class Segment {
-    public type: number;
-    public length: number;
-    public ptStart: number;
-    public ptCount: number;
+interface Segment {
+    type?: number;
+    length?: number;
+    ptStart?: number;
+    ptCount?: number;
 }

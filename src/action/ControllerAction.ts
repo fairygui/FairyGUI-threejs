@@ -3,8 +3,8 @@ import { Controller } from "../ui/Controller";
 import { ByteBuffer } from "../utils/ByteBuffer";
 
 export class ControllerAction {
-    public fromPage: any[];
-    public toPage: any[];
+    public fromPage: Array<string>;
+    public toPage: Array<string>;
 
     constructor() {
     }

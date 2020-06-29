@@ -21,7 +21,7 @@ export class GComboBox extends GComponent {
     protected _list: GList;
 
     protected _items: string[];
-    protected _icons: string[];
+    protected _icons?: string[];
     protected _values: string[];
 
     private _itemsUpdated: boolean;
@@ -184,7 +184,7 @@ export class GComboBox extends GComponent {
 
     public getTextField(): GTextField {
         if (this._titleObject instanceof GTextField)
-            return <GTextField>this._titleObject;
+            return this._titleObject;
         else if ('getTextField' in this._titleObject)
             return <GTextField>(<any>this._titleObject).getTextField();
         else
@@ -301,12 +301,12 @@ export class GComboBox extends GComponent {
 
         let str: string = buffer.readS();
         if (str) {
-            this.dropdown = <GComponent>UIPackage.createObjectFromURL(str);
-            if (!this.dropdown) {
+            let obj = UIPackage.createObjectFromURL(str);
+            if (!(obj instanceof GComponent)) {
                 console.warn(this.resourceURL + " should be a component.");
                 return;
             }
-
+            this.dropdown = obj;
             this._list = <GList>this.dropdown.getChild("list");
             if (this._list == null) {
                 console.warn(this.resourceURL + ": should container a list component named list.");
@@ -416,7 +416,7 @@ export class GComboBox extends GComponent {
 
     private __clickItem(evt: Event): void {
         if (this.dropdown.parent instanceof GRoot)
-            (<GRoot>this.dropdown.parent).hidePopup();
+            this.dropdown.parent.hidePopup();
 
         this._selectedIndex = -1;
         this.selectedIndex = this._list.getChildIndex(evt.data);

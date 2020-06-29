@@ -100,7 +100,7 @@ export class Window extends GComponent {
             this._dragArea = value;
             if (this._dragArea) {
                 if (this._dragArea instanceof GGraph)
-                    (<GGraph>this._dragArea).shape.drawRect(0, new Color4(0, 0), new Color4(0, 0));
+                    this._dragArea.shape.drawRect(0, new Color4(0, 0), new Color4(0, 0));
                 this._dragArea.draggable = true;
                 this._dragArea.on("drag_start", this.__dragStart, this);
             }

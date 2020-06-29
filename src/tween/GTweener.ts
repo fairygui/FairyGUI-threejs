@@ -134,21 +134,21 @@ export class GTweener {
         return this._userData;
     }
 
-    public onUpdate(callback: Function, caller?: any): GTweener {
+    public onUpdate(callback: Function, target?: any): GTweener {
         this._onUpdate = callback;
-        this._onUpdateCaller = caller;
+        this._onUpdateCaller = target;
         return this;
     }
 
-    public onStart(callback: Function, caller?: any): GTweener {
+    public onStart(callback: Function, target?: any): GTweener {
         this._onStart = callback;
-        this._onStartCaller = caller;
+        this._onStartCaller = target;
         return this;
     }
 
-    public onComplete(callback: Function, caller?: any): GTweener {
+    public onComplete(callback: Function, target?: any): GTweener {
         this._onComplete = callback;
-        this._onCompleteCaller = caller;
+        this._onCompleteCaller = target;
         return this;
     }
 
