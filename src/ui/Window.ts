@@ -169,7 +169,7 @@ export class Window extends GComponent {
     }
 
     public showModalWait(requestingCmd?: number): void {
-        if (requestingCmd && requestingCmd != 0)
+        if (requestingCmd != null)
             this._requestingCmd = requestingCmd;
 
         if (UIConfig.windowModalWaiting) {
@@ -194,7 +194,7 @@ export class Window extends GComponent {
     }
 
     public closeModalWait(requestingCmd?: number): boolean {
-        if (requestingCmd && requestingCmd != 0) {
+        if (requestingCmd != null) {
             if (this._requestingCmd != requestingCmd)
                 return false;
         }

@@ -7,15 +7,15 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 var _nextPageId: number = 0;
 
 export class Controller extends EventDispatcher {
-    private _selectedIndex: number = 0;
-    private _previousIndex: number = 0;
+    private _selectedIndex: number;
+    private _previousIndex: number;
     private _pageIds: string[];
     private _pageNames: string[];
-    private _actions: ControllerAction[];
+    private _actions?: ControllerAction[];
 
     public name: string;
     public parent: GComponent;
-    public autoRadioGroupDepth: boolean;
+    public autoRadioGroupDepth?: boolean;
 
     public changing: boolean = false;
 
@@ -116,11 +116,11 @@ export class Controller extends EventDispatcher {
         var nid: string = "" + (_nextPageId++);
         if (index == null || index == this._pageIds.length) {
             this._pageIds.push(nid);
-            this._pageNames.push(this.name);
+            this._pageNames.push(name);
         }
         else {
             this._pageIds.splice(index, 0, nid);
-            this._pageNames.splice(index, 0, this.name);
+            this._pageNames.splice(index, 0, name);
         }
     }
 
@@ -223,7 +223,8 @@ export class Controller extends EventDispatcher {
         buffer.seek(beginPos, 0);
 
         this.name = buffer.readS();
-        this.autoRadioGroupDepth = buffer.readBool();
+        if (buffer.readBool())
+            this.autoRadioGroupDepth = true;
 
         buffer.seek(beginPos, 1);
 

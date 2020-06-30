@@ -30,7 +30,7 @@ export class GList extends GComponent {
     private _selectionMode: number;
     private _align: AlignType;
     private _valign: VertAlignType;
-    private _selectionController: Controller;
+    private _selectionController?: Controller;
 
     private _lastSelectedIndex: number = 0;
     private _pool: GObjectPool;

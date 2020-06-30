@@ -34,8 +34,8 @@ export class UIPackage {
         this._itemsById = {};
         this._itemsByName = {};
         this._sprites = {};
-        this._dependencies = Array<PackageDependency>();
-        this._branches = Array<string>();
+        this._dependencies = [];
+        this._branches = [];
         this._branchIndex = -1;
     }
 

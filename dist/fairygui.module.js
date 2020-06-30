@@ -3906,7 +3906,7 @@ class GObject {
         this._sizePercentInGroup = 0;
         //drag support
         //-------------------------------------------------------------------
-        this._dragTouchStartPos = new Vector2();
+        this._dragStartPos = new Vector2();
         this._dragTesting = false;
         this._id = "" + gInstanceCounter++;
         this._name = "";
@@ -4665,9 +4665,9 @@ class GObject {
         }
     }
     __touchBegin(evt) {
-        if (this._dragTouchStartPos == null)
-            this._dragTouchStartPos = new Vector2();
-        this._dragTouchStartPos.set(evt.input.x, evt.input.y);
+        if (this._dragStartPos == null)
+            this._dragStartPos = new Vector2();
+        this._dragStartPos.set(evt.input.x, evt.input.y);
         this._dragTesting = true;
         evt.captureTouch();
     }
@@ -4678,8 +4678,9 @@ class GObject {
                 sensitivity = UIConfig.touchDragSensitivity;
             else
                 sensitivity = UIConfig.clickDragSensitivity;
-            if (Math.abs(this._dragTouchStartPos.x - evt.input.x) < sensitivity
-                && Math.abs(this._dragTouchStartPos.y - evt.input.y) < sensitivity)
+            if (this._dragStartPos
+                && Math.abs(this._dragStartPos.x - evt.input.x) < sensitivity
+                && Math.abs(this._dragStartPos.y - evt.input.y) < sensitivity)
                 return;
             this._dragTesting = false;
             if (!this.dispatchEvent("drag_start", evt.input.touchId))
@@ -8186,8 +8187,8 @@ class UIPackage {
         this._itemsById = {};
         this._itemsByName = {};
         this._sprites = {};
-        this._dependencies = Array();
-        this._branches = Array();
+        this._dependencies = [];
+        this._branches = [];
         this._branchIndex = -1;
     }
     static get branch() {
@@ -8855,8 +8856,6 @@ var _nextPageId = 0;
 class Controller extends EventDispatcher {
     constructor() {
         super();
-        this._selectedIndex = 0;
-        this._previousIndex = 0;
         this.changing = false;
         this._pageIds = [];
         this._pageNames = [];
@@ -8932,14 +8931,15 @@ class Controller extends EventDispatcher {
         this.addPageAt(name, this._pageIds.length);
     }
     addPageAt(name, index) {
+        name = name || "";
         var nid = "" + (_nextPageId++);
         if (index == null || index == this._pageIds.length) {
             this._pageIds.push(nid);
-            this._pageNames.push(this.name);
+            this._pageNames.push(name);
         }
         else {
             this._pageIds.splice(index, 0, nid);
-            this._pageNames.splice(index, 0, this.name);
+            this._pageNames.splice(index, 0, name);
         }
     }
     removePage(name) {
@@ -9027,7 +9027,8 @@ class Controller extends EventDispatcher {
         var beginPos = buffer.pos;
         buffer.seek(beginPos, 0);
         this.name = buffer.readS();
-        this.autoRadioGroupDepth = buffer.readBool();
+        if (buffer.readBool())
+            this.autoRadioGroupDepth = true;
         buffer.seek(beginPos, 1);
         var i;
         var nextPos;
@@ -13115,7 +13116,7 @@ class Window extends GComponent {
         GRoot.findFor(this).bringToFront(this);
     }
     showModalWait(requestingCmd) {
-        if (requestingCmd && requestingCmd != 0)
+        if (requestingCmd != null)
             this._requestingCmd = requestingCmd;
         if (UIConfig.windowModalWaiting) {
             if (!this._modalWaitPane)
@@ -13135,7 +13136,7 @@ class Window extends GComponent {
             this._modalWaitPane.setSize(this.width, this.height);
     }
     closeModalWait(requestingCmd) {
-        if (requestingCmd && requestingCmd != 0) {
+        if (requestingCmd != null) {
             if (this._requestingCmd != requestingCmd)
                 return false;
         }

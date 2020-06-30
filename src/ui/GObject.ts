@@ -998,7 +998,7 @@ export class GObject {
 
     //drag support
     //-------------------------------------------------------------------
-    private _dragTouchStartPos: Vector2 = new Vector2();
+    private _dragStartPos: Vector2 = new Vector2();
     private _dragTesting: boolean = false;
 
     private initDrag(): void {
@@ -1041,22 +1041,23 @@ export class GObject {
     }
 
     private __touchBegin(evt: Event): void {
-        if (this._dragTouchStartPos == null)
-            this._dragTouchStartPos = new Vector2();
-        this._dragTouchStartPos.set(evt.input.x, evt.input.y);
+        if (this._dragStartPos == null)
+            this._dragStartPos = new Vector2();
+        this._dragStartPos.set(evt.input.x, evt.input.y);
         this._dragTesting = true;
         evt.captureTouch();
     }
 
     private __touchMove(evt: Event): void {
         if (this._dragTesting && GObject.draggingObject != this) {
-            let sensitivity;
+            let sensitivity: number;
             if (Stage.touchScreen)
                 sensitivity = UIConfig.touchDragSensitivity;
             else
                 sensitivity = UIConfig.clickDragSensitivity;
-            if (Math.abs(this._dragTouchStartPos.x - evt.input.x) < sensitivity
-                && Math.abs(this._dragTouchStartPos.y - evt.input.y) < sensitivity)
+            if (this._dragStartPos
+                && Math.abs(this._dragStartPos.x - evt.input.x) < sensitivity
+                && Math.abs(this._dragStartPos.y - evt.input.y) < sensitivity)
                 return;
 
             this._dragTesting = false;
