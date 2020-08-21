@@ -10914,7 +10914,7 @@ class Transition {
         if (delay == 0)
             this.onDelayedPlay();
         else
-            GTween.delayedCall(delay).onComplete(this.onDelayedPlay, this);
+            GTween.delayedCall(delay).setTarget(this).onComplete(this.onDelayedPlay, this);
     }
     stop(setToComplete, processCallback) {
         if (!this._playing)
@@ -11249,7 +11249,7 @@ class Transition {
     internalPlay() {
         this._ownerBaseX = this._owner.x;
         this._ownerBaseY = this._owner.y;
-        this._totalTasks = 0;
+        this._totalTasks = 1;
         var cnt = this._items.length;
         var item;
         var needSkipAnimations = false;
@@ -11276,6 +11276,7 @@ class Transition {
         }
         if (needSkipAnimations)
             this.skipAnimations();
+        this._totalTasks--;
     }
     playItem(item) {
         var time;
@@ -11548,11 +11549,16 @@ class Transition {
         if (this._playing && this._totalTasks == 0) {
             if (this._totalTimes < 0) {
                 this.internalPlay();
+                if (this._totalTasks == 0)
+                    GTween.delayedCall(0).setTarget(this).onComplete(this.checkAllComplete, this);
             }
             else {
                 this._totalTimes--;
-                if (this._totalTimes > 0)
+                if (this._totalTimes > 0) {
                     this.internalPlay();
+                    if (this._totalTasks == 0)
+                        GTween.delayedCall(0).setTarget(this).onComplete(this.checkAllComplete, this);
+                }
                 else {
                     this._playing = false;
                     var cnt = this._items.length;
