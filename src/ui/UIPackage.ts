@@ -75,7 +75,11 @@ export class UIPackage {
                 return;
             }
 
-            let url: string = resKey + "." + UIConfig.packageFileExtension;
+            let url: string = resKey;
+            if(!resKey.endsWith("." + UIConfig.packageFileExtension))
+            {
+                url += "." + UIConfig.packageFileExtension;
+            }
 
             var loader = new FileLoader();
             loader.setResponseType("arraybuffer");
