@@ -171,7 +171,8 @@ export class DynamicFont {
             this.rebuild();
             return null;
         }
-
+    
+        this._context.font = size + "px " + this._name;
         this._context.textBaseline = "alphabetic";
         this._context.fillStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
         this._context.fillText(ch, node.x + glyph.sourceRect.x, node.y + glyph.baseline);
