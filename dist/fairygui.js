@@ -752,15 +752,19 @@
         let offsetX = 0;
         let offsetY = 0;
         var element = _canvas;
-        var style = getComputedStyle(element, null);
-        offsetY += parseInt(style.getPropertyValue("padding-top"), 10);
-        offsetX += parseInt(style.getPropertyValue("padding-left"), 10);
+        var style = element.style;
+        if (style.paddingTop)
+            offsetY += parseInt(style.paddingTop, 10);
+        if (style.paddingLeft)
+            offsetX += parseInt(style.paddingTop, 10);
         do {
             offsetX += element.offsetLeft;
             offsetY += element.offsetTop;
-            style = getComputedStyle(element, null);
-            offsetX += parseInt(style.getPropertyValue("border-left-width"), 10);
-            offsetY += parseInt(style.getPropertyValue("border-top-width"), 10);
+            style = element.style;
+            if (style.borderLeftWidth)
+                offsetX += parseInt(style.borderLeftWidth, 10);
+            if (style.borderTopWidth)
+                offsetY += parseInt(style.borderTopWidth, 10);
         } while (element = element.offsetParent);
         _canvasTransform.identity();
         if (_screenMode == "horizontal") {
@@ -7843,13 +7847,13 @@
         }
     }
 
-    var s_rect$5 = new Rect();
-    var s_scale = 1;
     class DynamicFont {
         constructor() {
             this.version = 0;
             this.isDynamic = true;
             this.keepCrisp = true;
+            this.s_rect = new Rect();
+            this.s_scale = 1;
             this._glyphs = {};
             this._color = new Color4();
             this._outlineColor = new Color4();
@@ -7857,8 +7861,13 @@
             this._canvas = document.createElement("canvas");
             this._context = this._canvas.getContext("2d");
             this._context.globalCompositeOperation = "lighter";
+            this._context.textAlign = "left";
+            this._canvas.style.left = "-10000px";
+            this._canvas.style.position = "absolute";
+            document.body.appendChild(this._canvas);
             this.createTexture(512);
-            s_scale = Stage.devicePixelRatio;
+            window["TestImg1"] = this._canvas;
+            this.s_scale = Stage.devicePixelRatio;
         }
         get name() {
             return this._name;
@@ -7909,28 +7918,35 @@
         }
         prepareCharacters(text) {
             let len = text.length;
-            for (let i = 0; i < len; i++) {
+            let i = 0;
+            //绘制文本本体
+            for (i = 0; i < len; i++) {
                 let ch = text[i];
-                let glyph = this.prepareChar(ch, this._size);
-                if (!glyph)
-                    break;
-                if (this._format.outline > 0)
+                let glyph = this.getGlyphsOf(ch, this._size);
+                if (this._format.outline > 0) {
                     this.prepareOutline(ch, glyph, this._size, this._format.outline);
+                }
+                this.prepareChar(ch, this._size, glyph);
+                glyph.ver = this.version;
             }
         }
-        prepareChar(ch, size) {
+        getGlyphsOf(ch, size) {
             let key = (size << 16) + ch.charCodeAt(0);
             let glyph = this._glyphs[key];
             if (glyph && glyph.ver == this.version)
                 return glyph;
             if (this.keepCrisp)
-                size *= s_scale;
+                size *= this.s_scale;
             this._context.font = size + "px " + this._name;
             if (!glyph) {
                 glyph = this.measureChar(ch, size);
                 this._glyphs[key] = glyph;
             }
-            glyph.ver = this.version;
+            return glyph;
+        }
+        prepareChar(ch, size, glyph) {
+            if (this.keepCrisp)
+                size *= this.s_scale;
             let w = glyph.sourceRect.width;
             let h = glyph.sourceRect.height;
             if (w == 0)
@@ -7962,7 +7978,7 @@
                 outlineGlyph.ver = this.version;
             let outline2 = outline;
             if (this.keepCrisp)
-                outline2 *= s_scale;
+                outline2 *= this.s_scale;
             let w = glyph.sourceRect.width + outline2 * 2;
             let h = glyph.sourceRect.height + outline2 * 2;
             let node = this.addNode(w + 2, h + 2);
@@ -7971,7 +7987,7 @@
                 return null;
             }
             if (this.keepCrisp)
-                size *= s_scale;
+                size *= this.s_scale;
             this._context.font = size + "px " + this._name;
             this._context.textBaseline = "alphabetic";
             this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
@@ -7997,7 +8013,7 @@
                 baseline = Math.ceil(met.actualBoundingBoxAscent);
             }
             else {
-                baseline = getBaseline(ch, this._name, size);
+                baseline = this.getBaseline(ch, this._name, size);
                 left = 0;
                 if (ch == 'j')
                     left = Math.ceil(size / 20); //guess
@@ -8019,11 +8035,11 @@
                     ver: this.version
                 };
                 if (this.keepCrisp) {
-                    glyph.vertRect.x /= s_scale;
-                    glyph.vertRect.y /= s_scale;
-                    glyph.vertRect.width /= s_scale;
-                    glyph.vertRect.height /= s_scale;
-                    glyph.advance /= s_scale;
+                    glyph.vertRect.x /= this.s_scale;
+                    glyph.vertRect.y /= this.s_scale;
+                    glyph.vertRect.width /= this.s_scale;
+                    glyph.vertRect.height /= this.s_scale;
+                    glyph.advance /= this.s_scale;
                 }
             }
             return glyph;
@@ -8056,18 +8072,18 @@
                 if (!this._glyph.outlines)
                     return 0;
                 let outlineGlyph = this._glyph.outlines[this._format.outline];
-                s_rect$5.copy(outlineGlyph.vertRect);
-                s_rect$5.x += x;
-                s_rect$5.y -= y;
+                this.s_rect.copy(outlineGlyph.vertRect);
+                this.s_rect.x += x;
+                this.s_rect.y -= y;
                 this._outlineColor.a = outlineGlyph.chl;
-                vb.addQuad(s_rect$5, outlineGlyph.uvRect, this._outlineColor);
+                vb.addQuad(this.s_rect, outlineGlyph.uvRect, this._outlineColor);
                 vb.addTriangles(-4);
             }
-            s_rect$5.copy(this._glyph.vertRect);
-            s_rect$5.x += x;
-            s_rect$5.y -= y;
+            this.s_rect.copy(this._glyph.vertRect);
+            this.s_rect.x += x;
+            this.s_rect.y -= y;
             this._color.a = this._glyph.chl;
-            vb.addQuad(s_rect$5, this._glyph.uvRect, this._color);
+            vb.addQuad(this.s_rect, this._glyph.uvRect, this._color);
             vb.addTriangles(-4);
             return 4;
         }
@@ -8076,6 +8092,33 @@
         }
         getLineHeight(size) {
             return Math.round(size * 1.25);
+        }
+        getBaseline(ch, font, size) {
+            if (!this.eSpan) {
+                this.eSpan = document.createElement('span');
+                this.eBlock = document.createElement("div");
+                this.eBlock.style.display = 'inline-block';
+                this.eBlock.style.width = '1px';
+                this.eBlock.style.height = '0px';
+                var div = document.createElement('div');
+                div.id = 'measureText';
+                div.style.position = 'absolute';
+                div.style.visibility = 'hidden';
+                div.style.left = div.style.top = '0px';
+                div.appendChild(this.eSpan);
+                div.appendChild(this.eBlock);
+                document.body.appendChild(div);
+            }
+            this.eSpan.innerHTML = ch;
+            this.eSpan.style.fontFamily = font;
+            this.eSpan.style.fontSize = size + "px";
+            let ascent, height;
+            let offset = this.eSpan.offsetTop;
+            this.eBlock.style.verticalAlign = 'baseline';
+            ascent = this.eBlock.offsetTop - offset;
+            this.eBlock.style.verticalAlign = 'bottom';
+            height = this.eBlock.offsetTop - offset;
+            return ascent + Math.floor((size - height));
         }
     }
     class BinPacker {
@@ -8105,35 +8148,6 @@
             node.right = { x: node.x + w, y: node.y, w: node.w - w, h: h };
             return node;
         }
-    }
-    let eSpan;
-    let eBlock;
-    function getBaseline(ch, font, size) {
-        if (!eSpan) {
-            eSpan = document.createElement('span');
-            eBlock = document.createElement("div");
-            eBlock.style.display = 'inline-block';
-            eBlock.style.width = '1px';
-            eBlock.style.height = '0px';
-            var div = document.createElement('div');
-            div.id = 'measureText';
-            div.style.position = 'absolute';
-            div.style.visibility = 'hidden';
-            div.style.left = div.style.top = '0px';
-            div.appendChild(eSpan);
-            div.appendChild(eBlock);
-            document.body.appendChild(div);
-        }
-        eSpan.innerHTML = ch;
-        eSpan.style.fontFamily = font;
-        eSpan.style.fontSize = size + "px";
-        let ascent, height;
-        let offset = eSpan.offsetTop;
-        eBlock.style['vertical-align'] = 'baseline';
-        ascent = eBlock.offsetTop - offset;
-        eBlock.style['vertical-align'] = 'bottom';
-        height = eBlock.offsetTop - offset;
-        return ascent + Math.floor((size * 1.25 - height) / 2);
     }
 
     class FontManager {
@@ -8202,7 +8216,10 @@
                     resolve(pkg);
                     return;
                 }
-                let url = resKey + "." + UIConfig.packageFileExtension;
+                let url = resKey;
+                if (!resKey.endsWith("." + UIConfig.packageFileExtension)) {
+                    url += "." + UIConfig.packageFileExtension;
+                }
                 var loader = new three.FileLoader();
                 loader.setResponseType("arraybuffer");
                 loader.load(url, asset => {
@@ -9089,7 +9106,7 @@
     }
 
     var s_vec2$2 = new three.Vector2();
-    var s_rect$6 = new Rect();
+    var s_rect$5 = new Rect();
     var s_endPos = new three.Vector2();
     var s_oldChange = new three.Vector2();
     var s_gestureFlag = 0;
@@ -9450,11 +9467,11 @@
             var rect;
             if (target instanceof GObject) {
                 if (target.parent != this._owner) {
-                    target.parent.localToGlobalRect(target.x, target.y, target.width, target.height, s_rect$6);
-                    rect = this._owner.globalToLocalRect(s_rect$6.x, s_rect$6.y, s_rect$6.width, s_rect$6.height, s_rect$6);
+                    target.parent.localToGlobalRect(target.x, target.y, target.width, target.height, s_rect$5);
+                    rect = this._owner.globalToLocalRect(s_rect$5.x, s_rect$5.y, s_rect$5.width, s_rect$5.height, s_rect$5);
                 }
                 else {
-                    rect = s_rect$6;
+                    rect = s_rect$5;
                     rect.set(target.x, target.y, target.width, target.height);
                 }
             }
@@ -15343,8 +15360,8 @@
         }
         locateInputElement() {
             this.localToGlobal(0, 0, s_pos);
-            this.localToGlobal(1, 1, s_scale$1);
-            s_scale$1.sub(s_pos);
+            this.localToGlobal(1, 1, s_scale);
+            s_scale.sub(s_pos);
             s_mat$1.getInverse(Stage.canvasTransform);
             s_tmp.set(s_pos.x, s_pos.y, 0);
             s_tmp.applyMatrix4(s_mat$1);
@@ -15359,7 +15376,7 @@
             style.height = this.height.toFixed(2) + "px";
             style.left = (s_pos.x + 2) + "px";
             style.top = s_pos.y + "px";
-            style.transform = style.webkitTransform = "scale(" + s_scale$1.x.toFixed(3) + "," + s_scale$1.y.toFixed(3) + ") rotate(" + rot + "deg)";
+            style.transform = style.webkitTransform = "scale(" + s_scale.x.toFixed(3) + "," + s_scale.y.toFixed(3) + ") rotate(" + rot + "deg)";
         }
         __focusOut() {
             if (!this._editing)
@@ -15379,7 +15396,7 @@
         }
     }
     var s_pos = new three.Vector2();
-    var s_scale$1 = new three.Vector2();
+    var s_scale = new three.Vector2();
     var s_mat$1 = new three.Matrix4();
     var s_tmp = new three.Vector3();
 
@@ -15727,7 +15744,7 @@
         }
     }
 
-    var s_rect$7 = new Rect();
+    var s_rect$6 = new Rect();
     class SelectionShape extends DisplayObject {
         constructor() {
             super();
@@ -15738,10 +15755,10 @@
         refresh() {
             let count = this.rects.length;
             if (count > 0) {
-                s_rect$7.copy(this.rects[0]);
+                s_rect$6.copy(this.rects[0]);
                 for (let i = 1; i < count; i++)
-                    s_rect$7.union(this.rects[i]);
-                this.setSize(s_rect$7.xMax, s_rect$7.yMax);
+                    s_rect$6.union(this.rects[i]);
+                this.setSize(s_rect$6.xMax, s_rect$6.yMax);
             }
             else
                 this.setSize(0, 0);
