@@ -27,7 +27,7 @@ type Glyph = {
 }
 
 var s_rect = new Rect();
-var s_scale: number = 1;
+
 
 export class DynamicFont {
     public version: number = 0;
@@ -35,18 +35,22 @@ export class DynamicFont {
     public isDynamic: boolean = true;
     public keepCrisp: boolean = true;
 
-    private _canvas: HTMLCanvasElement;
-    private _context: CanvasRenderingContext2D;
-    private _texture: Texture;
-    private _packers: Array<BinPacker>;
-    private _glyphs: { [index: number]: Glyph };
+    protected _canvas: HTMLCanvasElement;
+    protected _context: CanvasRenderingContext2D;
+    protected _texture: Texture;
+    protected _packers: Array<BinPacker>;
+    protected _glyphs: { [index: number]: Glyph };
 
-    private _name: string;
-    private _format: TextFormat;
-    private _size: number;
-    private _glyph: Glyph;
-    private _color: Color4;
-    private _outlineColor: Color4;
+    protected _name: string;
+    protected _format: TextFormat;
+    protected _size: number;
+    protected _glyph: Glyph;
+    protected _color: Color4;
+    protected _outlineColor: Color4;
+    protected s_scale: number = 1;
+
+    protected eSpan: HTMLSpanElement;
+    protected eBlock: HTMLDivElement;
 
     public constructor() {
         this._glyphs = {};
@@ -57,9 +61,10 @@ export class DynamicFont {
         this._canvas = document.createElement("canvas");
         this._context = this._canvas.getContext("2d");
         this._context.globalCompositeOperation = "lighter";
+        
         this.createTexture(512);
-
-        s_scale = Stage.devicePixelRatio;
+        
+        this.s_scale = Stage.devicePixelRatio;
     }
 
     public get name(): string {
@@ -98,7 +103,7 @@ export class DynamicFont {
             this._packers[i].init(this._canvas.width, this._canvas.height);
     }
 
-    private rebuild(): void {
+    protected rebuild(): void {
         if (this._canvas.width < 2048)
             this.createTexture(this._canvas.width * 2);
         else
@@ -118,35 +123,45 @@ export class DynamicFont {
         this._outlineColor.setHex(format.outlineColor);
     }
 
-    public prepareCharacters(text: string) {
+    public prepareCharacters(text: string) 
+    {
         let len = text.length;
-        for (let i = 0; i < len; i++) {
+        let i:number = 0;
+        //绘制文本本体
+        for (i = 0; i < len; i++) 
+        {
             let ch = text[i];
-            let glyph = this.prepareChar(ch, this._size);
-            if (!glyph)
-                break;
-
+            let glyph = this.getGlyphsOf(ch,this._size);
             if (this._format.outline > 0)
+            {
                 this.prepareOutline(ch, glyph, this._size, this._format.outline);
+            }
+            this.prepareChar(ch, this._size,glyph);
+            glyph.ver = this.version;
         }
     }
 
-    private prepareChar(ch: string, size: number): Glyph {
+    protected getGlyphsOf(ch:string,size:number):Glyph
+    {
         let key: number = (size << 16) + ch.charCodeAt(0);
         let glyph: Glyph = this._glyphs[key];
         if (glyph && glyph.ver == this.version)
             return glyph;
-
         if (this.keepCrisp)
-            size *= s_scale;
+            size *= this.s_scale;
         this._context.font = size + "px " + this._name;
 
         if (!glyph) {
             glyph = this.measureChar(ch, size);
             this._glyphs[key] = glyph;
         }
-        glyph.ver = this.version;
+        return glyph;
+    }
 
+    protected prepareChar(ch: string, size: number,glyph:Glyph): Glyph 
+    {
+        if (this.keepCrisp)
+            size *= this.s_scale;
         let w: number = glyph.sourceRect.width;
         let h: number = glyph.sourceRect.height;
         if (w == 0)
@@ -170,7 +185,7 @@ export class DynamicFont {
         return glyph;
     }
 
-    private prepareOutline(ch: string, glyph: Glyph, size: number, outline: number): void {
+    protected prepareOutline(ch: string, glyph: Glyph, size: number, outline: number): void {
         if (!glyph.outlines)
             glyph.outlines = {};
 
@@ -187,7 +202,7 @@ export class DynamicFont {
 
         let outline2 = outline;
         if (this.keepCrisp)
-            outline2 *= s_scale;
+            outline2 *= this.s_scale;
         let w: number = glyph.sourceRect.width + outline2 * 2;
         let h: number = glyph.sourceRect.height + outline2 * 2;
 
@@ -198,7 +213,7 @@ export class DynamicFont {
         }
 
         if (this.keepCrisp)
-            size *= s_scale;
+            size *= this.s_scale;
         this._context.font = size + "px " + this._name;
         this._context.textBaseline = "alphabetic";
         this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
@@ -214,7 +229,7 @@ export class DynamicFont {
             w / this.mainTexture.width, h / this.mainTexture.height);
     }
 
-    private measureChar(ch: string, size: number): Glyph {
+    protected measureChar(ch: string, size: number): Glyph {
         let left: number, top: number, w: number, h: number, baseline: number;
         this._context.textBaseline = "alphabetic";
         let met: TextMetrics = this._context.measureText(ch);
@@ -229,7 +244,7 @@ export class DynamicFont {
             baseline = Math.ceil(met.actualBoundingBoxAscent);
         }
         else {
-            baseline = getBaseline(ch, this._name, size);
+            baseline = this.getBaseline(ch, this._name, size);
             left = 0;
             if (ch == 'j')
                 left = Math.ceil(size / 20); //guess
@@ -253,18 +268,18 @@ export class DynamicFont {
             };
 
             if (this.keepCrisp) {
-                glyph.vertRect.x /= s_scale;
-                glyph.vertRect.y /= s_scale;
-                glyph.vertRect.width /= s_scale;
-                glyph.vertRect.height /= s_scale;
-                glyph.advance /= s_scale;
+                glyph.vertRect.x /= this.s_scale;
+                glyph.vertRect.y /= this.s_scale;
+                glyph.vertRect.width /= this.s_scale;
+                glyph.vertRect.height /= this.s_scale;
+                glyph.advance /= this.s_scale;
             }
         }
 
         return glyph;
     }
 
-    private addNode(w: number, h: number): Node {
+    protected addNode(w: number, h: number): Node {
         let node: Node;
         for (let i: number = 0; i < 3; i++) {
             let packer = this._packers[i];
@@ -315,7 +330,6 @@ export class DynamicFont {
         this._color.a = this._glyph.chl;
         vb.addQuad(s_rect, this._glyph.uvRect, this._color);
         vb.addTriangles(-4);
-
         return 4;
     }
 
@@ -325,6 +339,41 @@ export class DynamicFont {
 
     public getLineHeight(size: number): number {
         return Math.round(size * 1.25);
+    }
+
+    getBaseline(ch: string, font: string, size: number): number 
+    {
+        if (!this.eSpan) {
+            this.eSpan = document.createElement('span');
+            this.eBlock = document.createElement("div");
+            this.eBlock.style.display = 'inline-block';
+            this.eBlock.style.width = '1px';
+            this.eBlock.style.height = '0px';
+
+            var div = document.createElement('div');
+            div.id = 'measureText';
+            div.style.position = 'absolute';
+            div.style.visibility = 'hidden';
+            div.style.left = div.style.top = '0px';
+            div.appendChild(this.eSpan);
+            div.appendChild(this.eBlock);
+            document.body.appendChild(div);
+            }
+
+        this.eSpan.innerHTML = ch;
+        this.eSpan.style.fontFamily = font;
+        this.eSpan.style.fontSize = size + "px";
+
+        let ascent: number, height: number;
+        let offset = this.eSpan.offsetTop;
+
+        this.eBlock.style.verticalAlign = 'baseline';
+        ascent = this.eBlock.offsetTop - offset;
+
+        this.eBlock.style.verticalAlign = 'bottom';
+        height = this.eBlock.offsetTop - offset;
+
+        return ascent + Math.floor((size - height));
     }
 }
 
@@ -368,39 +417,3 @@ class BinPacker {
 }
 
 
-let eSpan: HTMLSpanElement;
-let eBlock: HTMLDivElement;
-
-function getBaseline(ch: string, font: string, size: number): number {
-    if (!eSpan) {
-        eSpan = document.createElement('span');
-        eBlock = document.createElement("div");
-        eBlock.style.display = 'inline-block';
-        eBlock.style.width = '1px';
-        eBlock.style.height = '0px';
-
-        var div = document.createElement('div');
-        div.id = 'measureText';
-        div.style.position = 'absolute';
-        div.style.visibility = 'hidden';
-        div.style.left = div.style.top = '0px';
-        div.appendChild(eSpan);
-        div.appendChild(eBlock);
-        document.body.appendChild(div);
-    }
-
-    eSpan.innerHTML = ch;
-    eSpan.style.fontFamily = font;
-    eSpan.style.fontSize = size + "px";
-
-    let ascent: number, height: number;
-    let offset = eSpan.offsetTop;
-
-    eBlock.style['vertical-align'] = 'baseline';
-    ascent = eBlock.offsetTop - offset;
-
-    eBlock.style['vertical-align'] = 'bottom';
-    height = eBlock.offsetTop - offset;
-
-    return ascent + Math.floor((size * 1.25 - height) / 2);
-}

@@ -4,6 +4,7 @@
       "target": "es6",
       "module": "es6",
       "moduleResolution":"Node",
+      "sourceMap":true
   },
   
   "include": [
