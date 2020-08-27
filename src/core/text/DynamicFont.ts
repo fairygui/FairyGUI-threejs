@@ -28,7 +28,6 @@ type Glyph = {
 
 var s_rect = new Rect();
 
-
 export class DynamicFont {
     public version: number = 0;
     public mainTexture: NTexture;
@@ -47,7 +46,7 @@ export class DynamicFont {
     protected _glyph: Glyph;
     protected _color: Color4;
     protected _outlineColor: Color4;
-    protected s_scale: number = 1;
+    protected _scale: number = 1;
 
     protected eSpan: HTMLSpanElement;
     protected eBlock: HTMLDivElement;
@@ -64,7 +63,7 @@ export class DynamicFont {
         
         this.createTexture(512);
         
-        this.s_scale = Stage.devicePixelRatio;
+        this._scale = Stage.devicePixelRatio;
     }
 
     public get name(): string {
@@ -148,7 +147,7 @@ export class DynamicFont {
         if (glyph && glyph.ver == this.version)
             return glyph;
         if (this.keepCrisp)
-            size *= this.s_scale;
+            size *= this._scale;
         this._context.font = size + "px " + this._name;
 
         if (!glyph) {
@@ -161,7 +160,7 @@ export class DynamicFont {
     protected prepareChar(ch: string, size: number,glyph:Glyph): Glyph 
     {
         if (this.keepCrisp)
-            size *= this.s_scale;
+            size *= this._scale;
         let w: number = glyph.sourceRect.width;
         let h: number = glyph.sourceRect.height;
         if (w == 0)
@@ -202,7 +201,7 @@ export class DynamicFont {
 
         let outline2 = outline;
         if (this.keepCrisp)
-            outline2 *= this.s_scale;
+            outline2 *= this._scale;
         let w: number = glyph.sourceRect.width + outline2 * 2;
         let h: number = glyph.sourceRect.height + outline2 * 2;
 
@@ -213,7 +212,7 @@ export class DynamicFont {
         }
 
         if (this.keepCrisp)
-            size *= this.s_scale;
+            size *= this._scale;
         this._context.font = size + "px " + this._name;
         this._context.textBaseline = "alphabetic";
         this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
@@ -268,11 +267,11 @@ export class DynamicFont {
             };
 
             if (this.keepCrisp) {
-                glyph.vertRect.x /= this.s_scale;
-                glyph.vertRect.y /= this.s_scale;
-                glyph.vertRect.width /= this.s_scale;
-                glyph.vertRect.height /= this.s_scale;
-                glyph.advance /= this.s_scale;
+                glyph.vertRect.x /= this._scale;
+                glyph.vertRect.y /= this._scale;
+                glyph.vertRect.width /= this._scale;
+                glyph.vertRect.height /= this._scale;
+                glyph.advance /= this._scale;
             }
         }
 

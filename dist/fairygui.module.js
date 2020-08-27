@@ -1992,6 +1992,7 @@ class GearColor extends GearBase {
 class GearDisplay extends GearBase {
     constructor() {
         super(...arguments);
+        this.pages = null;
         this._visible = 0;
         this._displayLockToken = 1;
     }
@@ -2024,6 +2025,8 @@ class GearDisplay extends GearBase {
 class GearDisplay2 extends GearBase {
     constructor() {
         super(...arguments);
+        this.pages = null;
+        this.condition = 0;
         this._visible = 0;
     }
     init() {
@@ -3958,7 +3961,7 @@ class GObject {
             if (this instanceof GGroup)
                 this.moveChildren(dx, dy);
             this.updateGear(1);
-            if (this._parent && !("itemRenderer" in this._parent)) {
+            if (this._parent && !("setVirtual" in this._parent) /*not list*/) {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
@@ -7867,13 +7870,13 @@ class PackageItem {
     }
 }
 
+var s_rect$5 = new Rect();
 class DynamicFont {
     constructor() {
         this.version = 0;
         this.isDynamic = true;
         this.keepCrisp = true;
-        this.s_rect = new Rect();
-        this.s_scale = 1;
+        this._scale = 1;
         this._glyphs = {};
         this._color = new Color4();
         this._outlineColor = new Color4();
@@ -7881,13 +7884,8 @@ class DynamicFont {
         this._canvas = document.createElement("canvas");
         this._context = this._canvas.getContext("2d");
         this._context.globalCompositeOperation = "lighter";
-        this._context.textAlign = "left";
-        this._canvas.style.left = "-10000px";
-        this._canvas.style.position = "absolute";
-        document.body.appendChild(this._canvas);
         this.createTexture(512);
-        window["TestImg1"] = this._canvas;
-        this.s_scale = Stage.devicePixelRatio;
+        this._scale = Stage.devicePixelRatio;
     }
     get name() {
         return this._name;
@@ -7956,7 +7954,7 @@ class DynamicFont {
         if (glyph && glyph.ver == this.version)
             return glyph;
         if (this.keepCrisp)
-            size *= this.s_scale;
+            size *= this._scale;
         this._context.font = size + "px " + this._name;
         if (!glyph) {
             glyph = this.measureChar(ch, size);
@@ -7966,7 +7964,7 @@ class DynamicFont {
     }
     prepareChar(ch, size, glyph) {
         if (this.keepCrisp)
-            size *= this.s_scale;
+            size *= this._scale;
         let w = glyph.sourceRect.width;
         let h = glyph.sourceRect.height;
         if (w == 0)
@@ -7998,7 +7996,7 @@ class DynamicFont {
             outlineGlyph.ver = this.version;
         let outline2 = outline;
         if (this.keepCrisp)
-            outline2 *= this.s_scale;
+            outline2 *= this._scale;
         let w = glyph.sourceRect.width + outline2 * 2;
         let h = glyph.sourceRect.height + outline2 * 2;
         let node = this.addNode(w + 2, h + 2);
@@ -8007,7 +8005,7 @@ class DynamicFont {
             return null;
         }
         if (this.keepCrisp)
-            size *= this.s_scale;
+            size *= this._scale;
         this._context.font = size + "px " + this._name;
         this._context.textBaseline = "alphabetic";
         this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
@@ -8056,11 +8054,11 @@ class DynamicFont {
                 ver: this.version
             };
             if (this.keepCrisp) {
-                glyph.vertRect.x /= this.s_scale;
-                glyph.vertRect.y /= this.s_scale;
-                glyph.vertRect.width /= this.s_scale;
-                glyph.vertRect.height /= this.s_scale;
-                glyph.advance /= this.s_scale;
+                glyph.vertRect.x /= this._scale;
+                glyph.vertRect.y /= this._scale;
+                glyph.vertRect.width /= this._scale;
+                glyph.vertRect.height /= this._scale;
+                glyph.advance /= this._scale;
             }
         }
         return glyph;
@@ -8093,18 +8091,18 @@ class DynamicFont {
             if (!this._glyph.outlines)
                 return 0;
             let outlineGlyph = this._glyph.outlines[this._format.outline];
-            this.s_rect.copy(outlineGlyph.vertRect);
-            this.s_rect.x += x;
-            this.s_rect.y -= y;
+            s_rect$5.copy(outlineGlyph.vertRect);
+            s_rect$5.x += x;
+            s_rect$5.y -= y;
             this._outlineColor.a = outlineGlyph.chl;
-            vb.addQuad(this.s_rect, outlineGlyph.uvRect, this._outlineColor);
+            vb.addQuad(s_rect$5, outlineGlyph.uvRect, this._outlineColor);
             vb.addTriangles(-4);
         }
-        this.s_rect.copy(this._glyph.vertRect);
-        this.s_rect.x += x;
-        this.s_rect.y -= y;
+        s_rect$5.copy(this._glyph.vertRect);
+        s_rect$5.x += x;
+        s_rect$5.y -= y;
         this._color.a = this._glyph.chl;
-        vb.addQuad(this.s_rect, this._glyph.uvRect, this._color);
+        vb.addQuad(s_rect$5, this._glyph.uvRect, this._color);
         vb.addTriangles(-4);
         return 4;
     }
@@ -9120,7 +9118,7 @@ class Margin {
 }
 
 var s_vec2$2 = new Vector2();
-var s_rect$5 = new Rect();
+var s_rect$6 = new Rect();
 var s_endPos = new Vector2();
 var s_oldChange = new Vector2();
 var s_gestureFlag = 0;
@@ -9494,11 +9492,11 @@ class ScrollPane {
         var rect;
         if (target instanceof GObject) {
             if (target.parent != this._owner) {
-                target.parent.localToGlobalRect(target.x, target.y, target.width, target.height, s_rect$5);
-                rect = this._owner.globalToLocalRect(s_rect$5.x, s_rect$5.y, s_rect$5.width, s_rect$5.height, s_rect$5);
+                target.parent.localToGlobalRect(target.x, target.y, target.width, target.height, s_rect$6);
+                rect = this._owner.globalToLocalRect(s_rect$6.x, s_rect$6.y, s_rect$6.width, s_rect$6.height, s_rect$6);
             }
             else {
-                rect = s_rect$5;
+                rect = s_rect$6;
                 rect.set(target.x, target.y, target.width, target.height);
             }
         }
@@ -12524,7 +12522,7 @@ class GComponent extends GObject {
             if (child == obj) {
                 myIndex = i;
             }
-            else if (("relatedController" in child) && child.relatedController == c) {
+            else if (("relatedController" in child) /*is button*/ && child.relatedController == c) {
                 if (i > maxIndex)
                     maxIndex = i;
             }
@@ -13598,6 +13596,10 @@ class TextFormat {
         this.italic = source.italic;
         this.strikethrough = source.strikethrough;
         this.align = source.align;
+        this.outline = source.outline;
+        this.outlineColor = source.outlineColor;
+        this.shadowOffset.copy(source.shadowOffset);
+        this.shadowColor = source.shadowColor;
     }
     equalStyle(aFormat) {
         return this.size == aFormat.size && this.color == aFormat.color
@@ -15774,7 +15776,7 @@ class HtmlImage {
     }
 }
 
-var s_rect$6 = new Rect();
+var s_rect$7 = new Rect();
 class SelectionShape extends DisplayObject {
     constructor() {
         super();
@@ -15785,10 +15787,10 @@ class SelectionShape extends DisplayObject {
     refresh() {
         let count = this.rects.length;
         if (count > 0) {
-            s_rect$6.copy(this.rects[0]);
+            s_rect$7.copy(this.rects[0]);
             for (let i = 1; i < count; i++)
-                s_rect$6.union(this.rects[i]);
-            this.setSize(s_rect$6.xMax, s_rect$6.yMax);
+                s_rect$7.union(this.rects[i]);
+            this.setSize(s_rect$7.xMax, s_rect$7.yMax);
         }
         else
             this.setSize(0, 0);
