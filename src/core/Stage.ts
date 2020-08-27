@@ -247,16 +247,24 @@ function updateCanvasMatrix() {
     let offsetX: number = 0;
     let offsetY: number = 0;
     var element: HTMLElement = _canvas;
-    var style = getComputedStyle(element, null);
-    offsetY += parseInt(style.getPropertyValue("padding-top"), 10);
-    offsetX += parseInt(style.getPropertyValue("padding-left"), 10);
+    var style = element.style;
+
+    if(style.paddingTop)
+        offsetY += parseInt(style.paddingTop,10);
+
+    if(style.paddingLeft)
+        offsetX += parseInt(style.paddingTop,10);
+        
     do {
         offsetX += element.offsetLeft;
         offsetY += element.offsetTop;
-        style = getComputedStyle(element, null);
+        style = element.style;
 
-        offsetX += parseInt(style.getPropertyValue("border-left-width"), 10);
-        offsetY += parseInt(style.getPropertyValue("border-top-width"), 10);
+        if(style.borderLeftWidth)
+            offsetX += parseInt(style.borderLeftWidth, 10);
+
+        if(style.borderTopWidth)
+            offsetY += parseInt(style.borderTopWidth, 10);
     } while (element = <HTMLElement>element.offsetParent);
 
     _canvasTransform.identity();
