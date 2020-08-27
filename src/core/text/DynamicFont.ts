@@ -202,6 +202,7 @@ export class DynamicFont {
         this._context.font = size + "px " + this._name;
         this._context.textBaseline = "alphabetic";
         this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
+        this._context.lineJoin = 'round';
         this._context.lineWidth = outline2;
         this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.baseline + outline2);
         this._texture.needsUpdate = true;
