@@ -100,7 +100,7 @@ export class Window extends GComponent {
             this._dragArea = value;
             if (this._dragArea) {
                 if (this._dragArea instanceof GGraph)
-                    (<GGraph>this._dragArea).shape.drawRect(0, new Color4(0, 0), new Color4(0, 0));
+                    this._dragArea.shape.drawRect(0, new Color4(0, 0), new Color4(0, 0));
                 this._dragArea.draggable = true;
                 this._dragArea.on("drag_start", this.__dragStart, this);
             }
@@ -169,7 +169,7 @@ export class Window extends GComponent {
     }
 
     public showModalWait(requestingCmd?: number): void {
-        if (requestingCmd && requestingCmd != 0)
+        if (requestingCmd != null)
             this._requestingCmd = requestingCmd;
 
         if (UIConfig.windowModalWaiting) {
@@ -194,7 +194,7 @@ export class Window extends GComponent {
     }
 
     public closeModalWait(requestingCmd?: number): boolean {
-        if (requestingCmd && requestingCmd != 0) {
+        if (requestingCmd != null) {
             if (this._requestingCmd != requestingCmd)
                 return false;
         }

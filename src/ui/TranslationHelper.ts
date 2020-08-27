@@ -36,8 +36,8 @@ export class TranslationHelper {
         if (TranslationHelper.strings == null)
             return;
 
-        var compStrings: Object = TranslationHelper.strings[item.owner.id + item.id];
-        if (compStrings == null)
+        var compStrings: { [index: string]: string } = TranslationHelper.strings[item.owner.id + item.id];
+        if (!compStrings)
             return;
 
         var elementId: string, value: string;

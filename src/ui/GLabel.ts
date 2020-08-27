@@ -87,22 +87,22 @@ export class GLabel extends GComponent {
     }
 
     public set editable(val: boolean) {
-        if (this._titleObject)
-            (<GTextInput>this._titleObject).editable = val;
+        if (this._titleObject instanceof GTextInput)
+            this._titleObject.editable = val;
     }
 
     public get editable(): boolean {
-        if (this._titleObject && (this._titleObject instanceof GTextInput))
-            return (<GTextInput>this._titleObject).editable;
+        if (this._titleObject instanceof GTextInput)
+            return this._titleObject.editable;
         else
             return false;
     }
 
     public getTextField(): GTextField {
         if (this._titleObject instanceof GTextField)
-            return <GTextField>this._titleObject;
+            return this._titleObject;
         else if ('getTextField' in this._titleObject)
-            return <GTextField>(<any>this._titleObject).getTextField();
+            return (<any>this._titleObject).getTextField();
         else
             return null;
     }
@@ -177,8 +177,8 @@ export class GLabel extends GComponent {
             this.titleFontSize = iv;
 
         if (buffer.readBool()) {
-            var input: GTextInput = <GTextInput>this.getTextField();
-            if (input) {
+            var input: GTextField = this.getTextField();
+            if (input instanceof GTextInput) {
                 str = buffer.readS();
                 if (str != null)
                     input.promptText = str;

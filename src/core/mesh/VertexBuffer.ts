@@ -72,7 +72,7 @@ export class VertexBuffer {
                 lerp(this.uvRect.yMax, this.uvRect.y, (-y - this.contentRect.y) / this.contentRect.height));
 
             if (uv_x instanceof Color4)
-                color = <Color4>uv_x;
+                color = uv_x;
         }
 
         if (color == null)

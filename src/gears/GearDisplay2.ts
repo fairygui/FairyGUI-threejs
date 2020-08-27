@@ -1,8 +1,8 @@
 import { GearBase } from "./GearBase";
 
 export class GearDisplay2 extends GearBase {
-    public pages: string[];
-    public condition: number;
+    public pages: string[] = null;
+    public condition: number = 0;
 
     private _visible: number = 0;
 

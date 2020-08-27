@@ -26,8 +26,8 @@ import { Relations } from "./Relations";
 import { UIConfig } from "./UIConfig";
 
 export class GObject {
-    public data: Object;
-    public packageItem: PackageItem;
+    public data?: any;
+    public packageItem?: PackageItem;
     public static draggingObject: GObject;
 
     private _x: number = 0;
@@ -136,11 +136,11 @@ export class GObject {
 
             this.handlePositionChanged();
             if (this instanceof GGroup)
-                (<GGroup>(this)).moveChildren(dx, dy);
+                this.moveChildren(dx, dy);
 
             this.updateGear(1);
 
-            if (this._parent && !("itemRenderer" in this._parent)) {
+            if (this._parent && !("setVirtual" in this._parent)/*not list*/) {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
@@ -179,7 +179,7 @@ export class GObject {
         if (this._parent)
             r = this.parent;
         else
-            r = <GComponent><any>Decls.GRoot.inst;
+            r = <GComponent>Decls.GRoot.inst;
 
         this.setPosition(Math.floor((r.width - this.width) / 2), Math.floor((r.height - this.height) / 2));
         if (restraint) {
@@ -234,7 +234,7 @@ export class GObject {
             }
 
             if (this instanceof GGroup)
-                (<GGroup>(this)).resizeChildren(dWidth, dHeight);
+                this.resizeChildren(dWidth, dHeight);
 
             this.updateGear(2);
 
@@ -998,7 +998,7 @@ export class GObject {
 
     //drag support
     //-------------------------------------------------------------------
-    private _dragTouchStartPos: Vector2 = new Vector2();
+    private _dragStartPos: Vector2 = new Vector2();
     private _dragTesting: boolean = false;
 
     private initDrag(): void {
@@ -1041,22 +1041,23 @@ export class GObject {
     }
 
     private __touchBegin(evt: Event): void {
-        if (this._dragTouchStartPos == null)
-            this._dragTouchStartPos = new Vector2();
-        this._dragTouchStartPos.set(evt.input.x, evt.input.y);
+        if (this._dragStartPos == null)
+            this._dragStartPos = new Vector2();
+        this._dragStartPos.set(evt.input.x, evt.input.y);
         this._dragTesting = true;
         evt.captureTouch();
     }
 
     private __touchMove(evt: Event): void {
         if (this._dragTesting && GObject.draggingObject != this) {
-            let sensitivity;
+            let sensitivity: number;
             if (Stage.touchScreen)
                 sensitivity = UIConfig.touchDragSensitivity;
             else
                 sensitivity = UIConfig.clickDragSensitivity;
-            if (Math.abs(this._dragTouchStartPos.x - evt.input.x) < sensitivity
-                && Math.abs(this._dragTouchStartPos.y - evt.input.y) < sensitivity)
+            if (this._dragStartPos
+                && Math.abs(this._dragStartPos.x - evt.input.x) < sensitivity
+                && Math.abs(this._dragStartPos.y - evt.input.y) < sensitivity)
                 return;
 
             this._dragTesting = false;
@@ -1069,7 +1070,7 @@ export class GObject {
             let yy = evt.input.y - sGlobalDragStart.y + sGlobalRect.y;
 
             if (this._dragBounds) {
-                let rect: Rect = (<GObject><any>Decls.GRoot.findFor(this)).localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
+                let rect: Rect = (<GObject>Decls.GRoot.findFor(this)).localToGlobalRect(this._dragBounds.x, this._dragBounds.y,
                     this._dragBounds.width, this._dragBounds.height, s_rect);
                 if (xx < rect.x)
                     xx = rect.x;

@@ -34,7 +34,6 @@ export class ScrollPane {
     private _owner: GComponent;
     private _container: DisplayObject;
     private _maskContainer: DisplayObject;
-    private _alignContainer: DisplayObject;
 
     private _scrollType: number;
     private _scrollStep: number;
@@ -42,19 +41,20 @@ export class ScrollPane {
     private _scrollBarMargin: Margin;
     private _bouncebackEffect: boolean;
     private _touchEffect: boolean;
-    private _scrollBarDisplayAuto: boolean;
+    private _scrollBarDisplayAuto?: boolean;
     private _vScrollNone: boolean;
     private _hScrollNone: boolean;
     private _needRefresh: boolean;
     private _refreshBarAxis: string;
 
-    private _displayOnLeft: boolean;
-    private _snapToItem: boolean;
-    public _displayInDemand: boolean;
+    private _displayOnLeft?: boolean;
+    private _snapToItem?: boolean;
+    public _displayInDemand?: boolean;
     private _mouseWheelEnabled: boolean;
-    private _pageMode: boolean;
-    private _inertiaDisabled: boolean;
-    private _floating: boolean;
+    private _pageMode?: boolean;
+    private _inertiaDisabled?: boolean;
+    private _floating?: boolean;
+    private _dontClipMargin?: boolean;
 
     private _xPos: number;
     private _yPos: number;
@@ -84,12 +84,12 @@ export class ScrollPane {
     private _tweenStart: Vector2;
     private _tweenChange: Vector2;
 
-    private _pageController: Controller;
+    private _pageController?: Controller;
 
-    private _hzScrollBar: GScrollBar;
-    private _vtScrollBar: GScrollBar;
-    private _header: GComponent;
-    private _footer: GComponent;
+    private _hzScrollBar?: GScrollBar;
+    private _vtScrollBar?: GScrollBar;
+    private _header?: GComponent;
+    private _footer?: GComponent;
 
     constructor(owner: GComponent) {
         this._owner = owner;
@@ -149,10 +149,10 @@ export class ScrollPane {
         var headerRes: string = buffer.readS();
         var footerRes: string = buffer.readS();
 
-        this._displayOnLeft = (flags & 1) != 0;
-        this._snapToItem = (flags & 2) != 0;
-        this._displayInDemand = (flags & 4) != 0;
-        this._pageMode = (flags & 8) != 0;
+        if ((flags & 1) != 0) this._displayOnLeft = true;
+        if ((flags & 2) != 0) this._snapToItem = true;
+        if ((flags & 4) != 0) this._displayInDemand = true;
+        if ((flags & 8) != 0) this._pageMode = true;
         if (flags & 16)
             this._touchEffect = true;
         else if (flags & 32)
@@ -165,10 +165,11 @@ export class ScrollPane {
             this._bouncebackEffect = false;
         else
             this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
-        this._inertiaDisabled = (flags & 256) != 0;
-        if ((flags & 512) == 0)
-            this._maskContainer.clipRect = new Rect();
-        this._floating = (flags & 1024) != 0;
+
+        if ((flags & 256) != 0) this._inertiaDisabled = true;
+        if ((flags & 512) == 0) this._maskContainer.clipRect = new Rect();
+        if ((flags & 1024) != 0) this._floating = true;
+        if ((flags & 2048) != 0) this._dontClipMargin = true;
 
         if (scrollBarDisplay == ScrollBarDisplayType.Default)
             scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
@@ -195,7 +196,8 @@ export class ScrollPane {
                 }
             }
 
-            this._scrollBarDisplayAuto = scrollBarDisplay == ScrollBarDisplayType.Auto;
+            if (scrollBarDisplay == ScrollBarDisplayType.Auto)
+                this._scrollBarDisplayAuto = true;
             if (this._scrollBarDisplayAuto) {
                 if (this._vtScrollBar)
                     this._vtScrollBar.displayObject.visible = false;
@@ -228,7 +230,7 @@ export class ScrollPane {
         if (this._tweening != 0)
             Timers.remove(this.tweenUpdate, this);
 
-        this._pageController = null;
+        delete this._pageController;
 
         if (this._hzScrollBar)
             this._hzScrollBar.dispose();
@@ -494,35 +496,39 @@ export class ScrollPane {
         this.setPercY(1, ani);
     }
 
-    public scrollUp(ratio: number = 1, ani?: boolean): void {
+    public scrollUp(ratio?: number, ani?: boolean): void {
+        ratio = ratio || 1;
         if (this._pageMode)
             this.setPosY(this._yPos - this._pageSize.y * ratio, ani);
         else
             this.setPosY(this._yPos - this._scrollStep * ratio, ani);;
     }
 
-    public scrollDown(ratio: number = 1, ani?: boolean): void {
+    public scrollDown(ratio?: number, ani?: boolean): void {
+        ratio = ratio || 1;
         if (this._pageMode)
             this.setPosY(this._yPos + this._pageSize.y * ratio, ani);
         else
             this.setPosY(this._yPos + this._scrollStep * ratio, ani);
     }
 
-    public scrollLeft(ratio: number = 1, ani?: boolean): void {
+    public scrollLeft(ratio?: number, ani?: boolean): void {
+        ratio = ratio || 1;
         if (this._pageMode)
             this.setPosX(this._xPos - this._pageSize.x * ratio, ani);
         else
             this.setPosX(this._xPos - this._scrollStep * ratio, ani);
     }
 
-    public scrollRight(ratio: number = 1, ani?: boolean): void {
+    public scrollRight(ratio?: number, ani?: boolean): void {
+        ratio = ratio || 1;
         if (this._pageMode)
             this.setPosX(this._xPos + this._pageSize.x * ratio, ani);
         else
             this.setPosX(this._xPos + this._scrollStep * ratio, ani);
     }
 
-    public scrollToView(target: Object, ani?: boolean, setFirst?: boolean): void {
+    public scrollToView(target: GObject | Rect, ani?: boolean, setFirst?: boolean): void {
         this._owner.ensureBoundsCorrect();
         if (this._needRefresh)
             this.refresh();
@@ -541,7 +547,7 @@ export class ScrollPane {
             }
         }
         else
-            rect = <Rect>(target);
+            rect = target;
 
         if (this._overlapSize.y > 0) {
             var bottom: number = this._yPos + this._viewSize.y;
@@ -680,20 +686,10 @@ export class ScrollPane {
             mx = Math.floor(this._owner.margin.left);
         my = Math.floor(this._owner.margin.top);
 
+        mx += this._owner._alignOffset.x;
+        my += this._owner._alignOffset.y;
+
         this._maskContainer.setPosition(mx, my);
-
-        if (this._owner._alignOffset.x != 0 || this._owner._alignOffset.y != 0) {
-            if (this._alignContainer == null) {
-                this._alignContainer = new DisplayObject();
-                this._maskContainer.addChild(this._alignContainer);
-                this._alignContainer.addChild(this._container);
-            }
-
-            this._alignContainer.setPosition(this._owner._alignOffset.x, this._owner._alignOffset.y);
-        }
-        else if (this._alignContainer) {
-            this._alignContainer.setPosition(0, 0);
-        }
     }
 
     public setSize(aWidth: number, aHeight: number): void {
@@ -835,12 +831,20 @@ export class ScrollPane {
 
         var rect: Rect = this._maskContainer.clipRect;
         if (rect) {
+            rect.x = -this._owner._alignOffset.x;
+            rect.y = -this._owner._alignOffset.y;
             rect.width = this._viewSize.x;
             rect.height = this._viewSize.y;
             if (this._vScrollNone && this._vtScrollBar)
                 rect.width += this._vtScrollBar.width;
             if (this._hScrollNone && this._hzScrollBar)
                 rect.height += this._hzScrollBar.height;
+            if (this._dontClipMargin) {
+                rect.x -= this._owner.margin.left;
+                rect.width += (this._owner.margin.left + this._owner.margin.right);
+                rect.y -= this._owner.margin.top;
+                rect.height += (this._owner.margin.top + this._owner.margin.bottom);
+            }
             this._maskContainer.clipRect = rect;
         }
 

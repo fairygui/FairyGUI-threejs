@@ -219,12 +219,12 @@ export class GComponent extends GObject {
                 break;
 
             if (i != cnt - 1) {
-                if (!(gcom instanceof GComponent)) {
+                if (!(obj instanceof GComponent)) {
                     obj = null;
                     break;
                 }
                 else
-                    gcom = <GComponent>obj;
+                    gcom = obj;
             }
         }
 
@@ -554,7 +554,7 @@ export class GComponent extends GObject {
             if (child == obj) {
                 myIndex = i;
             }
-            else if (("relatedController" in child) && (<any>child).relatedController == c) {
+            else if (("relatedController" in child)/*is button*/ && (<any>child).relatedController == c) {
                 if (i > maxIndex)
                     maxIndex = i;
             }

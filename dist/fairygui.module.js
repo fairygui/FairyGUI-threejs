@@ -2378,19 +2378,19 @@ class GTweener {
     get userData() {
         return this._userData;
     }
-    onUpdate(callback, caller) {
+    onUpdate(callback, target) {
         this._onUpdate = callback;
-        this._onUpdateCaller = caller;
+        this._onUpdateCaller = target;
         return this;
     }
-    onStart(callback, caller) {
+    onStart(callback, target) {
         this._onStart = callback;
-        this._onStartCaller = caller;
+        this._onStartCaller = target;
         return this;
     }
-    onComplete(callback, caller) {
+    onComplete(callback, target) {
         this._onComplete = callback;
-        this._onCompleteCaller = caller;
+        this._onCompleteCaller = target;
         return this;
     }
     get startValue() {
@@ -3910,7 +3910,7 @@ class GObject {
         this._sizePercentInGroup = 0;
         //drag support
         //-------------------------------------------------------------------
-        this._dragTouchStartPos = new Vector2();
+        this._dragStartPos = new Vector2();
         this._dragTesting = false;
         this._id = "" + gInstanceCounter++;
         this._name = "";
@@ -3956,7 +3956,7 @@ class GObject {
                 this._z = zv;
             this.handlePositionChanged();
             if (this instanceof GGroup)
-                (this).moveChildren(dx, dy);
+                this.moveChildren(dx, dy);
             this.updateGear(1);
             if (this._parent && !("itemRenderer" in this._parent)) {
                 this._parent.setBoundsChangedFlag();
@@ -4038,7 +4038,7 @@ class GObject {
                     this.handlePositionChanged();
             }
             if (this instanceof GGroup)
-                (this).resizeChildren(dWidth, dHeight);
+                this.resizeChildren(dWidth, dHeight);
             this.updateGear(2);
             if (this._parent) {
                 this._relations.onOwnerSizeChanged(dWidth, dHeight, this._pivotAsAnchor || !ignorePivot);
@@ -4669,9 +4669,9 @@ class GObject {
         }
     }
     __touchBegin(evt) {
-        if (this._dragTouchStartPos == null)
-            this._dragTouchStartPos = new Vector2();
-        this._dragTouchStartPos.set(evt.input.x, evt.input.y);
+        if (this._dragStartPos == null)
+            this._dragStartPos = new Vector2();
+        this._dragStartPos.set(evt.input.x, evt.input.y);
         this._dragTesting = true;
         evt.captureTouch();
     }
@@ -4682,8 +4682,9 @@ class GObject {
                 sensitivity = UIConfig.touchDragSensitivity;
             else
                 sensitivity = UIConfig.clickDragSensitivity;
-            if (Math.abs(this._dragTouchStartPos.x - evt.input.x) < sensitivity
-                && Math.abs(this._dragTouchStartPos.y - evt.input.y) < sensitivity)
+            if (this._dragStartPos
+                && Math.abs(this._dragStartPos.x - evt.input.x) < sensitivity
+                && Math.abs(this._dragStartPos.y - evt.input.y) < sensitivity)
                 return;
             this._dragTesting = false;
             if (!this.dispatchEvent("drag_start", evt.input.touchId))
@@ -8010,6 +8011,7 @@ class DynamicFont {
         this._context.font = size + "px " + this._name;
         this._context.textBaseline = "alphabetic";
         this._context.strokeStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
+        this._context.lineJoin = 'round';
         this._context.lineWidth = outline2;
         this._context.strokeText(ch, node.x + glyph.sourceRect.x + outline2, node.y + glyph.baseline + outline2);
         this._texture.needsUpdate = true;
@@ -8200,8 +8202,8 @@ class UIPackage {
         this._itemsById = {};
         this._itemsByName = {};
         this._sprites = {};
-        this._dependencies = Array();
-        this._branches = Array();
+        this._dependencies = [];
+        this._branches = [];
         this._branchIndex = -1;
     }
     static get branch() {
@@ -8440,7 +8442,7 @@ class UIPackage {
                         else
                             pi.objectType = ObjectType.Component;
                         pi.rawData = buffer.readBuffer();
-                        Decls$1.UIObjectFactory.resolvePackageItemExtension(pi);
+                        Decls$1.UIObjectFactory.resolveExtension(pi);
                         break;
                     }
                 case PackageItemType.Atlas:
@@ -8479,12 +8481,12 @@ class UIPackage {
             nextPos += buffer.pos;
             var itemId = buffer.readS();
             pi = this._itemsById[buffer.readS()];
-            var sprite = new AtlasSprite();
-            sprite.atlas = pi;
-            sprite.rect.x = buffer.readInt();
-            sprite.rect.y = buffer.readInt();
-            sprite.rect.width = buffer.readInt();
-            sprite.rect.height = buffer.readInt();
+            let rect = new Rect();
+            rect.x = buffer.readInt();
+            rect.y = buffer.readInt();
+            rect.width = buffer.readInt();
+            rect.height = buffer.readInt();
+            var sprite = { atlas: pi, rect: rect, offset: new Vector2(), originalSize: new Vector2() };
             sprite.rotated = buffer.readBool();
             if (ver2 && buffer.readBool()) {
                 sprite.offset.x = buffer.readInt();
@@ -8745,13 +8747,6 @@ class UIPackage {
         font.mainTexture = mainTexture;
     }
 }
-class AtlasSprite {
-    constructor() {
-        this.rect = new Rect();
-        this.offset = new Vector2;
-        this.originalSize = new Vector2;
-    }
-}
 var _instById = {};
 var _instByName = {};
 var _branch = "";
@@ -8879,8 +8874,6 @@ var _nextPageId = 0;
 class Controller extends EventDispatcher {
     constructor() {
         super();
-        this._selectedIndex = 0;
-        this._previousIndex = 0;
         this.changing = false;
         this._pageIds = [];
         this._pageNames = [];
@@ -8956,14 +8949,15 @@ class Controller extends EventDispatcher {
         this.addPageAt(name, this._pageIds.length);
     }
     addPageAt(name, index) {
+        name = name || "";
         var nid = "" + (_nextPageId++);
         if (index == null || index == this._pageIds.length) {
             this._pageIds.push(nid);
-            this._pageNames.push(this.name);
+            this._pageNames.push(name);
         }
         else {
             this._pageIds.splice(index, 0, nid);
-            this._pageNames.splice(index, 0, this.name);
+            this._pageNames.splice(index, 0, name);
         }
     }
     removePage(name) {
@@ -9051,7 +9045,8 @@ class Controller extends EventDispatcher {
         var beginPos = buffer.pos;
         buffer.seek(beginPos, 0);
         this.name = buffer.readS();
-        this.autoRadioGroupDepth = buffer.readBool();
+        if (buffer.readBool())
+            this.autoRadioGroupDepth = true;
         buffer.seek(beginPos, 1);
         var i;
         var nextPos;
@@ -9183,10 +9178,14 @@ class ScrollPane {
         var hzScrollBarRes = buffer.readS();
         var headerRes = buffer.readS();
         var footerRes = buffer.readS();
-        this._displayOnLeft = (flags & 1) != 0;
-        this._snapToItem = (flags & 2) != 0;
-        this._displayInDemand = (flags & 4) != 0;
-        this._pageMode = (flags & 8) != 0;
+        if ((flags & 1) != 0)
+            this._displayOnLeft = true;
+        if ((flags & 2) != 0)
+            this._snapToItem = true;
+        if ((flags & 4) != 0)
+            this._displayInDemand = true;
+        if ((flags & 8) != 0)
+            this._pageMode = true;
         if (flags & 16)
             this._touchEffect = true;
         else if (flags & 32)
@@ -9199,10 +9198,14 @@ class ScrollPane {
             this._bouncebackEffect = false;
         else
             this._bouncebackEffect = UIConfig.defaultScrollBounceEffect;
-        this._inertiaDisabled = (flags & 256) != 0;
+        if ((flags & 256) != 0)
+            this._inertiaDisabled = true;
         if ((flags & 512) == 0)
             this._maskContainer.clipRect = new Rect();
-        this._floating = (flags & 1024) != 0;
+        if ((flags & 1024) != 0)
+            this._floating = true;
+        if ((flags & 2048) != 0)
+            this._dontClipMargin = true;
         if (scrollBarDisplay == ScrollBarDisplayType.Default)
             scrollBarDisplay = UIConfig.defaultScrollBarDisplay;
         if (scrollBarDisplay != ScrollBarDisplayType.Hidden) {
@@ -9226,7 +9229,8 @@ class ScrollPane {
                     this._owner.displayObject.addChild(this._hzScrollBar.displayObject);
                 }
             }
-            this._scrollBarDisplayAuto = scrollBarDisplay == ScrollBarDisplayType.Auto;
+            if (scrollBarDisplay == ScrollBarDisplayType.Auto)
+                this._scrollBarDisplayAuto = true;
             if (this._scrollBarDisplayAuto) {
                 if (this._vtScrollBar)
                     this._vtScrollBar.displayObject.visible = false;
@@ -9253,7 +9257,7 @@ class ScrollPane {
     dispose() {
         if (this._tweening != 0)
             Timers.remove(this.tweenUpdate, this);
-        this._pageController = null;
+        delete this._pageController;
         if (this._hzScrollBar)
             this._hzScrollBar.dispose();
         if (this._vtScrollBar)
@@ -9455,25 +9459,29 @@ class ScrollPane {
     scrollBottom(ani) {
         this.setPercY(1, ani);
     }
-    scrollUp(ratio = 1, ani) {
+    scrollUp(ratio, ani) {
+        ratio = ratio || 1;
         if (this._pageMode)
             this.setPosY(this._yPos - this._pageSize.y * ratio, ani);
         else
             this.setPosY(this._yPos - this._scrollStep * ratio, ani);
     }
-    scrollDown(ratio = 1, ani) {
+    scrollDown(ratio, ani) {
+        ratio = ratio || 1;
         if (this._pageMode)
             this.setPosY(this._yPos + this._pageSize.y * ratio, ani);
         else
             this.setPosY(this._yPos + this._scrollStep * ratio, ani);
     }
-    scrollLeft(ratio = 1, ani) {
+    scrollLeft(ratio, ani) {
+        ratio = ratio || 1;
         if (this._pageMode)
             this.setPosX(this._xPos - this._pageSize.x * ratio, ani);
         else
             this.setPosX(this._xPos - this._scrollStep * ratio, ani);
     }
-    scrollRight(ratio = 1, ani) {
+    scrollRight(ratio, ani) {
+        ratio = ratio || 1;
         if (this._pageMode)
             this.setPosX(this._xPos + this._pageSize.x * ratio, ani);
         else
@@ -9495,7 +9503,7 @@ class ScrollPane {
             }
         }
         else
-            rect = (target);
+            rect = target;
         if (this._overlapSize.y > 0) {
             var bottom = this._yPos + this._viewSize.y;
             if (setFirst || rect.y <= this._yPos || rect.height >= this._viewSize.y) {
@@ -9616,18 +9624,9 @@ class ScrollPane {
         else
             mx = Math.floor(this._owner.margin.left);
         my = Math.floor(this._owner.margin.top);
+        mx += this._owner._alignOffset.x;
+        my += this._owner._alignOffset.y;
         this._maskContainer.setPosition(mx, my);
-        if (this._owner._alignOffset.x != 0 || this._owner._alignOffset.y != 0) {
-            if (this._alignContainer == null) {
-                this._alignContainer = new DisplayObject();
-                this._maskContainer.addChild(this._alignContainer);
-                this._alignContainer.addChild(this._container);
-            }
-            this._alignContainer.setPosition(this._owner._alignOffset.x, this._owner._alignOffset.y);
-        }
-        else if (this._alignContainer) {
-            this._alignContainer.setPosition(0, 0);
-        }
     }
     setSize(aWidth, aHeight) {
         this.adjustMaskContainer();
@@ -9751,12 +9750,20 @@ class ScrollPane {
         this.updateScrollBarVisible();
         var rect = this._maskContainer.clipRect;
         if (rect) {
+            rect.x = -this._owner._alignOffset.x;
+            rect.y = -this._owner._alignOffset.y;
             rect.width = this._viewSize.x;
             rect.height = this._viewSize.y;
             if (this._vScrollNone && this._vtScrollBar)
                 rect.width += this._vtScrollBar.width;
             if (this._hScrollNone && this._hzScrollBar)
                 rect.height += this._hzScrollBar.height;
+            if (this._dontClipMargin) {
+                rect.x -= this._owner.margin.left;
+                rect.width += (this._owner.margin.left + this._owner.margin.right);
+                rect.y -= this._owner.margin.top;
+                rect.height += (this._owner.margin.top + this._owner.margin.bottom);
+            }
             this._maskContainer.clipRect = rect;
         }
         if (this._scrollType == ScrollType.Horizontal || this._scrollType == ScrollType.Both)
@@ -10636,7 +10643,7 @@ class GPath {
         for (var i = 1; i < cnt; i++) {
             var current = points[i];
             if (prev.curveType != CurveType.CRSpline) {
-                var seg = new Segment();
+                var seg = {};
                 seg.type = prev.curveType;
                 seg.ptStart = this._points.length;
                 if (prev.curveType == CurveType.Straight) {
@@ -10680,7 +10687,7 @@ class GPath {
         splinePoints.push(splinePoints[cnt]);
         splinePoints.push(splinePoints[cnt]);
         cnt += 3;
-        var seg = new Segment();
+        var seg = {};
         seg.type = CurveType.CRSpline;
         seg.ptStart = this._points.length;
         seg.ptCount = cnt;
@@ -10834,8 +10841,6 @@ class GPath {
         return result;
     }
 }
-class Segment {
-}
 
 const OPTION_IGNORE_DISPLAY_CONTROLLER = 1;
 const OPTION_AUTO_STOP_DISABLED = 2;
@@ -10927,7 +10932,7 @@ class Transition {
         if (delay == 0)
             this.onDelayedPlay();
         else
-            GTween.delayedCall(delay).onComplete(this.onDelayedPlay, this);
+            GTween.delayedCall(delay).setTarget(this).onComplete(this.onDelayedPlay, this);
     }
     stop(setToComplete, processCallback) {
         if (!this._playing)
@@ -11262,7 +11267,7 @@ class Transition {
     internalPlay() {
         this._ownerBaseX = this._owner.x;
         this._ownerBaseY = this._owner.y;
-        this._totalTasks = 0;
+        this._totalTasks = 1;
         var cnt = this._items.length;
         var item;
         var needSkipAnimations = false;
@@ -11289,6 +11294,7 @@ class Transition {
         }
         if (needSkipAnimations)
             this.skipAnimations();
+        this._totalTasks--;
     }
     playItem(item) {
         var time;
@@ -11561,11 +11567,16 @@ class Transition {
         if (this._playing && this._totalTasks == 0) {
             if (this._totalTimes < 0) {
                 this.internalPlay();
+                if (this._totalTasks == 0)
+                    GTween.delayedCall(0).setTarget(this).onComplete(this.checkAllComplete, this);
             }
             else {
                 this._totalTimes--;
-                if (this._totalTimes > 0)
+                if (this._totalTimes > 0) {
                     this.internalPlay();
+                    if (this._totalTasks == 0)
+                        GTween.delayedCall(0).setTarget(this).onComplete(this.checkAllComplete, this);
+                }
                 else {
                     this._playing = false;
                     var cnt = this._items.length;
@@ -11886,7 +11897,7 @@ class TranslationHelper {
         if (TranslationHelper.strings == null)
             return;
         var compStrings = TranslationHelper.strings[item.owner.id + item.id];
-        if (compStrings == null)
+        if (!compStrings)
             return;
         var elementId, value;
         var buffer = item.rawData;
@@ -12231,7 +12242,7 @@ class GComponent extends GObject {
             if (!obj)
                 break;
             if (i != cnt - 1) {
-                if (!(gcom instanceof GComponent)) {
+                if (!(obj instanceof GComponent)) {
                     obj = null;
                     break;
                 }
@@ -13129,7 +13140,7 @@ class Window extends GComponent {
         GRoot.findFor(this).bringToFront(this);
     }
     showModalWait(requestingCmd) {
-        if (requestingCmd && requestingCmd != 0)
+        if (requestingCmd != null)
             this._requestingCmd = requestingCmd;
         if (UIConfig.windowModalWaiting) {
             if (!this._modalWaitPane)
@@ -13149,7 +13160,7 @@ class Window extends GComponent {
             this._modalWaitPane.setSize(this.width, this.height);
     }
     closeModalWait(requestingCmd) {
-        if (requestingCmd && requestingCmd != 0) {
+        if (requestingCmd != null) {
             if (this._requestingCmd != requestingCmd)
                 return false;
         }
@@ -13405,8 +13416,8 @@ class GRoot extends GComponent {
         if (xx + popup.width > this.width)
             xx = xx + sizeW - popup.width;
         yy = pos.y + sizeH;
-        if (((dir == null || dir == PopupDirection.Auto) && yy + popup.height > this.height)
-            || dir == PopupDirection.Up) {
+        if (((dir === undefined || dir === PopupDirection.Auto) && yy + popup.height > this.height)
+            || dir === PopupDirection.Up) {
             yy = pos.y - popup.height - 1;
             if (yy < 0) {
                 yy = 0;
@@ -16062,10 +16073,6 @@ class GTextInput extends GTextField {
 class GLoader extends GObject {
     constructor() {
         super();
-        this._contentSourceWidth = 0;
-        this._contentSourceHeight = 0;
-        this._contentWidth = 0;
-        this._contentHeight = 0;
         this._url = "";
         this._fill = LoaderFillType.None;
         this._align = "left";
@@ -16172,6 +16179,30 @@ class GLoader extends GObject {
             this.updateGear(4);
         }
     }
+    get fillMethod() {
+        return this._content.fillMethod;
+    }
+    set fillMethod(value) {
+        this._content.fillMethod = value;
+    }
+    get fillOrigin() {
+        return this._content.fillOrigin;
+    }
+    set fillOrigin(value) {
+        this._content.fillOrigin = value;
+    }
+    get fillClockwise() {
+        return this._content.fillClockwise;
+    }
+    set fillClockwise(value) {
+        this._content.fillClockwise = value;
+    }
+    get fillAmount() {
+        return this._content.fillAmount;
+    }
+    set fillAmount(value) {
+        this._content.fillAmount = value;
+    }
     get content() {
         return this._content;
     }
@@ -16191,12 +16222,12 @@ class GLoader extends GObject {
         this._contentItem = UIPackage.getItemByURL(itemURL);
         if (this._contentItem) {
             this._contentItem = this._contentItem.getBranch();
-            this._contentSourceWidth = this._contentItem.width;
-            this._contentSourceHeight = this._contentItem.height;
+            this.sourceWidth = this._contentItem.width;
+            this.sourceHeight = this._contentItem.height;
             this._contentItem = this._contentItem.getHighResolution();
             this._contentItem.load();
             if (this._autoSize)
-                this.setSize(this._contentSourceWidth, this._contentSourceHeight);
+                this.setSize(this.sourceWidth, this.sourceHeight);
             if (this._contentItem.type == PackageItemType.Image) {
                 if (this._contentItem.texture == null) {
                     this.setErrorState();
@@ -16206,14 +16237,14 @@ class GLoader extends GObject {
                     this._content.scale9Grid = this._contentItem.scale9Grid;
                     this._content.scaleByTile = this._contentItem.scaleByTile;
                     this._content.tileGridIndice = this._contentItem.tileGridIndice;
-                    this._contentSourceWidth = this._contentItem.width;
-                    this._contentSourceHeight = this._contentItem.height;
+                    this.sourceWidth = this._contentItem.width;
+                    this.sourceHeight = this._contentItem.height;
                     this.updateLayout();
                 }
             }
             else if (this._contentItem.type == PackageItemType.MovieClip) {
-                this._contentSourceWidth = this._contentItem.width;
-                this._contentSourceHeight = this._contentItem.height;
+                this.sourceWidth = this._contentItem.width;
+                this.sourceHeight = this._contentItem.height;
                 this._content.interval = this._contentItem.interval;
                 this._content.swing = this._contentItem.swing;
                 this._content.repeatDelay = this._contentItem.repeatDelay;
@@ -16253,8 +16284,8 @@ class GLoader extends GObject {
         this._content.texture = texture;
         this._content.scale9Grid = null;
         this._content.scaleByTile = false;
-        this._contentSourceWidth = texture.width;
-        this._contentSourceHeight = texture.height;
+        this.sourceWidth = texture.width;
+        this.sourceHeight = texture.height;
         this.updateLayout();
     }
     onExternalLoadFailed() {
@@ -16273,23 +16304,23 @@ class GLoader extends GObject {
             }
             return;
         }
-        this._contentWidth = this._contentSourceWidth;
-        this._contentHeight = this._contentSourceHeight;
+        let cw = this.sourceWidth;
+        let ch = this.sourceHeight;
         if (this._autoSize) {
             this._updatingLayout = true;
-            if (this._contentWidth == 0)
-                this._contentWidth = 50;
-            if (this._contentHeight == 0)
-                this._contentHeight = 30;
-            this.setSize(this._contentWidth, this._contentHeight);
+            if (cw == 0)
+                cw = 50;
+            if (ch == 0)
+                ch = 30;
+            this.setSize(cw, ch);
             this._updatingLayout = false;
-            if (this._contentWidth == this._width && this._contentHeight == this._height) {
+            if (cw == this._width && ch == this._height) {
                 if (this._content2) {
                     this._content2.setPosition(0, 0);
                     this._content2.setScale(1, 1);
                 }
                 else {
-                    this._content.setSize(this._contentWidth, this._contentHeight);
+                    this._content.setSize(cw, ch);
                     this._content.setPosition(0, 0);
                 }
                 return;
@@ -16297,8 +16328,8 @@ class GLoader extends GObject {
         }
         var sx = 1, sy = 1;
         if (this._fill != LoaderFillType.None) {
-            sx = this.width / this._contentSourceWidth;
-            sy = this.height / this._contentSourceHeight;
+            sx = this.width / this.sourceWidth;
+            sy = this.height / this.sourceHeight;
             if (sx != 1 || sy != 1) {
                 if (this._fill == LoaderFillType.ScaleMatchHeight)
                     sx = sy;
@@ -16322,25 +16353,25 @@ class GLoader extends GObject {
                     if (sy > 1)
                         sy = 1;
                 }
-                this._contentWidth = this._contentSourceWidth * sx;
-                this._contentHeight = this._contentSourceHeight * sy;
+                cw = this.sourceWidth * sx;
+                ch = this.sourceHeight * sy;
             }
         }
         if (this._content2)
             this._content2.setScale(sx, sy);
         else
-            this._content.setSize(this._contentWidth, this._contentHeight);
+            this._content.setSize(cw, ch);
         var nx, ny;
         if (this._align == "center")
-            nx = Math.floor((this.width - this._contentWidth) / 2);
+            nx = Math.floor((this.width - cw) / 2);
         else if (this._align == "right")
-            nx = this.width - this._contentWidth;
+            nx = this.width - cw;
         else
             nx = 0;
         if (this._valign == "middle")
-            ny = Math.floor((this.height - this._contentHeight) / 2);
+            ny = Math.floor((this.height - ch) / 2);
         else if (this._valign == "bottom")
-            ny = this.height - this._contentHeight;
+            ny = this.height - ch;
         else
             ny = 0;
         if (this._content2)
@@ -16350,7 +16381,7 @@ class GLoader extends GObject {
     }
     clearContent() {
         this.clearErrorState();
-        if (this._contentItem == null && this._content.texture) {
+        if (!this._contentItem && this._content.texture) {
             this.freeExternal(this._content.texture);
         }
         this._content.texture = null;
@@ -16499,11 +16530,11 @@ class GLabel extends GComponent {
         this.titleColor = value;
     }
     set editable(val) {
-        if (this._titleObject)
+        if (this._titleObject instanceof GTextInput)
             this._titleObject.editable = val;
     }
     get editable() {
-        if (this._titleObject && (this._titleObject instanceof GTextInput))
+        if (this._titleObject instanceof GTextInput)
             return this._titleObject.editable;
         else
             return false;
@@ -16580,7 +16611,7 @@ class GLabel extends GComponent {
             this.titleFontSize = iv;
         if (buffer.readBool()) {
             var input = this.getTextField();
-            if (input) {
+            if (input instanceof GTextInput) {
                 str = buffer.readS();
                 if (str != null)
                     input.promptText = str;
@@ -17292,11 +17323,12 @@ class GComboBox extends GComponent {
         this._iconObject = this.getChild("icon");
         let str = buffer.readS();
         if (str) {
-            this.dropdown = UIPackage.createObjectFromURL(str);
-            if (!this.dropdown) {
+            let obj = UIPackage.createObjectFromURL(str);
+            if (!(obj instanceof GComponent)) {
                 console.warn(this.resourceURL + " should be a component.");
                 return;
             }
+            this.dropdown = obj;
             this._list = this.dropdown.getChild("list");
             if (this._list == null) {
                 console.warn(this.resourceURL + ": should container a list component named list.");
@@ -17620,9 +17652,9 @@ class GSlider extends GComponent {
         var pt = this._gripObject.globalToLocal(evt.input.x, evt.input.y, s_vec2$4);
         var percent = clamp01((this._value - this._min) / (this._max - this._min));
         var delta = 0;
-        if (this._barObjectH != null)
+        if (this._barObjectH)
             delta = (pt.x - this._gripObject.width / 2) / this._barMaxWidth;
-        if (this._barObjectV != null)
+        if (this._barObjectV)
             delta = (pt.y - this._gripObject.height / 2) / this._barMaxHeight;
         if (this._reverse)
             percent -= delta;
@@ -17719,38 +17751,38 @@ class GProgressBar extends GComponent {
         var fullHeight = this.height - this._barMaxHeightDelta;
         if (!this._reverse) {
             if (this._barObjectH) {
-                if ((this._barObjectH instanceof GImage) && this._barObjectH.fillMethod != FillMethod.None)
-                    this._barObjectH.fillAmount = percent;
-                else
-                    this._barObjectH.width = Math.floor(fullWidth * percent);
+                if (!this.setFillAmount(this._barObjectH, percent))
+                    this._barObjectH.width = Math.round(fullWidth * percent);
             }
             if (this._barObjectV) {
-                if ((this._barObjectV instanceof GImage) && this._barObjectV.fillMethod != FillMethod.None)
-                    this._barObjectV.fillAmount = percent;
-                else
-                    this._barObjectV.height = Math.floor(fullHeight * percent);
+                if (!this.setFillAmount(this._barObjectV, percent))
+                    this._barObjectV.height = Math.round(fullHeight * percent);
             }
         }
         else {
             if (this._barObjectH) {
-                if ((this._barObjectH instanceof GImage) && this._barObjectH.fillMethod != FillMethod.None)
-                    this._barObjectH.fillAmount = 1 - percent;
-                else {
-                    this._barObjectH.width = Math.floor(fullWidth * percent);
+                if (!this.setFillAmount(this._barObjectH, 1 - percent)) {
+                    this._barObjectH.width = Math.round(fullWidth * percent);
                     this._barObjectH.x = this._barStartX + (fullWidth - this._barObjectH.width);
                 }
             }
             if (this._barObjectV) {
-                if ((this._barObjectV instanceof GImage) && this._barObjectV.fillMethod != FillMethod.None)
-                    this._barObjectV.fillAmount = 1 - percent;
-                else {
-                    this._barObjectV.height = Math.floor(fullHeight * percent);
+                if (!this.setFillAmount(this._barObjectV, 1 - percent)) {
+                    this._barObjectV.height = Math.round(fullHeight * percent);
                     this._barObjectV.y = this._barStartY + (fullHeight - this._barObjectV.height);
                 }
             }
         }
         if (this._aniObject)
             this._aniObject.setProp(ObjectPropID.Frame, Math.floor(percent * 100));
+    }
+    setFillAmount(bar, amount) {
+        if (((bar instanceof GImage) || (bar instanceof GLoader)) && bar.fillMethod != FillMethod.None) {
+            bar.fillAmount = amount;
+            return true;
+        }
+        else
+            return false;
     }
     constructExtension(buffer) {
         buffer.seek(0, 6);
@@ -17992,7 +18024,7 @@ class GList extends GComponent {
         this.opaque = true;
         this.scrollItemToViewOnClick = true;
         this._align = "left";
-        this._verticalAlign = "top";
+        this._valign = "top";
         this._container = new DisplayObject();
         this._displayObject.addChild(this._container);
     }
@@ -18071,11 +18103,11 @@ class GList extends GComponent {
         }
     }
     get verticalAlign() {
-        return this._verticalAlign;
+        return this._valign;
     }
     set verticalAlign(value) {
-        if (this._verticalAlign != value) {
-            this._verticalAlign = value;
+        if (this._valign != value) {
+            this._valign = value;
             this.setBoundsChangedFlag();
             if (this._virtual)
                 this.setVirtualListChangedFlag(true);
@@ -18138,9 +18170,8 @@ class GList extends GComponent {
     addChildAt(child, index) {
         super.addChildAt(child, index);
         if (child instanceof GButton) {
-            var button = (child);
-            button.selected = false;
-            button.changeStateOnClick = false;
+            child.selected = false;
+            child.changeStateOnClick = false;
         }
         child.on("click", this.__clickItem, this);
         return child;
@@ -18183,8 +18214,7 @@ class GList extends GComponent {
         if (this._virtual) {
             for (i = 0; i < this._realNumItems; i++) {
                 var ii = this._virtualItems[i];
-                if ((ii.obj instanceof GButton) && ii.obj.selected
-                    || ii.obj == null && ii.selected) {
+                if ((ii.obj instanceof GButton) && ii.obj.selected || ii.obj == null && ii.selected) {
                     if (this._loop)
                         return i % this._numItems;
                     else
@@ -18196,7 +18226,7 @@ class GList extends GComponent {
             var cnt = this._children.length;
             for (i = 0; i < cnt; i++) {
                 var obj = this._children[i];
-                if (obj && obj.selected)
+                if ((obj instanceof GButton) && obj.selected)
                     return i;
             }
         }
@@ -18234,7 +18264,7 @@ class GList extends GComponent {
             var cnt = this._children.length;
             for (i = 0; i < cnt; i++) {
                 var obj = this._children[i];
-                if (obj && obj.selected)
+                if ((obj instanceof GButton) && obj.selected)
                     result.push(i);
             }
         }
@@ -18249,7 +18279,7 @@ class GList extends GComponent {
         if (scrollItToView)
             this.scrollToView(index);
         this._lastSelectedIndex = index;
-        var obj = null;
+        var obj;
         if (this._virtual) {
             var ii = this._virtualItems[index];
             if (ii.obj)
@@ -18258,7 +18288,7 @@ class GList extends GComponent {
         }
         else
             obj = this.getChildAt(index);
-        if (obj && !obj.selected) {
+        if ((obj instanceof GButton) && !obj.selected) {
             obj.selected = true;
             this.updateSelectionController(index);
         }
@@ -18266,7 +18296,7 @@ class GList extends GComponent {
     removeSelection(index) {
         if (this._selectionMode == ListSelectionMode.None)
             return;
-        var obj = null;
+        var obj;
         if (this._virtual) {
             var ii = this._virtualItems[index];
             if (ii.obj)
@@ -18275,7 +18305,7 @@ class GList extends GComponent {
         }
         else
             obj = this.getChildAt(index);
-        if (obj)
+        if (obj instanceof GButton)
             obj.selected = false;
     }
     clearSelection() {
@@ -18292,7 +18322,7 @@ class GList extends GComponent {
             var cnt = this._children.length;
             for (i = 0; i < cnt; i++) {
                 var obj = this._children[i];
-                if (obj)
+                if (obj instanceof GButton)
                     obj.selected = false;
             }
         }
@@ -18313,7 +18343,7 @@ class GList extends GComponent {
             var cnt = this._children.length;
             for (i = 0; i < cnt; i++) {
                 var obj = this._children[i];
-                if (obj && obj != g)
+                if ((obj instanceof GButton) && obj != g)
                     obj.selected = false;
             }
         }
@@ -18336,7 +18366,7 @@ class GList extends GComponent {
             var cnt = this._children.length;
             for (i = 0; i < cnt; i++) {
                 var obj = this._children[i];
-                if (obj && !obj.selected) {
+                if ((obj instanceof GButton) && !obj.selected) {
                     obj.selected = true;
                     last = i;
                 }
@@ -18367,7 +18397,7 @@ class GList extends GComponent {
             var cnt = this._children.length;
             for (i = 0; i < cnt; i++) {
                 var obj = this._children[i];
-                if (obj) {
+                if (obj instanceof GButton) {
                     obj.selected = !obj.selected;
                     if (obj.selected)
                         last = i;
@@ -18518,17 +18548,16 @@ class GList extends GComponent {
         if (!(item instanceof GButton) || this._selectionMode == ListSelectionMode.None)
             return;
         var dontChangeLastIndex = false;
-        var button = (item);
         var index = this.childIndexToItemIndex(this.getChildIndex(item));
         if (this._selectionMode == ListSelectionMode.Single) {
-            if (!button.selected) {
-                this.clearSelectionExcept(button);
-                button.selected = true;
+            if (!item.selected) {
+                this.clearSelectionExcept(item);
+                item.selected = true;
             }
         }
         else {
             if (evt.input.shiftKey) {
-                if (!button.selected) {
+                if (!item.selected) {
                     if (this._lastSelectedIndex != -1) {
                         var min = Math.min(this._lastSelectedIndex, index);
                         var max = Math.max(this._lastSelectedIndex, index);
@@ -18545,32 +18574,32 @@ class GList extends GComponent {
                         else {
                             for (i = min; i <= max; i++) {
                                 var obj = this.getChildAt(i);
-                                if (obj)
+                                if (obj instanceof GButton)
                                     obj.selected = true;
                             }
                         }
                         dontChangeLastIndex = true;
                     }
                     else {
-                        button.selected = true;
+                        item.selected = true;
                     }
                 }
             }
             else if ((evt.input.ctrlKey || evt.input.commandKey) || this._selectionMode == ListSelectionMode.Multiple_SingleClick) {
-                button.selected = !button.selected;
+                item.selected = !item.selected;
             }
             else {
-                if (!button.selected) {
-                    this.clearSelectionExcept(button);
-                    button.selected = true;
+                if (!item.selected) {
+                    this.clearSelectionExcept(item);
+                    item.selected = true;
                 }
                 else
-                    this.clearSelectionExcept(button);
+                    this.clearSelectionExcept(item);
             }
         }
         if (!dontChangeLastIndex)
             this._lastSelectedIndex = index;
-        if (button.selected)
+        if (item.selected)
             this.updateSelectionController(index);
     }
     resizeToFit(itemCount, minSize) {
@@ -19600,9 +19629,9 @@ class GList extends GComponent {
         var newOffsetX = 0;
         var newOffsetY = 0;
         if (contentHeight < this.viewHeight) {
-            if (this._verticalAlign == "middle")
+            if (this._valign == "middle")
                 newOffsetY = Math.floor((this.viewHeight - contentHeight) / 2);
-            else if (this._verticalAlign == "bottom")
+            else if (this._valign == "bottom")
                 newOffsetY = this.viewHeight - contentHeight;
         }
         if (contentWidth < this.viewWidth) {
@@ -19917,7 +19946,7 @@ class GList extends GComponent {
         i1 = buffer.readByte();
         this._align = i1 == 0 ? "left" : (i1 == 1 ? "center" : "right");
         i1 = buffer.readByte();
-        this._verticalAlign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
+        this._valign = i1 == 0 ? "top" : (i1 == 1 ? "middle" : "bottom");
         this._lineGap = buffer.readShort();
         this._columnGap = buffer.readShort();
         this._lineCount = buffer.readShort();
@@ -20698,7 +20727,7 @@ class UIObjectFactory {
     static setLoaderExtension(type) {
         UIObjectFactory.loaderType = type;
     }
-    static resolvePackageItemExtension(pi) {
+    static resolveExtension(pi) {
         var extensionType = UIObjectFactory.extensions["ui://" + pi.owner.id + pi.id];
         if (!extensionType)
             extensionType = UIObjectFactory.extensions["ui://" + pi.owner.name + "/" + pi.name];

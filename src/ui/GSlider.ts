@@ -256,9 +256,9 @@ export class GSlider extends GComponent {
         var pt: Vector2 = this._gripObject.globalToLocal(evt.input.x, evt.input.y, s_vec2);
         var percent: number = clamp01((this._value - this._min) / (this._max - this._min));
         var delta: number = 0;
-        if (this._barObjectH != null)
+        if (this._barObjectH)
             delta = (pt.x - this._gripObject.width / 2) / this._barMaxWidth;
-        if (this._barObjectV != null)
+        if (this._barObjectV)
             delta = (pt.y - this._gripObject.height / 2) / this._barMaxHeight;
         if (this._reverse)
             percent -= delta;

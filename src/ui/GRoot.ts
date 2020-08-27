@@ -31,7 +31,7 @@ export class GRoot extends GComponent {
 
     public static findFor(obj: GObject): GRoot {
         if (obj instanceof GRoot)
-            return <GRoot>obj;
+            return obj;
 
         if (!obj)
             return _inst;
@@ -39,7 +39,7 @@ export class GRoot extends GComponent {
         var p: GObject = obj._parent;
         while (p) {
             if (p instanceof GRoot)
-                return <GRoot>p;
+                return p;
             p = p.parent;
         }
         return _inst;
@@ -139,8 +139,8 @@ export class GRoot extends GComponent {
         var cnt: number = arr.length;
         for (var i: number = 0; i < cnt; i++) {
             var g: GObject = arr[i];
-            if ((g instanceof Window) && !(<Window>g).modal)
-                (<Window>g).hide();
+            if ((g instanceof Window) && !g.modal)
+                g.hide();
         }
     }
 
@@ -150,7 +150,7 @@ export class GRoot extends GComponent {
         for (var i: number = 0; i < cnt; i++) {
             var g: GObject = arr[i];
             if (g instanceof Window)
-                (<Window>g).hide();
+                g.hide();
         }
     }
 
@@ -159,7 +159,7 @@ export class GRoot extends GComponent {
         for (var i: number = cnt - 1; i >= 0; i--) {
             var g: GObject = this.getChildAt(i);
             if (g instanceof Window) {
-                return (<Window>g);
+                return g;
             }
         }
 
@@ -221,8 +221,8 @@ export class GRoot extends GComponent {
         if (xx + popup.width > this.width)
             xx = xx + sizeW - popup.width;
         yy = pos.y + sizeH;
-        if (((dir == null || dir == PopupDirection.Auto) && yy + popup.height > this.height)
-            || dir == PopupDirection.Up) {
+        if (((dir === undefined || dir === PopupDirection.Auto) && yy + popup.height > this.height)
+            || dir === PopupDirection.Up) {
             yy = pos.y - popup.height - 1;
             if (yy < 0) {
                 yy = 0;
@@ -263,7 +263,7 @@ export class GRoot extends GComponent {
     private closePopup(target: GObject): void {
         if (target.parent) {
             if (target instanceof Window)
-                (<Window>target).hide();
+                target.hide();
             else
                 this.removeChild(target);
         }
@@ -347,7 +347,7 @@ export class GRoot extends GComponent {
 
         for (var i: number = cnt - 1; i >= 0; i--) {
             var g: GObject = this.getChildAt(i);
-            if ((g instanceof Window) && (<Window>g).modal) {
+            if ((g instanceof Window) && g.modal) {
                 if (this._modalLayer.parent == null)
                     this.addChildAt(this._modalLayer, i);
                 else

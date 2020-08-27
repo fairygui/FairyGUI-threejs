@@ -12,16 +12,18 @@ import { UIConfig } from "./UIConfig";
 import { FontManager } from "../core/text/FontManager";
 import { BaseFont } from "../core/text/BaseFont";
 
+type PackageDependency = { id: string, name: string };
+
 export class UIPackage {
     private _id: string;
     private _name: string;
-    private _items: PackageItem[];
-    private _itemsById: Object;
-    private _itemsByName: Object;
+    private _items: Array<PackageItem>;
+    private _itemsById: { [index: string]: PackageItem };
+    private _itemsByName: { [index: string]: PackageItem };
     private _resKey: string;
     private _customId: string;
-    private _sprites: Object;
-    private _dependencies: Array<any>;
+    private _sprites: { [index: string]: AtlasSprite };
+    private _dependencies: Array<PackageDependency>;
     private _branches: Array<string>;
     public _branchIndex: number;
 
@@ -32,8 +34,8 @@ export class UIPackage {
         this._itemsById = {};
         this._itemsByName = {};
         this._sprites = {};
-        this._dependencies = Array<any>();
-        this._branches = Array<string>();
+        this._dependencies = [];
+        this._branches = [];
         this._branchIndex = -1;
     }
 
@@ -51,11 +53,11 @@ export class UIPackage {
         }
     }
 
-    public static getVar(key: string): any {
+    public static getVar(key: string): string {
         return _vars[key];
     }
 
-    public static setVar(key: string, value: any) {
+    public static setVar(key: string, value: string) {
         _vars[key] = value;
     }
 
@@ -130,7 +132,7 @@ export class UIPackage {
             delete _instById[pkg._customId];
     }
 
-    public static createObject(pkgName: string, resName: string, userClass?: any): GObject {
+    public static createObject(pkgName: string, resName: string, userClass?: new () => GObject): GObject {
         var pkg: UIPackage = UIPackage.getByName(pkgName);
         if (pkg)
             return pkg.createObject(resName, userClass);
@@ -138,7 +140,7 @@ export class UIPackage {
             return null;
     }
 
-    public static createObjectFromURL(url: string, userClass?: any): GObject {
+    public static createObjectFromURL(url: string, userClass?: new () => GObject): GObject {
         var pi: PackageItem = UIPackage.getItemByURL(url);
         if (pi)
             return pi.owner.internalCreateObject(pi, userClass);
@@ -186,7 +188,7 @@ export class UIPackage {
         return null;
     }
 
-    public static getItemAssetByURL(url: string): Object {
+    public static getItemAssetByURL(url: string): any {
         var item: PackageItem = UIPackage.getItemByURL(url);
         if (item == null)
             return null;
@@ -330,7 +332,7 @@ export class UIPackage {
                             pi.objectType = ObjectType.Component;
                         pi.rawData = buffer.readBuffer();
 
-                        Decls.UIObjectFactory.resolvePackageItemExtension(pi);
+                        Decls.UIObjectFactory.resolveExtension(pi);
                         break;
                     }
 
@@ -379,12 +381,12 @@ export class UIPackage {
             var itemId: string = buffer.readS();
             pi = this._itemsById[buffer.readS()];
 
-            var sprite: AtlasSprite = new AtlasSprite();
-            sprite.atlas = pi;
-            sprite.rect.x = buffer.readInt();
-            sprite.rect.y = buffer.readInt();
-            sprite.rect.width = buffer.readInt();
-            sprite.rect.height = buffer.readInt();
+            let rect: Rect = new Rect();
+            rect.x = buffer.readInt();
+            rect.y = buffer.readInt();
+            rect.width = buffer.readInt();
+            rect.height = buffer.readInt();
+            var sprite: AtlasSprite = { atlas: pi, rect: rect, offset: new Vector2(), originalSize: new Vector2() };
             sprite.rotated = buffer.readBool();
             if (ver2 && buffer.readBool()) {
                 sprite.offset.x = buffer.readInt();
@@ -454,7 +456,7 @@ export class UIPackage {
             _instById[this._customId] = this;
     }
 
-    public createObject(resName: string, userClass?: any): GObject {
+    public createObject(resName: string, userClass?: new () => GObject): GObject {
         var pi: PackageItem = this._itemsByName[resName];
         if (pi)
             return this.internalCreateObject(pi, userClass);
@@ -462,7 +464,7 @@ export class UIPackage {
             return null;
     }
 
-    public internalCreateObject(item: PackageItem, userClass?: any): GObject {
+    public internalCreateObject(item: PackageItem, userClass?: new () => GObject): GObject {
         var g: GObject = Decls.UIObjectFactory.newObject(item, userClass);
 
         if (g == null)
@@ -702,18 +704,12 @@ export class UIPackage {
     }
 }
 
-class AtlasSprite {
-    public atlas: PackageItem;
-    public rect: Rect;
-    public offset: Vector2;
-    public originalSize: Vector2;
-    public rotated?: boolean;
-
-    constructor() {
-        this.rect = new Rect();
-        this.offset = new Vector2;
-        this.originalSize = new Vector2;
-    }
+interface AtlasSprite {
+    atlas: PackageItem;
+    rect: Rect;
+    offset: Vector2;
+    originalSize: Vector2;
+    rotated?: boolean;
 }
 
 var _instById: { [index: string]: UIPackage } = {};
@@ -724,7 +720,7 @@ var _vars: { [index: string]: string } = {};
 FontManager.packageFontGetter = name => <BaseFont>UIPackage.getItemAssetByURL(name);
 
 export interface IObjectFactoryType {
-    resolvePackageItemExtension(pi: PackageItem): void;
+    resolveExtension(pi: PackageItem): void;
     newObject(type: number | PackageItem, userClass?: new () => GObject): GObject;
 }
 

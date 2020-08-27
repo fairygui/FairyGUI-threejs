@@ -230,9 +230,9 @@ export class GButton extends GComponent {
 
     public getTextField(): GTextField {
         if (this._titleObject instanceof GTextField)
-            return <GTextField>this._titleObject;
+            return this._titleObject;
         else if ('getTextField' in this._titleObject)
-            return <GTextField>(<any>this._titleObject).getTextField();
+            return (<any>this._titleObject).getTextField();
         else
             return null;
     }
@@ -494,7 +494,7 @@ export class GButton extends GComponent {
 
         if (this._linkedPopup) {
             if (this._linkedPopup instanceof Window)
-                (<Window>this._linkedPopup).toggleStatus();
+                this._linkedPopup.toggleStatus();
             else
                 GRoot.findFor(this).togglePopup(this._linkedPopup, this);
         }
