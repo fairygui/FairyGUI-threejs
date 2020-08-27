@@ -29,6 +29,10 @@ export class TextFormat {
         this.italic = source.italic;
         this.strikethrough = source.strikethrough;
         this.align = source.align;
+        this.outline = source.outline;
+        this.outlineColor = source.outlineColor;
+        this.shadowOffset.copy(source.shadowOffset);
+        this.shadowColor = source.shadowColor;
     }
 
     public equalStyle(aFormat: TextFormat): boolean {
