@@ -26,6 +26,7 @@ type Glyph = {
     outlines?: { [index: number]: OutlineGlyph }
 }
 
+var s_rect = new Rect();
 
 
 export class DynamicFont {
@@ -46,8 +47,6 @@ export class DynamicFont {
     protected _glyph: Glyph;
     protected _color: Color4;
     protected _outlineColor: Color4;
-
-    protected s_rect = new Rect();
     protected s_scale: number = 1;
 
     protected eSpan: HTMLSpanElement;
@@ -62,12 +61,9 @@ export class DynamicFont {
         this._canvas = document.createElement("canvas");
         this._context = this._canvas.getContext("2d");
         this._context.globalCompositeOperation = "lighter";
-        this._context.textAlign = "left";
-        this._canvas.style.left = "-10000px";
-		this._canvas.style.position = "absolute";
-        document.body.appendChild(this._canvas);;
+        
         this.createTexture(512);
-        window["TestImg1"] = this._canvas;
+        
         this.s_scale = Stage.devicePixelRatio;
     }
 
@@ -319,19 +315,19 @@ export class DynamicFont {
 
             let outlineGlyph = this._glyph.outlines[this._format.outline];
 
-            this.s_rect.copy(outlineGlyph.vertRect);
-            this.s_rect.x += x;
-            this.s_rect.y -= y;
+            s_rect.copy(outlineGlyph.vertRect);
+            s_rect.x += x;
+            s_rect.y -= y;
             this._outlineColor.a = outlineGlyph.chl;
-            vb.addQuad(this.s_rect, outlineGlyph.uvRect, this._outlineColor);
+            vb.addQuad(s_rect, outlineGlyph.uvRect, this._outlineColor);
             vb.addTriangles(-4);
         }
 
-        this.s_rect.copy(this._glyph.vertRect);
-        this.s_rect.x += x;
-        this.s_rect.y -= y;
+        s_rect.copy(this._glyph.vertRect);
+        s_rect.x += x;
+        s_rect.y -= y;
         this._color.a = this._glyph.chl;
-        vb.addQuad(this.s_rect, this._glyph.uvRect, this._color);
+        vb.addQuad(s_rect, this._glyph.uvRect, this._color);
         vb.addTriangles(-4);
         return 4;
     }
