@@ -1,7 +1,7 @@
 import { GearBase } from "./GearBase";
 
 export class GearDisplay extends GearBase {
-    public pages: string[];
+    public pages: string[] = null;
 
     private _visible: number = 0;
     private _displayLockToken: number = 1;

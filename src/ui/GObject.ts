@@ -140,7 +140,7 @@ export class GObject {
 
             this.updateGear(1);
 
-            if (this._parent && !("itemRenderer" in this._parent)) {
+            if (this._parent && !("setVirtual" in this._parent)/*not list*/) {
                 this._parent.setBoundsChangedFlag();
                 if (this._group)
                     this._group.setBoundsChangedFlag(true);
