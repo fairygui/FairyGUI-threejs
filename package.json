@@ -1,6 +1,6 @@
 {
   "name": "fairygui-three",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "A GUI Editor & framework for three.js",
   "main": "dist/fairygui.js",
   "module": "dist/fairygui.module.js",
