@@ -5099,7 +5099,7 @@
             if (buffer.version >= 2) {
                 this._excludeInvisibles = buffer.readBool();
                 this._autoSizeDisabled = buffer.readBool();
-                this._mainChildIndex = buffer.readShort();
+                this._mainGridIndex = buffer.readShort();
             }
         }
         setup_afterAdd(buffer, beginPos) {
