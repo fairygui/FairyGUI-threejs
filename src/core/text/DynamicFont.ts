@@ -95,7 +95,7 @@ export class DynamicFont {
 
     private clearTexture(): void {
         this._context.fillStyle = 'black';
-        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
+        this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
         this._context.globalCompositeOperation = "lighter";
 
         for (let i = 0; i < 3; i++)
