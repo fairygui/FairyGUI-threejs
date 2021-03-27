@@ -60,7 +60,7 @@ export class NMaterial extends ShaderMaterial {
 
         this.fragmentShader = `
         uniform bool grayed;
-        uniform bool filter;
+        uniform bool colorFilter;
         uniform mat4 colorMatrix;
         uniform vec4 colorOffset;
 
