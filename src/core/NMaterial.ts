@@ -60,7 +60,12 @@ export class NMaterial extends ShaderMaterial {
 
         this.fragmentShader = `
         uniform bool grayed;
-        uniform bool filter;
+        /*
+            Illegal use of reserved word
+            see : https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.00.pdf
+            uniform bool filter;
+        */
+        uniform bool colorFilter;
         uniform mat4 colorMatrix;
         uniform vec4 colorOffset;
 
