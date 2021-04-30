@@ -51,8 +51,8 @@ export class EventDispatcher {
             let col = this._listeners[type];
             if (col) {
                 if (col.dispatching != 0) {
-                    col.callbacks.forEach((value, index, arr) => arr[index + 2] = true);
-                    col.captures.forEach((value, index, arr) => arr[index + 2] = true);
+                    col.callbacks.forEach((value, index, arr) => { if (index % 3 == 2) arr[index] = true; });
+                    col.captures.forEach((value, index, arr) => { if (index % 3 == 2) arr[index] = true; });
                     col.dispatching = 2;
                 }
                 else {

@@ -228,14 +228,10 @@ export class GLoader extends GObject {
                     this._content.scale9Grid = this._contentItem.scale9Grid;
                     this._content.scaleByTile = this._contentItem.scaleByTile;
                     this._content.tileGridIndice = this._contentItem.tileGridIndice;
-                    this.sourceWidth = this._contentItem.width;
-                    this.sourceHeight = this._contentItem.height;
                     this.updateLayout();
                 }
             }
             else if (this._contentItem.type == PackageItemType.MovieClip) {
-                this.sourceWidth = this._contentItem.width;
-                this.sourceHeight = this._contentItem.height;
                 this._content.interval = this._contentItem.interval;
                 this._content.swing = this._contentItem.swing;
                 this._content.repeatDelay = this._contentItem.repeatDelay;

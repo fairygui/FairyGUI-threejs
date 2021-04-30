@@ -24,6 +24,9 @@ export interface InputInfo {
     shiftKey?: boolean;
     ctrlKey?: boolean;
     commandKey?: boolean;
+
+    isDblClick: boolean;
+    isRightButton: boolean;
 }
 
 export var lastInput: InputInfo = {
@@ -34,6 +37,14 @@ export var lastInput: InputInfo = {
     button: 0,
     clickCount: 0,
     holdTime: 0,
+
+    get isDblClick() {
+        return this.clickCount == 2;
+    },
+
+    get isRightButton() {
+        return this.button == 2;
+    }
 }
 
 export class Event {

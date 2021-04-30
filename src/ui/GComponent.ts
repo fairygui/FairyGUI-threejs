@@ -16,6 +16,7 @@ import { TranslationHelper } from "./TranslationHelper";
 import { UIPackage, Decls } from "./UIPackage";
 import { PixelHitTest } from "../core/hittest/PixelHitTest";
 import { ShapeHitTest } from "../core/hittest/ShapeHitTest";
+import { UIConfig } from "./UIConfig";
 
 export class GComponent extends GObject {
     private _sortingChildCount: number = 0;
@@ -47,8 +48,6 @@ export class GComponent extends GObject {
     }
 
     protected createDisplayObject(): void {
-        super.createDisplayObject();
-
         this._container = new DisplayObject();
         this._displayObject = this._container;
     }
@@ -820,6 +819,12 @@ export class GComponent extends GObject {
         return this.getSnappingPositionWithDir(xValue, yValue, 0, 0, resultPoint);
     }
 
+    protected shouldSnapToNext(dir: number, delta: number, size: number): boolean {
+        return dir < 0 && delta > UIConfig.defaultScrollSnappingThreshold * size
+            || dir > 0 && delta > (1 - UIConfig.defaultScrollSnappingThreshold) * size
+            || dir == 0 && delta > size / 2;
+    }
+
     /**
      * dir正数表示右移或者下移，负数表示左移或者上移
      */
@@ -849,10 +854,10 @@ export class GComponent extends GObject {
                     }
                     else {
                         prev = this._children[i - 1];
-                        if (yValue < prev.y + prev.actualHeight / 2) //top half part
-                            yValue = prev.y;
-                        else //bottom half part
+                        if (this.shouldSnapToNext(yDir, yValue - prev.y, prev.height))
                             yValue = obj.y;
+                        else
+                            yValue = prev.y;
                         break;
                     }
                 }
@@ -874,10 +879,10 @@ export class GComponent extends GObject {
                     }
                     else {
                         prev = this._children[i - 1];
-                        if (xValue < prev.x + prev.actualWidth / 2) //top half part
-                            xValue = prev.x;
-                        else //bottom half part
+                        if (this.shouldSnapToNext(xDir, xValue - prev.x, prev.width))
                             xValue = obj.x;
+                        else
+                            xValue = prev.x;
                         break;
                     }
                 }

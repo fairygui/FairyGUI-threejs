@@ -81,7 +81,7 @@ export class RelationItem {
     }
 
     public copy(source: RelationItem): void {
-        this._target = source.target;
+        this.target = source.target;
 
         this._defs.length = 0;
         var cnt: number = source._defs.length;

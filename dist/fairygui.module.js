@@ -235,6 +235,12 @@ var lastInput = {
     button: 0,
     clickCount: 0,
     holdTime: 0,
+    get isDblClick() {
+        return this.clickCount == 2;
+    },
+    get isRightButton() {
+        return this.button == 2;
+    }
 };
 class Event {
     constructor() {
@@ -313,8 +319,10 @@ class EventDispatcher {
             let col = this._listeners[type];
             if (col) {
                 if (col.dispatching != 0) {
-                    col.callbacks.forEach((value, index, arr) => arr[index + 2] = true);
-                    col.captures.forEach((value, index, arr) => arr[index + 2] = true);
+                    col.callbacks.forEach((value, index, arr) => { if (index % 3 == 2)
+                        arr[index] = true; });
+                    col.captures.forEach((value, index, arr) => { if (index % 3 == 2)
+                        arr[index] = true; });
                     col.dispatching = 2;
                 }
                 else {
@@ -3218,7 +3226,7 @@ class RelationItem {
         }
     }
     copy(source) {
-        this._target = source.target;
+        this.target = source.target;
         this._defs.length = 0;
         var cnt = source._defs.length;
         for (var i = 0; i < cnt; i++) {
@@ -8260,7 +8268,7 @@ class UIPackage {
                 let resolve2 = () => {
                     _instById[pkg.id] = pkg;
                     _instByName[pkg.name] = pkg;
-                    _instByName[pkg._resKey] = pkg;
+                    _instById[pkg._resKey] = pkg;
                     resolve(pkg);
                 };
                 if (promises.length > 0)
@@ -12101,7 +12109,6 @@ class GComponent extends GObject {
         this._apexIndex = 0;
     }
     createDisplayObject() {
-        super.createDisplayObject();
         this._container = new DisplayObject();
         this._displayObject = this._container;
     }
@@ -12747,6 +12754,11 @@ class GComponent extends GObject {
     getSnappingPosition(xValue, yValue, resultPoint) {
         return this.getSnappingPositionWithDir(xValue, yValue, 0, 0, resultPoint);
     }
+    shouldSnapToNext(dir, delta, size) {
+        return dir < 0 && delta > UIConfig.defaultScrollSnappingThreshold * size
+            || dir > 0 && delta > (1 - UIConfig.defaultScrollSnappingThreshold) * size
+            || dir == 0 && delta > size / 2;
+    }
     /**
      * dir正数表示右移或者下移，负数表示左移或者上移
      */
@@ -12773,10 +12785,10 @@ class GComponent extends GObject {
                     }
                     else {
                         prev = this._children[i - 1];
-                        if (yValue < prev.y + prev.actualHeight / 2) //top half part
-                            yValue = prev.y;
-                        else //bottom half part
+                        if (this.shouldSnapToNext(yDir, yValue - prev.y, prev.height))
                             yValue = obj.y;
+                        else
+                            yValue = prev.y;
                         break;
                     }
                 }
@@ -12796,10 +12808,10 @@ class GComponent extends GObject {
                     }
                     else {
                         prev = this._children[i - 1];
-                        if (xValue < prev.x + prev.actualWidth / 2) //top half part
-                            xValue = prev.x;
-                        else //bottom half part
+                        if (this.shouldSnapToNext(xDir, xValue - prev.x, prev.width))
                             xValue = obj.x;
+                        else
+                            xValue = prev.x;
                         break;
                     }
                 }
@@ -16240,14 +16252,10 @@ class GLoader extends GObject {
                     this._content.scale9Grid = this._contentItem.scale9Grid;
                     this._content.scaleByTile = this._contentItem.scaleByTile;
                     this._content.tileGridIndice = this._contentItem.tileGridIndice;
-                    this.sourceWidth = this._contentItem.width;
-                    this.sourceHeight = this._contentItem.height;
                     this.updateLayout();
                 }
             }
             else if (this._contentItem.type == PackageItemType.MovieClip) {
-                this.sourceWidth = this._contentItem.width;
-                this.sourceHeight = this._contentItem.height;
                 this._content.interval = this._contentItem.interval;
                 this._content.swing = this._contentItem.swing;
                 this._content.repeatDelay = this._contentItem.repeatDelay;
@@ -18686,11 +18694,6 @@ class GList extends GComponent {
             this._selectionController = c;
         }
     }
-    shouldSnapToNext(dir, delta, size) {
-        return dir < 0 && delta > UIConfig.defaultScrollSnappingThreshold * size
-            || dir > 0 && delta > (1 - UIConfig.defaultScrollSnappingThreshold) * size
-            || dir == 0 && delta > size / 2;
-    }
     getSnappingPositionWithDir(xValue, yValue, xDir, yDir, resultPoint) {
         if (this._virtual) {
             if (!resultPoint)
@@ -21027,3 +21030,4 @@ class DisplayListItem {
 }
 
 export { AsyncOperation, AutoSizeType, ButtonMode, ByteBuffer, ChildrenRenderOrder, Color4, Controller, DisplayObject, DragDropManager, DynamicFont, EaseType, Event, EventDispatcher, FillMethod, FillOrigin, FillOrigin90, FlipType, FontManager, GButton, GComboBox, GComponent, GGraph, GGroup, GImage, GLabel, GList, GLoader, GLoader3D, GMovieClip, GObject, GObjectPool, GProgressBar, GRichTextField, GRoot, GScrollBar, GSlider, GTextField, GTextInput, GTree, GTreeNode, GTween, GTweener, GroupLayoutType, Image, InputTextField, ListLayoutType, ListSelectionMode, LoaderFillType, MovieClip, NGraphics, NMaterial, NTexture, ObjectPropID, ObjectType, OverflowType, PackageItem, PackageItemType, PopupDirection, PopupMenu, ProgressTitleType, Rect, RelationType, RichTextField, ScaleMode, ScreenMatchMode, ScrollBarDisplayType, ScrollPane, ScrollType, Shape, Stage, TextField, TextFormat, Timers, Transition, TranslationHelper, UBBParser, UIConfig, UIContentScaler, UIObjectFactory, UIPackage, Window, clamp, clamp01, convertFromHtmlColor, convertToHtmlColor, distance, lerp, repeat };
+//# sourceMappingURL=fairygui.module.js.map

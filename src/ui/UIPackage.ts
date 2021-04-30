@@ -78,8 +78,7 @@ export class UIPackage {
             }
 
             let url: string = resKey;
-            if(!resKey.endsWith("." + UIConfig.packageFileExtension))
-            {
+            if (!resKey.endsWith("." + UIConfig.packageFileExtension)) {
                 url += "." + UIConfig.packageFileExtension;
             }
 
@@ -104,7 +103,7 @@ export class UIPackage {
                 let resolve2 = () => {
                     _instById[pkg.id] = pkg;
                     _instByName[pkg.name] = pkg;
-                    _instByName[pkg._resKey] = pkg;
+                    _instById[pkg._resKey] = pkg;
 
                     resolve(pkg);
                 };
@@ -724,7 +723,7 @@ export interface IObjectFactoryType {
     newObject(type: number | PackageItem, userClass?: new () => GObject): GObject;
 }
 
-function loadTexture(pi: PackageItem, onProgress?: (event: ProgressEvent) => void) {
+function loadTexture(pi: PackageItem, onProgress?: (event: ProgressEvent) => void): Promise<void> {
     return new Promise((resolve, reject) => {
         new TextureLoader().load(pi.file,
             texture => {
@@ -741,7 +740,7 @@ function loadTexture(pi: PackageItem, onProgress?: (event: ProgressEvent) => voi
     });
 }
 
-function loadSound(pi: PackageItem, onProgress?: (event: ProgressEvent) => void) {
+function loadSound(pi: PackageItem, onProgress?: (event: ProgressEvent) => void): Promise<void> {
     return new Promise((resolve, reject) => {
         new AudioLoader().load(pi.file,
             buffer => {

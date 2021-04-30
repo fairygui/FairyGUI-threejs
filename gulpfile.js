@@ -27,6 +27,7 @@ gulp.task("rollup", async function () {
             format: 'umd',
             extend: true,
             name: 'fgui',
+            sourcemap : true,
             globals: { three: 'three' }
         }
     };
@@ -41,6 +42,7 @@ gulp.task("rollup", async function () {
             format: 'esm',
             extend: true,
             name: 'fgui',
+            sourcemap : true,
             globals: { three: 'three' }
         }
     };

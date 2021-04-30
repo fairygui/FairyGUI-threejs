@@ -10,7 +10,6 @@ import { GButton } from "./GButton";
 import { GComponent } from "./GComponent";
 import { GObject } from "./GObject";
 import { GObjectPool } from "./GObjectPool";
-import { UIConfig } from "./UIConfig";
 import { UIPackage } from "./UIPackage";
 
 export class GList extends GComponent {
@@ -806,12 +805,6 @@ export class GList extends GComponent {
             c.selectedIndex = index;
             this._selectionController = c;
         }
-    }
-
-    private shouldSnapToNext(dir: number, delta: number, size: number): boolean {
-        return dir < 0 && delta > UIConfig.defaultScrollSnappingThreshold * size
-            || dir > 0 && delta > (1 - UIConfig.defaultScrollSnappingThreshold) * size
-            || dir == 0 && delta > size / 2;
     }
 
     public getSnappingPositionWithDir(xValue: number, yValue: number, xDir: number, yDir: number, resultPoint?: Vector2): Vector2 {
