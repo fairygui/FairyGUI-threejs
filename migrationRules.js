@@ -10,7 +10,7 @@ const rules = {
         },
         {
             type: "regex",
-            pattern:".getInverse\\(([^]+?)\\);",
+            pattern: ".getInverse\\(([^]+?)\\);",
             replacement: ".copy($1).invert();"
         }
     ]
@@ -18,11 +18,14 @@ const rules = {
 
 const getMigrationRules = (version, rules) => {
     let rule = [];
-    for (let key in rules) {
-        if (+key >= +version) {
-            rule.push(...rules[key]);
+    if (+currentVersion > +initalVersion) {
+        for (let key in rules) {
+            if (+key >= +version) {
+                rule.push(...rules[key]);
+            }
         }
     }
     return rule;
 }
+
 module.exports = getMigrationRules(currentVersion, rules);
