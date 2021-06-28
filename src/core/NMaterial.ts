@@ -1,4 +1,4 @@
-import { ShaderMaterial, ShaderLib, UniformsUtils, Uniform, Matrix4, Vector4, Texture, DoubleSide, DepthModes } from "three";
+import { ShaderMaterial, ShaderLib, UniformsUtils, Uniform, Matrix4, Vector4, Texture, DoubleSide, DepthModes,Color } from "three";
 
 export class NMaterial extends ShaderMaterial {
     public map: Texture;
@@ -9,7 +9,12 @@ export class NMaterial extends ShaderMaterial {
         let customUniforms = UniformsUtils.merge([
             ShaderLib.basic.uniforms,
             { _ColorMatrix: new Uniform(new Matrix4()) },
-            { _ColorOffset: new Uniform(new Vector4()) }
+            { _ColorOffset: new Uniform(new Vector4()) },
+            {
+                diffuse: {
+                    value: new Color(0xffffff)
+                }
+            }
         ]);
 
         this.uniforms = customUniforms;
