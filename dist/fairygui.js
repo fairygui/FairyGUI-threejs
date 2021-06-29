@@ -5311,7 +5311,12 @@
             let customUniforms = three.UniformsUtils.merge([
                 three.ShaderLib.basic.uniforms,
                 { _ColorMatrix: new three.Uniform(new three.Matrix4()) },
-                { _ColorOffset: new three.Uniform(new three.Vector4()) }
+                { _ColorOffset: new three.Uniform(new three.Vector4()) },
+                {
+                    diffuse: {
+                        value: new three.Color(0xffffff)
+                    }
+                }
             ]);
             this.uniforms = customUniforms;
             this.vertexShader = `
@@ -7901,6 +7906,7 @@
         clearTexture() {
             this._context.fillStyle = 'black';
             this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
+            this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
             this._context.globalCompositeOperation = "lighter";
             for (let i = 0; i < 3; i++)
                 this._packers[i].init(this._canvas.width, this._canvas.height);

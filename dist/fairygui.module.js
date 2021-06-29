@@ -5328,7 +5328,12 @@ class NMaterial extends ShaderMaterial {
         let customUniforms = UniformsUtils.merge([
             ShaderLib.basic.uniforms,
             { _ColorMatrix: new Uniform(new Matrix4()) },
-            { _ColorOffset: new Uniform(new Vector4()) }
+            { _ColorOffset: new Uniform(new Vector4()) },
+            {
+                diffuse: {
+                    value: new Color(0xffffff)
+                }
+            }
         ]);
         this.uniforms = customUniforms;
         this.vertexShader = `
@@ -7920,6 +7925,7 @@ class DynamicFont {
     clearTexture() {
         this._context.fillStyle = 'black';
         this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
+        this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
         this._context.globalCompositeOperation = "lighter";
         for (let i = 0; i < 3; i++)
             this._packers[i].init(this._canvas.width, this._canvas.height);
