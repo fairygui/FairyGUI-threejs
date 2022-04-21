@@ -127,7 +127,10 @@ export class InputTextField extends TextField {
         e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
         Stage.domElement.parentNode.appendChild(e);
 
-        e.onblur = () => { Stage.setFocus(null); }
+        e.onblur = () => { Stage.setFocus(null); };
+        e.onkeydown = (evt) => {
+            this.dispatchEvent("onkeydown", evt['keycode']);
+        };
 
         this.setFormat();
     }
@@ -179,7 +182,7 @@ export class InputTextField extends TextField {
         this.localToGlobal(1, 1, s_scale);
         s_scale.sub(s_pos);
 
-        s_mat.getInverse(Stage.canvasTransform);
+        s_mat.copy(Stage.canvasTransform).invert();
         s_tmp.set(s_pos.x, s_pos.y, 0);
         s_tmp.applyMatrix4(s_mat);
         s_pos.set(s_tmp.x, s_tmp.y);

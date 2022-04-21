@@ -331,7 +331,7 @@ export class DisplayObject extends EventDispatcher {
         pt = this._obj3D.worldToLocal(pt);
         if (pt.z != 0) {
             s_dir.copy(direction || s_forward);
-            s_dir.applyQuaternion(this._obj3D.getWorldQuaternion(s_quaternion).inverse()).normalize();
+            s_dir.applyQuaternion(this._obj3D.getWorldQuaternion(s_quaternion).invert()).normalize();
             let distOnLine = -pt.dot(s_forward) / s_dir.dot(s_forward);
             pt.add(s_dir.multiplyScalar(distOnLine));
         }
