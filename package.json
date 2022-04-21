@@ -32,9 +32,9 @@
   "homepage": "https://fairygui.com/",
   "dependencies": {
     "@types/node": "^14.0.1",
-    "@types/three": "^0.126.1",
+    "@types/three": "0.139.0",
     "lodash": "^4.17.15",
-    "three": "^0.126.1"
+    "three": "^0.139.2"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^8.0.1",
@@ -59,7 +59,7 @@
     "rollup": "^1.27.5",
     "style-loader": "^1.2.1",
     "terser-webpack-plugin": "^3.0.3",
-    "three": "^0.116.1",
+    "three": "^0.139.2",
     "ts-loader": "^7.0.4",
     "typescript": "^3.9.2",
     "webpack": "^4.43.0",
