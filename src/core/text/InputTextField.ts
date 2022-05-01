@@ -128,9 +128,7 @@ export class InputTextField extends TextField {
         Stage.domElement.parentNode.appendChild(e);
 
         e.onblur = () => { Stage.setFocus(null); };
-        e.onkeydown = (evt) => {
-            this.dispatchEvent("onkeydown", evt['keycode']);
-        };
+        e.onkeydown = (evt) => { this.dispatchEvent("onkeydown", evt.keyCode); };
 
         this.setFormat();
     }
