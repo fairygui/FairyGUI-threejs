@@ -123,7 +123,7 @@ export class Shape extends DisplayObject {
 
         let pt: Vector2 = context.getLocal(this);
 
-        let ht = this._graphics.meshFactory;
+        let ht: any = this._graphics.meshFactory;
         if ('hitTest' in ht)
             return (<IHitTest>ht).hitTest(this._contentRect, pt.x, pt.y) ? this : null;
         else if (this._contentRect.contains(pt))
