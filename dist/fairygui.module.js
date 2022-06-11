@@ -1362,6 +1362,9 @@ class DisplayObject extends EventDispatcher {
             this.onSizeChanged();
         }
     }
+    get contentRect() {
+        return this._contentRect;
+    }
     setSize(wv, hv) {
         if (wv != this._contentRect.width || hv != this._contentRect.height) {
             this._contentRect.width = wv;
@@ -12096,7 +12099,7 @@ class ShapeHitTest {
         let ht = this.shape.graphics.meshFactory;
         if (!('hitTest' in ht))
             return false;
-        return ht.hitTest(contentRect, x, y);
+        return ht.hitTest(this.shape.contentRect, x, y);
     }
 }
 

@@ -119,6 +119,10 @@ export class DisplayObject extends EventDispatcher {
         }
     }
 
+    public get contentRect(): Readonly<Rect> {
+        return this._contentRect;
+    }
+
     public setSize(wv: number, hv: number): void {
         if (wv != this._contentRect.width || hv != this._contentRect.height) {
             this._contentRect.width = wv;
@@ -150,7 +154,7 @@ export class DisplayObject extends EventDispatcher {
     }
 
     public set pivotY(value: number) {
-        this.setPosition(this._pivot.x, value);
+        this.setPivot(this._pivot.x, value);
     }
 
     public setPivot(xv: number, yv: number): void {

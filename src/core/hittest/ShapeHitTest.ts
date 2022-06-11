@@ -25,10 +25,10 @@ export class ShapeHitTest implements IHitTest {
             }
         }
 
-        let ht = this.shape.graphics.meshFactory;
+        let ht: any = this.shape.graphics.meshFactory;
         if (!('hitTest' in ht))
             return false;
 
-        return (<IHitTest>ht).hitTest(contentRect, x, y);
+        return (<IHitTest>ht).hitTest(this.shape.contentRect, x, y);
     }
 }
