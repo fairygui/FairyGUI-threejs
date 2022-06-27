@@ -159,6 +159,8 @@ export class NMaterial extends ShaderMaterial {
         this.transparent = true;
         this.depthTest = false;
         this.side = DoubleSide;
+        this.toneMapped = false;
+        this.encoding = THREE.LinearEncoding;
         //this.wireframe = true;
         this["isMeshBasicMaterial"] = true;
     }
