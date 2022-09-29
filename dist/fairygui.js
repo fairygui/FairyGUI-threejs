@@ -1522,7 +1522,7 @@
             pt = this._obj3D.worldToLocal(pt);
             if (pt.z != 0) {
                 s_dir.copy(direction || s_forward);
-                s_dir.applyQuaternion(this._obj3D.getWorldQuaternion(s_quaternion).inverse()).normalize();
+                s_dir.applyQuaternion(this._obj3D.getWorldQuaternion(s_quaternion).invert()).normalize();
                 let distOnLine = -pt.dot(s_forward) / s_dir.dot(s_forward);
                 pt.add(s_dir.multiplyScalar(distOnLine));
             }
@@ -7907,9 +7907,7 @@
             this.clearTexture();
         }
         clearTexture() {
-            this._context.fillStyle = 'black';
             this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
-            this._context.fillRect(0, 0, this._canvas.width, this._canvas.height);
             this._context.globalCompositeOperation = "lighter";
             for (let i = 0; i < 3; i++)
                 this._packers[i].init(this._canvas.width, this._canvas.height);
@@ -15358,6 +15356,9 @@
             e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
             Stage.domElement.parentNode.appendChild(e);
             e.onblur = () => { Stage.setFocus(null); };
+            e.onkeydown = (evt) => {
+                this.dispatchEvent("onkeydown", evt['keycode']);
+            };
             this.setFormat();
         }
         setFormat() {
@@ -15397,7 +15398,7 @@
             this.localToGlobal(0, 0, s_pos);
             this.localToGlobal(1, 1, s_scale);
             s_scale.sub(s_pos);
-            s_mat$1.getInverse(Stage.canvasTransform);
+            s_mat$1.copy(Stage.canvasTransform).invert();
             s_tmp.set(s_pos.x, s_pos.y, 0);
             s_tmp.applyMatrix4(s_mat$1);
             s_pos.set(s_tmp.x, s_tmp.y);
