@@ -332,6 +332,7 @@ function onWindowResize(evt?: UIEvent) {
 function is_touch_enabled() {
     return ('ontouchstart' in window) ||
         (navigator.maxTouchPoints > 0) ||
+        //@ts-ignore
         (navigator.msMaxTouchPoints > 0);
 }
 

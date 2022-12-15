@@ -61,7 +61,7 @@ export class DynamicFont {
         this._context = this._canvas.getContext("2d");
         this._context.globalCompositeOperation = "lighter";
         
-        this.createTexture(512);
+        this.createTexture(1024);
         
         this._scale = Stage.devicePixelRatio;
     }
@@ -102,10 +102,10 @@ export class DynamicFont {
     }
 
     protected rebuild(): void {
-        if (this._canvas.width < 2048)
-            this.createTexture(this._canvas.width * 2);
-        else
-            this.clearTexture();
+        // if (this._canvas.width < 2048)
+        //     this.createTexture(this._canvas.width * 2);
+        // else
+        this.clearTexture();//threejs高版本引入一个bug dom节点作为纹理时不能随意改变scale
         this.version++;
         Stage.fontRebuilt = true;
         console.log("font atlas rebuilt : %s (%d)", this.name, this._canvas.width);

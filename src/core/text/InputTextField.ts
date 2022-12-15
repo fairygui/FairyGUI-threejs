@@ -128,7 +128,7 @@ export class InputTextField extends TextField {
         Stage.domElement.parentNode.appendChild(e);
 
         e.onblur = () => { Stage.setFocus(null); };
-        e.onkeydown = (evt) => { this.dispatchEvent("onkeydown", evt.key); };
+        e.onkeydown = (evt) => { this.dispatchEvent("onkeydown", evt.keyCode); };
 
         this.setFormat();
     }
@@ -167,7 +167,7 @@ export class InputTextField extends TextField {
         this.locateInputElement();
 
         e.value = this._text2;
-        //e.maxLength = this.maxLength;
+        e.maxLength = this.maxLength;//不能注释  没有这句的话会导致编辑器里设置的文本框最大长度无效
         e.focus();
 
         this._editing = true;
