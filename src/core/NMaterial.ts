@@ -1,4 +1,4 @@
-import { ShaderMaterial, ShaderLib, UniformsUtils, Uniform, Matrix4, Vector4, Texture, DoubleSide, DepthModes,Color } from "three";
+import { ShaderMaterial, ShaderLib, UniformsUtils, Uniform, Matrix4, Vector4, Texture, DoubleSide, DepthModes, Color } from "three";
 
 export class NMaterial extends ShaderMaterial {
     public map: Texture;
@@ -19,9 +19,11 @@ export class NMaterial extends ShaderMaterial {
 
         this.uniforms = customUniforms;
         this.vertexShader = `
+        #ifdef TEXT
+            #define USE_UV
+        #endif
         #include <common>
         #include <uv_pars_vertex>
-        #include <uv2_pars_vertex>
         #include <envmap_pars_vertex>
         varying vec4 vColor;
         attribute vec4 color;
@@ -34,7 +36,6 @@ export class NMaterial extends ShaderMaterial {
         void main() {
         
             #include <uv_vertex>
-            #include <uv2_vertex>
 
             vColor = color;
 
@@ -64,6 +65,9 @@ export class NMaterial extends ShaderMaterial {
         `;
 
         this.fragmentShader = `
+        #ifdef TEXT
+            #define USE_UV
+        #endif
         uniform bool grayed;
         uniform bool colorFilter;
         uniform mat4 colorMatrix;
@@ -80,7 +84,6 @@ export class NMaterial extends ShaderMaterial {
         varying vec4 vColor;
 
         #include <uv_pars_fragment>
-        #include <uv2_pars_fragment>
         #include <map_pars_fragment>
         #include <alphamap_pars_fragment>
         #include <aomap_pars_fragment>
