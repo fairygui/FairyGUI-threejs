@@ -2,7 +2,7 @@ import { BaseFont } from "./BaseFont";
 import { DynamicFont } from "./DynamicFont";
 
 export class FontManager {
-    public static fonts: { [index: string]: BaseFont } = {};
+    public static fonts: Record<string, BaseFont> = {};
     public static packageFontGetter: (name: string) => BaseFont;
 
     public static registerFont(font: BaseFont) {

@@ -3,7 +3,7 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { ObjectPropID } from "../ui/FieldTypes";
 
 export class GearAnimation extends GearBase {
-    private _storage: { [index: string]: GearAnimationValue };
+    private _storage: Record<string, GearAnimationValue>;
     private _default: GearAnimationValue;
 
     protected init(): void {

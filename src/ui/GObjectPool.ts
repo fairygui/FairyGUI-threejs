@@ -2,7 +2,7 @@ import { GObject } from "./GObject";
 import { UIPackage } from "./UIPackage";
 
 export class GObjectPool {
-    private _pool: { [index: string]: Array<GObject> };
+    private _pool: Record<string, Array<GObject>>;
     private _count: number = 0;
 
     constructor() {

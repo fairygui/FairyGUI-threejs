@@ -22,7 +22,7 @@ import { UIPackage, Decls } from "./UIPackage";
 import { GLoader3D } from "./GLoader3D";
 
 export class UIObjectFactory {
-    public static extensions: { [index: string]: new () => GComponent } = {};
+    public static extensions: Record<string, new () => GComponent> = {};
     public static loaderType: new () => GLoader;
 
     public static setExtension(url: string, type: new () => GComponent): void {

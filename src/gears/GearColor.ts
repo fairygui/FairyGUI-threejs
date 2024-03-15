@@ -3,7 +3,7 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { GearBase } from "./GearBase";
 
 export class GearColor extends GearBase {
-    private _storage: { [index: string]: GearColorValue };
+    private _storage: Record<string, GearColorValue>;
     private _default: GearColorValue;
 
     protected init(): void {

@@ -4,13 +4,13 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { XML } from "../utils/xml/XML";
 
 export class TranslationHelper {
-    public static strings: { [index: string]: { [index: string]: string } };
+    public static strings: Record<string, Record<string, string>>;
 
     constructor() {
     }
 
     public static loadFromXML(source: XML): void {
-        let strings = {};
+        let strings: Record<string, Record<string, string>> = {};
         TranslationHelper.strings = strings;
 
         let arr = source.elements("string");
@@ -21,8 +21,8 @@ export class TranslationHelper {
             if (i == -1)
                 return;
 
-            let key2: string = key.substr(0, i);
-            let key3: string = key.substr(i + 1);
+            let key2: string = key.substring(0, i);
+            let key3: string = key.substring(i + 1);
             let col = strings[key2];
             if (!col) {
                 col = {};
@@ -36,7 +36,7 @@ export class TranslationHelper {
         if (TranslationHelper.strings == null)
             return;
 
-        var compStrings: { [index: string]: string } = TranslationHelper.strings[item.owner.id + item.id];
+        let compStrings = TranslationHelper.strings[item.owner.id + item.id];
         if (!compStrings)
             return;
 

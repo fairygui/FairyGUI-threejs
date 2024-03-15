@@ -3,7 +3,7 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { GearBase } from "./GearBase";
 
 export class GearFontSize extends GearBase {
-    private _storage: { [index: string]: number };
+    private _storage: Record<string, number>;
     private _default: number = 0;
 
     protected init(): void {

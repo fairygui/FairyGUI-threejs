@@ -14,7 +14,7 @@ export class BitmapFont implements BaseFont {
     public version: number = 0;
     public mainTexture: NTexture;
     public size: number = 0;
-    public glyphs: { [index: string]: BMGlyph };
+    public glyphs: Record<string, BMGlyph>;
     public resizable: boolean;
     public hasChannel: boolean;
     public tint: boolean;

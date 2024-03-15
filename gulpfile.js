@@ -4,8 +4,7 @@ const ts = require('gulp-typescript');
 const rename = require("gulp-rename");
 const uglify = require('gulp-uglify-es').default;
 const tsProject = ts.createProject('tsconfig.json', { declaration: true });
-const replaceRules = require("./migrationRules.js");
-const replace = require('gulp-replace');
+const dts = require('dts-bundle')
 
 const onwarn = warning => {
     // Silence circular dependency warning for moment package
@@ -20,49 +19,32 @@ gulp.task('buildJs', () => {
 })
 
 gulp.task("rollup", async function () {
-    let config = {
+    const subTask = await rollup.rollup({
         input: "build/FairyGUI.js",
         external: ['three'],
-        onwarn : onwarn,
-        output: {
-            file: 'dist/fairygui.js',
-            format: 'umd',
-            extend: true,
-            name: 'fgui',
-            sourcemap : true,
-            globals: { three: 'three' }
-        }
-    };
-    const subTask = await rollup.rollup(config);
-    await subTask.write(config);
+        onwarn: onwarn,
+    });
+    await subTask.write({
+        file: 'dist/fairygui.js',
+        format: 'umd',
+        extend: true,
+        name: 'fgui',
+        sourcemap: true,
+        globals: { three: 'three' }
+    });
 
-    let config2 = {
+    const subTask2 = await rollup.rollup({
         input: "build/FairyGUI.js",
         external: ['three'],
-        output: {
-            file: 'dist/fairygui.module.js',
-            format: 'esm',
-            extend: true,
-            name: 'fgui',
-            sourcemap : true,
-            globals: { three: 'three' }
-        }
-    };
-    const subTask2 = await rollup.rollup(config2);
-    await subTask2.write(config2);
-});
-
-gulp.task('replace', function () {
-    let source = gulp.src(['dist/fairygui.module.js','dist/fairygui.js']);
-    for(let i = 0;i<replaceRules.length;i++){
-        let rule = replaceRules[i];
-        let {pattern,replacement,type} = rule;
-        if(type === "regex"){
-            pattern = new RegExp(pattern, 'g');
-        }
-        source = source.pipe(replace(pattern, replacement));
-    }
-    return source.pipe(gulp.dest('dist/'));
+    });
+    await subTask2.write({
+        file: 'dist/fairygui.module.js',
+        format: 'esm',
+        extend: true,
+        name: 'fgui',
+        sourcemap: true,
+        globals: { three: 'three' }
+    });
 });
 
 gulp.task("uglify", function () {
@@ -72,11 +54,16 @@ gulp.task("uglify", function () {
         .pipe(gulp.dest("dist/"));
 });
 
-gulp.task('build'
-    , gulp.series(
-        gulp.parallel('buildJs'),
-        gulp.parallel('rollup'),
-        gulp.parallel('replace'),
-        gulp.parallel('uglify')
-    )
-)
+gulp.task('buildDts', function () {
+    return new Promise(function (resolve, reject) {
+        dts.bundle({ name: "fairygui-three", main: "./build/FairyGUI.d.ts", out: "../dist/fairygui.d.ts" });
+        resolve();
+    });
+});
+
+gulp.task('build', gulp.series(
+    'buildJs',
+    'rollup',
+    'uglify',
+    'buildDts'
+));

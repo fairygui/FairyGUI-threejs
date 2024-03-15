@@ -1,20 +1,23 @@
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('three')) :
     typeof define === 'function' && define.amd ? define(['exports', 'three'], factory) :
-    (global = global || self, factory(global.fgui = global.fgui || {}, global.three));
-}(this, (function (exports, three) { 'use strict';
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.fgui = global.fgui || {}, global.three));
+})(this, (function (exports, three) { 'use strict';
 
+    exports.ButtonMode = void 0;
     (function (ButtonMode) {
         ButtonMode[ButtonMode["Common"] = 0] = "Common";
         ButtonMode[ButtonMode["Check"] = 1] = "Check";
         ButtonMode[ButtonMode["Radio"] = 2] = "Radio";
     })(exports.ButtonMode || (exports.ButtonMode = {}));
+    exports.AutoSizeType = void 0;
     (function (AutoSizeType) {
         AutoSizeType[AutoSizeType["None"] = 0] = "None";
         AutoSizeType[AutoSizeType["Both"] = 1] = "Both";
         AutoSizeType[AutoSizeType["Height"] = 2] = "Height";
         AutoSizeType[AutoSizeType["Shrink"] = 3] = "Shrink";
     })(exports.AutoSizeType || (exports.AutoSizeType = {}));
+    exports.LoaderFillType = void 0;
     (function (LoaderFillType) {
         LoaderFillType[LoaderFillType["None"] = 0] = "None";
         LoaderFillType[LoaderFillType["Scale"] = 1] = "Scale";
@@ -23,6 +26,7 @@
         LoaderFillType[LoaderFillType["ScaleFree"] = 4] = "ScaleFree";
         LoaderFillType[LoaderFillType["ScaleNoBorder"] = 5] = "ScaleNoBorder";
     })(exports.LoaderFillType || (exports.LoaderFillType = {}));
+    exports.ListLayoutType = void 0;
     (function (ListLayoutType) {
         ListLayoutType[ListLayoutType["SingleColumn"] = 0] = "SingleColumn";
         ListLayoutType[ListLayoutType["SingleRow"] = 1] = "SingleRow";
@@ -30,17 +34,20 @@
         ListLayoutType[ListLayoutType["FlowVertical"] = 3] = "FlowVertical";
         ListLayoutType[ListLayoutType["Pagination"] = 4] = "Pagination";
     })(exports.ListLayoutType || (exports.ListLayoutType = {}));
+    exports.ListSelectionMode = void 0;
     (function (ListSelectionMode) {
         ListSelectionMode[ListSelectionMode["Single"] = 0] = "Single";
         ListSelectionMode[ListSelectionMode["Multiple"] = 1] = "Multiple";
         ListSelectionMode[ListSelectionMode["Multiple_SingleClick"] = 2] = "Multiple_SingleClick";
         ListSelectionMode[ListSelectionMode["None"] = 3] = "None";
     })(exports.ListSelectionMode || (exports.ListSelectionMode = {}));
+    exports.OverflowType = void 0;
     (function (OverflowType) {
         OverflowType[OverflowType["Visible"] = 0] = "Visible";
         OverflowType[OverflowType["Hidden"] = 1] = "Hidden";
         OverflowType[OverflowType["Scroll"] = 2] = "Scroll";
     })(exports.OverflowType || (exports.OverflowType = {}));
+    exports.PackageItemType = void 0;
     (function (PackageItemType) {
         PackageItemType[PackageItemType["Image"] = 0] = "Image";
         PackageItemType[PackageItemType["MovieClip"] = 1] = "MovieClip";
@@ -52,6 +59,7 @@
         PackageItemType[PackageItemType["Misc"] = 7] = "Misc";
         PackageItemType[PackageItemType["Unknown"] = 8] = "Unknown";
     })(exports.PackageItemType || (exports.PackageItemType = {}));
+    exports.ObjectType = void 0;
     (function (ObjectType) {
         ObjectType[ObjectType["Image"] = 0] = "Image";
         ObjectType[ObjectType["MovieClip"] = 1] = "MovieClip";
@@ -73,44 +81,52 @@
         ObjectType[ObjectType["Tree"] = 17] = "Tree";
         ObjectType[ObjectType["Loader3D"] = 18] = "Loader3D";
     })(exports.ObjectType || (exports.ObjectType = {}));
+    exports.ProgressTitleType = void 0;
     (function (ProgressTitleType) {
         ProgressTitleType[ProgressTitleType["Percent"] = 0] = "Percent";
         ProgressTitleType[ProgressTitleType["ValueAndMax"] = 1] = "ValueAndMax";
         ProgressTitleType[ProgressTitleType["Value"] = 2] = "Value";
         ProgressTitleType[ProgressTitleType["Max"] = 3] = "Max";
     })(exports.ProgressTitleType || (exports.ProgressTitleType = {}));
+    exports.ScrollBarDisplayType = void 0;
     (function (ScrollBarDisplayType) {
         ScrollBarDisplayType[ScrollBarDisplayType["Default"] = 0] = "Default";
         ScrollBarDisplayType[ScrollBarDisplayType["Visible"] = 1] = "Visible";
         ScrollBarDisplayType[ScrollBarDisplayType["Auto"] = 2] = "Auto";
         ScrollBarDisplayType[ScrollBarDisplayType["Hidden"] = 3] = "Hidden";
     })(exports.ScrollBarDisplayType || (exports.ScrollBarDisplayType = {}));
+    exports.ScrollType = void 0;
     (function (ScrollType) {
         ScrollType[ScrollType["Horizontal"] = 0] = "Horizontal";
         ScrollType[ScrollType["Vertical"] = 1] = "Vertical";
         ScrollType[ScrollType["Both"] = 2] = "Both";
     })(exports.ScrollType || (exports.ScrollType = {}));
+    exports.FlipType = void 0;
     (function (FlipType) {
         FlipType[FlipType["None"] = 0] = "None";
         FlipType[FlipType["Horizontal"] = 1] = "Horizontal";
         FlipType[FlipType["Vertical"] = 2] = "Vertical";
         FlipType[FlipType["Both"] = 3] = "Both";
     })(exports.FlipType || (exports.FlipType = {}));
+    exports.ChildrenRenderOrder = void 0;
     (function (ChildrenRenderOrder) {
         ChildrenRenderOrder[ChildrenRenderOrder["Ascent"] = 0] = "Ascent";
         ChildrenRenderOrder[ChildrenRenderOrder["Descent"] = 1] = "Descent";
         ChildrenRenderOrder[ChildrenRenderOrder["Arch"] = 2] = "Arch";
     })(exports.ChildrenRenderOrder || (exports.ChildrenRenderOrder = {}));
+    exports.GroupLayoutType = void 0;
     (function (GroupLayoutType) {
         GroupLayoutType[GroupLayoutType["None"] = 0] = "None";
         GroupLayoutType[GroupLayoutType["Horizontal"] = 1] = "Horizontal";
         GroupLayoutType[GroupLayoutType["Vertical"] = 2] = "Vertical";
     })(exports.GroupLayoutType || (exports.GroupLayoutType = {}));
+    exports.PopupDirection = void 0;
     (function (PopupDirection) {
         PopupDirection[PopupDirection["Auto"] = 0] = "Auto";
         PopupDirection[PopupDirection["Up"] = 1] = "Up";
         PopupDirection[PopupDirection["Down"] = 2] = "Down";
     })(exports.PopupDirection || (exports.PopupDirection = {}));
+    exports.RelationType = void 0;
     (function (RelationType) {
         RelationType[RelationType["Left_Left"] = 0] = "Left_Left";
         RelationType[RelationType["Left_Center"] = 1] = "Left_Center";
@@ -138,6 +154,7 @@
         RelationType[RelationType["BottomExt_Bottom"] = 23] = "BottomExt_Bottom";
         RelationType[RelationType["Size"] = 24] = "Size";
     })(exports.RelationType || (exports.RelationType = {}));
+    exports.FillMethod = void 0;
     (function (FillMethod) {
         FillMethod[FillMethod["None"] = 0] = "None";
         FillMethod[FillMethod["Horizontal"] = 1] = "Horizontal";
@@ -146,6 +163,7 @@
         FillMethod[FillMethod["Radial180"] = 4] = "Radial180";
         FillMethod[FillMethod["Radial360"] = 5] = "Radial360";
     })(exports.FillMethod || (exports.FillMethod = {}));
+    exports.FillOrigin = void 0;
     (function (FillOrigin) {
         FillOrigin[FillOrigin["Top"] = 0] = "Top";
         FillOrigin[FillOrigin["Bottom"] = 1] = "Bottom";
@@ -156,12 +174,14 @@
         FillOrigin[FillOrigin["BottomLeft"] = 2] = "BottomLeft";
         FillOrigin[FillOrigin["BottomRight"] = 3] = "BottomRight";
     })(exports.FillOrigin || (exports.FillOrigin = {}));
+    exports.FillOrigin90 = void 0;
     (function (FillOrigin90) {
         FillOrigin90[FillOrigin90["TopLeft"] = 0] = "TopLeft";
         FillOrigin90[FillOrigin90["TopRight"] = 1] = "TopRight";
         FillOrigin90[FillOrigin90["BottomLeft"] = 2] = "BottomLeft";
         FillOrigin90[FillOrigin90["BottomRight"] = 3] = "BottomRight";
     })(exports.FillOrigin90 || (exports.FillOrigin90 = {}));
+    exports.ObjectPropID = void 0;
     (function (ObjectPropID) {
         ObjectPropID[ObjectPropID["Text"] = 0] = "Text";
         ObjectPropID[ObjectPropID["Icon"] = 1] = "Icon";
@@ -829,14 +849,15 @@
     function is_touch_enabled() {
         return ('ontouchstart' in window) ||
             (navigator.maxTouchPoints > 0) ||
+            //@ts-ignore
             (navigator.msMaxTouchPoints > 0);
     }
     function handleMouse(ev, type) {
         if (!activeTextInput || !activeTextInput.stage)
             ev.preventDefault();
-        s_v3.set(ev.pageX, ev.pageY, 0);
-        s_v3.applyMatrix4(_canvasTransform);
-        _touchPos.set(s_v3.x, s_v3.y);
+        s_v3$2.set(ev.pageX, ev.pageY, 0);
+        s_v3$2.applyMatrix4(_canvasTransform);
+        _touchPos.set(s_v3$2.x, s_v3$2.y);
         let touch = _touches[0];
         touch.shiftKey = ev.shiftKey;
         touch.ctrlKey = ev.ctrlKey;
@@ -878,9 +899,9 @@
     function handleWheel(ev) {
         if (!activeTextInput || !activeTextInput.stage)
             ev.preventDefault();
-        s_v3.set(ev.pageX, ev.pageY, 0);
-        s_v3.applyMatrix4(_canvasTransform);
-        _touchPos.set(s_v3.x, s_v3.y);
+        s_v3$2.set(ev.pageX, ev.pageY, 0);
+        s_v3$2.applyMatrix4(_canvasTransform);
+        _touchPos.set(s_v3$2.x, s_v3$2.y);
         let touch = _touches[0];
         if (_touchscreen) {
             touch.shiftKey = ev.shiftKey;
@@ -909,9 +930,9 @@
         let touches = ev.changedTouches;
         for (let i = 0; i < touches.length; ++i) {
             let uTouch = touches[i];
-            s_v3.set(uTouch.pageX, uTouch.pageY, 0);
-            s_v3.applyMatrix4(_canvasTransform);
-            _touchPos.set(s_v3.x, s_v3.y);
+            s_v3$2.set(uTouch.pageX, uTouch.pageY, 0);
+            s_v3$2.applyMatrix4(_canvasTransform);
+            _touchPos.set(s_v3$2.x, s_v3$2.y);
             let touch;
             let free;
             for (let j = 0; j < 5; j++) {
@@ -1039,22 +1060,22 @@
         activeTextInput = obj;
         activeTextInput.dispatchEvent("focus_in");
     }
-    var s_v3 = new three.Vector3();
+    var s_v3$2 = new three.Vector3();
     function screenToWorld(camera, x, y, outPt, outDir) {
         outPt.set((x / _width) * 2 - 1, -(y / _height) * 2 + 1, 0);
         outPt.unproject(camera);
         if (camera["isPerspectiveCamera"]) {
-            s_v3.setFromMatrixPosition(camera.matrixWorld);
-            outDir.copy(outPt).sub(s_v3).normalize();
+            s_v3$2.setFromMatrixPosition(camera.matrixWorld);
+            outDir.copy(outPt).sub(s_v3$2).normalize();
             outDir.multiplyScalar(-1);
         }
         else
             outDir.set(0, 0, 1);
     }
     function worldToScreen(camera, input, output) {
-        s_v3.copy(input);
-        s_v3.project(camera);
-        output.set((s_v3.x + 1) / 2 * _width, (1 - s_v3.y) / 2 * _height);
+        s_v3$2.copy(input);
+        s_v3$2.project(camera);
+        output.set((s_v3$2.x + 1) / 2 * _width, (1 - s_v3$2.y) / 2 * _height);
     }
     function setLastInput(touch) {
         lastInput.touchId = touch.touchId;
@@ -1373,7 +1394,7 @@
             return this._pivot.y;
         }
         set pivotY(value) {
-            this.setPosition(this._pivot.x, value);
+            this.setPivot(this._pivot.x, value);
         }
         setPivot(xv, yv) {
             if (this._pivot.x != xv || this._pivot.y != yv) {
@@ -1392,9 +1413,9 @@
             let px = this._pivot.x * this._contentRect.width;
             let py = this._pivot.y * this._contentRect.height;
             s_quaternion.setFromEuler(this._rot);
-            s_mat.compose(s_v3_2, s_quaternion, this._obj3D.scale);
+            s_mat$1.compose(s_v3_2, s_quaternion, this._obj3D.scale);
             this._pivotOffset.set(px, -py, 0);
-            this._pivotOffset.applyMatrix4(s_mat);
+            this._pivotOffset.applyMatrix4(s_mat$1);
         }
         applyPivot() {
             if (this._pivot.x != 0 || this._pivot.y != 0) {
@@ -1677,10 +1698,10 @@
         }
         update(clipPlanes, alpha) {
             if (this._clipRect) {
-                this.transformRect(this._clipRect, null, s_rect);
+                this.transformRect(this._clipRect, null, s_rect$7);
                 if (clipPlanes) {
                     s_rect2.setMinMax(-clipPlanes[0].constant, -clipPlanes[3].constant, clipPlanes[1].constant, clipPlanes[2].constant);
-                    s_rect.intersection(s_rect2);
+                    s_rect$7.intersection(s_rect2);
                 }
                 if (!this._clipPlanes) {
                     this._clipPlanes = [
@@ -1691,10 +1712,10 @@
                     ];
                 }
                 clipPlanes = this._clipPlanes;
-                clipPlanes[0].constant = -s_rect.x;
-                clipPlanes[1].constant = s_rect.xMax;
-                clipPlanes[2].constant = s_rect.yMax;
-                clipPlanes[3].constant = -s_rect.y;
+                clipPlanes[0].constant = -s_rect$7.x;
+                clipPlanes[1].constant = s_rect$7.xMax;
+                clipPlanes[2].constant = s_rect$7.yMax;
+                clipPlanes[3].constant = -s_rect$7.y;
             }
             if (this._graphics)
                 this._graphics.update(clipPlanes, this._alpha * alpha);
@@ -1737,9 +1758,9 @@
     var s_v3$1 = new three.Vector3();
     var s_v3_2 = new three.Vector3();
     var s_v4 = new three.Vector4();
-    var s_rect = new Rect();
+    var s_rect$7 = new Rect();
     var s_rect2 = new Rect();
-    var s_mat = new three.Matrix4();
+    var s_mat$1 = new three.Matrix4();
     var s_quaternion = new three.Quaternion();
     var s_dir = new three.Vector3();
     const s_forward = new three.Vector3(0, 0, 1);
@@ -1786,6 +1807,7 @@
         }
     }
 
+    exports.EaseType = void 0;
     (function (EaseType) {
         EaseType[EaseType["Linear"] = 0] = "Linear";
         EaseType[EaseType["SineIn"] = 1] = "SineIn";
@@ -2148,6 +2170,42 @@
     }
 
     // Author: Daniele Giardini - http://www.demigiant.com
+    // Created: 2014/07/19 14:11
+    // 
+    // License Copyright (c) Daniele Giardini.
+    // This work is subject to the terms at http://dotween.demigiant.com/license.php
+    // 
+    // =============================================================
+    // Contains Daniele Giardini's C# port of the easing equations created by Robert Penner
+    // (all easing equations except for Flash, InFlash, OutFlash, InOutFlash,
+    // which use some parts of Robert Penner's equations but were created by Daniele Giardini)
+    // http://robertpenner.com/easing, see license below:
+    // =============================================================
+    //
+    // TERMS OF USE - EASING EQUATIONS
+    //
+    // Open source under the BSD License.
+    //
+    // Copyright ? 2001 Robert Penner
+    // All rights reserved.
+    //
+    // Redistribution and use in source and binary forms, with or without modification,
+    // are permitted provided that the following conditions are met:
+    //
+    // - Redistributions of source code must retain the above copyright notice,
+    // this list of conditions and the following disclaimer.
+    // - Redistributions in binary form must reproduce the above copyright notice,
+    // this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    // - Neither the name of the author nor the names of contributors may be used to endorse
+    // or promote products derived} from this software without specific prior written permission.
+    // - THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+    // THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+    // IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    // SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+    // LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+    // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+    // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     const _PiOver2 = Math.PI * 0.5;
     const _TwoPi = Math.PI * 2;
     function evaluateEase(easeType, time, duration, overshootOrAmplitude, period) {
@@ -2301,7 +2359,7 @@
         return bounce_easeOut(time * 2 - duration, duration) * 0.5 + 0.5;
     }
 
-    var s_vec2 = new three.Vector2();
+    var s_vec2$5 = new three.Vector2();
     class GTweener {
         constructor() {
             this._startValue = new TweenValue();
@@ -2617,7 +2675,7 @@
                 }
             }
             else if (this._path) {
-                let pt = this._path.getPointAt(this._normalizedTime, s_vec2);
+                let pt = this._path.getPointAt(this._normalizedTime, s_vec2$5);
                 if (this._snapping) {
                     pt.x = Math.round(pt.x);
                     pt.y = Math.round(pt.y);
@@ -3452,7 +3510,7 @@
                         this._owner.y += delta * (1 - pivot);
                     break;
                 case exports.RelationType.Width:
-                    if (this._owner._underConstruct && this._owner == this._target.parent)
+                    if (this._owner == this._target.parent)
                         v = this._owner.sourceWidth - this._target.initWidth;
                     else
                         v = this._owner._rawWidth - this._targetWidth;
@@ -3471,7 +3529,7 @@
                         this._owner.width = this._target._width + v;
                     break;
                 case exports.RelationType.Height:
-                    if (this._owner._underConstruct && this._owner == this._target.parent)
+                    if (this._owner == this._target.parent)
                         v = this._owner.sourceHeight - this._target.initHeight;
                     else
                         v = this._owner._rawHeight - this._targetHeight;
@@ -3520,11 +3578,8 @@
                     tmp = this._owner.xMin;
                     if (info.percent) {
                         if (this._owner == this._target.parent) {
-                            if (this._owner._underConstruct)
-                                this._owner.width = pos + this._target._width - this._target._width * pivot +
-                                    (this._owner.sourceWidth - pos - this._target.initWidth + this._target.initWidth * pivot) * delta;
-                            else
-                                this._owner.width = pos + (this._owner._rawWidth - pos) * delta;
+                            this._owner.width = pos + this._target._width - this._target._width * pivot +
+                                (this._owner.sourceWidth - this._targetInitX - this._target.initWidth + this._target.initWidth * pivot) * delta;
                         }
                         else {
                             v = pos + (tmp + this._owner._rawWidth - pos) * delta - (tmp + this._owner._rawWidth);
@@ -3534,10 +3589,7 @@
                     }
                     else {
                         if (this._owner == this._target.parent) {
-                            if (this._owner._underConstruct)
-                                this._owner.width = this._owner.sourceWidth + (this._target._width - this._target.initWidth) * (1 - pivot);
-                            else
-                                this._owner.width = this._owner._rawWidth + delta * (1 - pivot);
+                            this._owner.width = this._owner.sourceWidth + pos - this._targetInitX + (this._target._width - this._target.initWidth) * (1 - pivot);
                         }
                         else {
                             v = delta * (1 - pivot);
@@ -3577,11 +3629,8 @@
                     tmp = this._owner.yMin;
                     if (info.percent) {
                         if (this._owner == this._target.parent) {
-                            if (this._owner._underConstruct)
-                                this._owner.height = pos + this._target._height - this._target._height * pivot +
-                                    (this._owner.sourceHeight - pos - this._target.initHeight + this._target.initHeight * pivot) * delta;
-                            else
-                                this._owner.height = pos + (this._owner._rawHeight - pos) * delta;
+                            this._owner.height = pos + this._target._height - this._target._height * pivot +
+                                (this._owner.sourceHeight - this._targetInitY - this._target.initHeight + this._target.initHeight * pivot) * delta;
                         }
                         else {
                             v = pos + (tmp + this._owner._rawHeight - pos) * delta - (tmp + this._owner._rawHeight);
@@ -3591,10 +3640,7 @@
                     }
                     else {
                         if (this._owner == this._target.parent) {
-                            if (this._owner._underConstruct)
-                                this._owner.height = this._owner.sourceHeight + (this._target._height - this._target.initHeight) * (1 - pivot);
-                            else
-                                this._owner.height = this._owner._rawHeight + delta * (1 - pivot);
+                            this._owner.height = this._owner.sourceHeight + pos - this._targetInitY + (this._target._height - this._target.initHeight) * (1 - pivot);
                         }
                         else {
                             v = delta * (1 - pivot);
@@ -3609,8 +3655,8 @@
             if (this._target != this._owner.parent)
                 this._target.on("pos_changed", this.__targetXYChanged, this);
             this._target.on("size_changed", this.__targetSizeChanged, this);
-            this._targetX = this._target.x;
-            this._targetY = this._target.y;
+            this._targetX = this._targetInitX = this._target.x;
+            this._targetY = this._targetInitY = this._target.y;
             this._targetWidth = this._target._width;
             this._targetHeight = this._target._height;
         }
@@ -3988,7 +4034,7 @@
             if (this._parent)
                 r = this.parent;
             else
-                r = Decls.GRoot.inst;
+                r = Decls$1.GRoot.inst;
             this.setPosition(Math.floor((r.width - this.width) / 2), Math.floor((r.height - this.height) / 2));
             if (restraint) {
                 this.addRelation(r, exports.RelationType.Center_Center);
@@ -4057,7 +4103,7 @@
             this._height = hv;
         }
         makeFullScreen() {
-            this.setSize(Decls.GRoot.inst.width, Decls.GRoot.inst.height);
+            this.setSize(Decls$1.GRoot.inst.width, Decls$1.GRoot.inst.height);
         }
         get actualWidth() {
             return this.width * Math.abs(this._scaleX);
@@ -4240,11 +4286,11 @@
             Timers.callDelay(100, this.__doShowTooltips, this);
         }
         __doShowTooltips() {
-            Decls.GRoot.findFor(this).showTooltips(this._tooltips);
+            Decls$1.GRoot.findFor(this).showTooltips(this._tooltips);
         }
         __rollOut() {
             Timers.remove(this.__doShowTooltips, this);
-            Decls.GRoot.findFor(this).hideTooltips();
+            Decls$1.GRoot.findFor(this).hideTooltips();
         }
         get blendMode() {
             return this._displayObject.blendMode;
@@ -4452,22 +4498,22 @@
             return result;
         }
         localToRoot(ax, ay, result) {
-            let r = Decls.GRoot.findFor(this);
+            let r = Decls$1.GRoot.findFor(this);
             let pt = this.localToGlobal(ax, ay, result);
             return r.globalToLocal(pt.x, pt.y, pt);
         }
         rootToLocal(ax, ay, result) {
-            let r = Decls.GRoot.findFor(this);
+            let r = Decls$1.GRoot.findFor(this);
             let pt = r.localToGlobal(ax, ay, result);
             return this.globalToLocal(pt.x, pt.y, pt);
         }
         localToGlobalRect(ax, ay, aWidth, aHeight, result) {
             if (!result)
                 result = new Rect();
-            var pt = this.localToGlobal(ax, ay, s_vec2$1);
+            var pt = this.localToGlobal(ax, ay, s_vec2$4);
             result.x = pt.x;
             result.y = pt.y;
-            pt = this.localToGlobal(ax + aWidth, ay + aHeight, s_vec2$1);
+            pt = this.localToGlobal(ax + aWidth, ay + aHeight, s_vec2$4);
             result.width = pt.x - result.x;
             result.height = pt.y - result.y;
             return result;
@@ -4475,10 +4521,10 @@
         globalToLocalRect(ax, ay, aWidth, aHeight, result) {
             if (!result)
                 result = new Rect();
-            var pt = this.globalToLocal(ax, ay, s_vec2$1);
+            var pt = this.globalToLocal(ax, ay, s_vec2$4);
             result.x = pt.x;
             result.y = pt.y;
-            pt = this.globalToLocal(ax + aWidth, ay + aHeight, s_vec2$1);
+            pt = this.globalToLocal(ax + aWidth, ay + aHeight, s_vec2$4);
             result.width = pt.x - result.x;
             result.height = pt.y - result.y;
             return result;
@@ -4609,7 +4655,7 @@
                 this.grayed = true;
             var bm = buffer.readByte();
             this.blendMode = BlendModeTranslate[bm] || three.NormalBlending;
-            var filter = buffer.readByte();
+            buffer.readByte();
             var str = buffer.readS();
             if (str != null)
                 this.data = str;
@@ -4691,7 +4737,7 @@
                 let xx = evt.input.x - sGlobalDragStart.x + sGlobalRect.x;
                 let yy = evt.input.y - sGlobalDragStart.y + sGlobalRect.y;
                 if (this._dragBounds) {
-                    let rect = Decls.GRoot.findFor(this).localToGlobalRect(this._dragBounds.x, this._dragBounds.y, this._dragBounds.width, this._dragBounds.height, s_rect$1);
+                    let rect = Decls$1.GRoot.findFor(this).localToGlobalRect(this._dragBounds.x, this._dragBounds.y, this._dragBounds.width, this._dragBounds.height, s_rect$6);
                     if (xx < rect.x)
                         xx = rect.x;
                     else if (xx + sGlobalRect.width > rect.xMax) {
@@ -4707,7 +4753,7 @@
                             yy = rect.y;
                     }
                 }
-                let pt = this.parent.globalToLocal(xx, yy, s_vec2$1);
+                let pt = this.parent.globalToLocal(xx, yy, s_vec2$4);
                 s_dragging = true;
                 this.setPosition(Math.round(pt.x), Math.round(pt.y));
                 s_dragging = false;
@@ -4741,8 +4787,8 @@
         ret._owner = owner;
         return ret;
     }
-    var s_vec2$1 = new three.Vector2();
-    var s_rect$1 = new Rect();
+    var s_vec2$4 = new three.Vector2();
+    var s_rect$6 = new Rect();
     var sGlobalDragStart = new three.Vector2();
     var sGlobalRect = new Rect();
     var s_dragging;
@@ -4751,9 +4797,9 @@
         1: three.NoBlending,
         2: three.AdditiveBlending,
         3: three.MultiplyBlending,
-        4: three.SubtractiveBlending,
+        4: three.SubtractiveBlending, //todo Screen
     };
-    var Decls = {};
+    var Decls$1 = {};
     var gInstanceCounter = 0;
     var constructingDepth = { n: 0 };
 
@@ -5143,9 +5189,9 @@
         if (str.length < 1)
             return 0;
         if (str.charAt(0) == "#")
-            str = str.substr(1);
+            str = str.substring(1);
         if (str.length == 8)
-            return (parseInt(str.substr(0, 2), 16) << 24) + parseInt(str.substr(2), 16);
+            return (parseInt(str.substring(0, 2), 16) << 24) + parseInt(str.substring(2), 16);
         else if (hasAlpha)
             return 0xFF000000 + parseInt(str, 16);
         else
@@ -5184,16 +5230,6 @@
      * threejs anti-clockwise vertex order. ie 0-2-1， 0-3-2
      */
     class VertexBuffer {
-        constructor() {
-            this.vertices = new Array();
-            this.uvs = new Array();
-            this.colors = new Array();
-            this.triangles = new Array();
-            this.contentRect = new Rect();
-            this.uvRect = new Rect();
-            this.textureSize = new three.Vector2();
-            this.vertexColor = new Color4();
-        }
         static begin(source) {
             let inst = pool.borrow();
             if (source) {
@@ -5203,6 +5239,16 @@
                 inst.textureSize = source.textureSize;
             }
             return inst;
+        }
+        constructor() {
+            this.vertices = new Array();
+            this.uvs = new Array();
+            this.colors = new Array();
+            this.triangles = new Array();
+            this.contentRect = new Rect();
+            this.uvRect = new Rect();
+            this.textureSize = new three.Vector2();
+            this.vertexColor = new Color4();
         }
         end() {
             this.clear();
@@ -5323,9 +5369,11 @@
             ]);
             this.uniforms = customUniforms;
             this.vertexShader = `
+        #ifdef TEXT
+            #define USE_UV
+        #endif
         #include <common>
         #include <uv_pars_vertex>
-        #include <uv2_pars_vertex>
         #include <envmap_pars_vertex>
         varying vec4 vColor;
         attribute vec4 color;
@@ -5338,7 +5386,6 @@
         void main() {
         
             #include <uv_vertex>
-            #include <uv2_vertex>
 
             vColor = color;
 
@@ -5367,6 +5414,9 @@
         }
         `;
             this.fragmentShader = `
+        #ifdef TEXT
+            #define USE_UV
+        #endif
         uniform bool grayed;
         uniform bool colorFilter;
         uniform mat4 colorMatrix;
@@ -5383,7 +5433,6 @@
         varying vec4 vColor;
 
         #include <uv_pars_fragment>
-        #include <uv2_pars_fragment>
         #include <map_pars_fragment>
         #include <alphamap_pars_fragment>
         #include <aomap_pars_fragment>
@@ -5437,7 +5486,7 @@
             #include <envmap_fragment>
             gl_FragColor = vec4( outgoingLight, diffuseColor.a );
             #include <tonemapping_fragment>
-            #include <encodings_fragment>
+            #include <colorspace_fragment>
             #include <fog_fragment>
             #include <premultiplied_alpha_fragment>
             #include <dithering_fragment>
@@ -5669,7 +5718,7 @@
     }
     var s_col = new Color4();
 
-    var s_rect$2 = new Rect();
+    var s_rect$5 = new Rect();
     class RectMesh {
         constructor() {
             this.lineWidth = 1;
@@ -5683,7 +5732,7 @@
                     vb.addQuad(rect, null, color);
             }
             else {
-                let part = s_rect$2;
+                let part = s_rect$5;
                 //left,right
                 part.set(rect.x, rect.y, this.lineWidth, rect.height);
                 vb.addQuad(part, null, lineColor);
@@ -5927,7 +5976,7 @@
         6, 5, 2,
         2, 1, 6
     ];
-    var s_v3$2 = new three.Vector3();
+    var s_v3 = new three.Vector3();
     class EllipseMesh {
         constructor() {
             this.lineColor = new Color4();
@@ -6015,15 +6064,15 @@
                 angle -= Math.PI;
                 vb.addVert(Math.cos(angle) * centerRadius + radiusX, Math.sin(angle) * centerRadius + radiusY, 0, lineColor);
                 vb.addVert(Math.cos(sectionStart) * radiusX + radiusX, Math.sin(sectionStart) * radiusY + radiusY, 0, lineColor);
-                vb.getPosition(vpos + 3, s_v3$2);
-                vb.addVert(s_v3$2.x, s_v3$2.y, s_v3$2.z, lineColor);
+                vb.getPosition(vpos + 3, s_v3);
+                vb.addVert(s_v3.x, s_v3.y, s_v3.z, lineColor);
                 sectionEnd += lineAngle;
                 angle = sectionEnd - lineAngle * 0.5 + Math.PI * 0.5;
                 vb.addVert(Math.cos(angle) * centerRadius + radiusX, Math.sin(angle) * centerRadius + radiusY, 0, lineColor);
                 angle -= Math.PI;
                 vb.addVert(Math.cos(angle) * centerRadius + radiusX, Math.sin(angle) * centerRadius + radiusY, 0, lineColor);
-                vb.getPosition(vpos + sides * 3, s_v3$2);
-                vb.addVert(s_v3$2.x, s_v3$2.y, s_v3$2.z, lineColor);
+                vb.getPosition(vpos + sides * 3, s_v3);
+                vb.addVert(s_v3.x, s_v3.y, s_v3.z, lineColor);
                 vb.addVert(Math.cos(sectionEnd) * radiusX + radiusX, Math.sin(sectionEnd) * radiusY + radiusY, 0, lineColor);
                 vb.addTriangles(sides * 3 + 1, SECTOR_CENTER_TRIANGLES);
             }
@@ -6517,10 +6566,10 @@
         }
     }
     var s_vec3 = new three.Vector3();
-    var s_rect$3 = new Rect();
+    var s_rect$4 = new Rect();
     function fillHorizontal(vb, vertRect, origin, amount) {
-        s_rect$3.copy(vertRect);
-        vertRect = s_rect$3;
+        s_rect$4.copy(vertRect);
+        vertRect = s_rect$4;
         let a = vertRect.width * amount;
         if (origin == exports.FillOrigin.Right || origin == exports.FillOrigin.Bottom)
             vertRect.x += (vertRect.width - a);
@@ -6529,8 +6578,8 @@
         vb.addTriangles();
     }
     function fillVertical(vb, vertRect, origin, amount) {
-        s_rect$3.copy(vertRect);
-        vertRect = s_rect$3;
+        s_rect$4.copy(vertRect);
+        vertRect = s_rect$4;
         let a = vertRect.height * amount;
         if (origin == exports.FillOrigin.Right || origin == exports.FillOrigin.Bottom)
             vertRect.y += (vertRect.height - a);
@@ -6606,8 +6655,8 @@
                         vertRect.x += vertRect.width;
                     fillRadial90(vb, vertRect, clockwise ? exports.FillOrigin.TopLeft : exports.FillOrigin.TopRight, amount / 0.5, clockwise);
                     let vec = vb.getPosition(-4, s_vec3);
-                    s_rect$3.set(vec.x, vec.y, 0, 0);
-                    vb.addQuad(s_rect$3);
+                    s_rect$4.set(vec.x, vec.y, 0, 0);
+                    vb.addQuad(s_rect$4);
                     vb.addTriangles(-4);
                 }
                 else {
@@ -6630,8 +6679,8 @@
                         vertRect.x += vertRect.width;
                     fillRadial90(vb, vertRect, clockwise ? exports.FillOrigin.BottomRight : exports.FillOrigin.BottomLeft, amount / 0.5, clockwise);
                     let vec = vb.getPosition(-4, s_vec3);
-                    s_rect$3.set(vec.x, vec.y, 0, 0);
-                    vb.addQuad(s_rect$3);
+                    s_rect$4.set(vec.x, vec.y, 0, 0);
+                    vb.addQuad(s_rect$4);
                     vb.addTriangles(-4);
                 }
                 else {
@@ -6654,8 +6703,8 @@
                         vertRect.y += vertRect.height;
                     fillRadial90(vb, vertRect, clockwise ? exports.FillOrigin.BottomLeft : exports.FillOrigin.TopLeft, amount / 0.5, clockwise);
                     let vec = vb.getPosition(-4, s_vec3);
-                    s_rect$3.set(vec.x, vec.y, 0, 0);
-                    vb.addQuad(s_rect$3);
+                    s_rect$4.set(vec.x, vec.y, 0, 0);
+                    vb.addQuad(s_rect$4);
                     vb.addTriangles(-4);
                 }
                 else {
@@ -6678,8 +6727,8 @@
                         vertRect.y += vertRect.height;
                     fillRadial90(vb, vertRect, clockwise ? exports.FillOrigin.TopRight : exports.FillOrigin.BottomRight, amount / 0.5, clockwise);
                     let vec = vb.getPosition(-4, s_vec3);
-                    s_rect$3.set(vec.x, vec.y, 0, 0);
-                    vb.addQuad(s_rect$3);
+                    s_rect$4.set(vec.x, vec.y, 0, 0);
+                    vb.addQuad(s_rect$4);
                     vb.addTriangles(-4);
                 }
                 else {
@@ -6710,8 +6759,8 @@
                         vertRect.x += vertRect.width;
                     fillRadial180(vb, vertRect, clockwise ? exports.FillOrigin.Left : exports.FillOrigin.Right, amount / 0.5, clockwise);
                     let vec = vb.getPosition(-8, s_vec3);
-                    s_rect$3.set(vec.x, vec.y, 0, 0);
-                    vb.addQuad(s_rect$3);
+                    s_rect$4.set(vec.x, vec.y, 0, 0);
+                    vb.addQuad(s_rect$4);
                     vb.addTriangles(-4);
                 }
                 else {
@@ -6734,8 +6783,8 @@
                         vertRect.x += vertRect.width;
                     fillRadial180(vb, vertRect, clockwise ? exports.FillOrigin.Right : exports.FillOrigin.Left, amount / 0.5, clockwise);
                     let vec = vb.getPosition(-8, s_vec3);
-                    s_rect$3.set(vec.x, vec.y, 0, 0);
-                    vb.addQuad(s_rect$3);
+                    s_rect$4.set(vec.x, vec.y, 0, 0);
+                    vb.addQuad(s_rect$4);
                     vb.addTriangles(-4);
                 }
                 else {
@@ -6758,8 +6807,8 @@
                         vertRect.y += vertRect.height;
                     fillRadial180(vb, vertRect, clockwise ? exports.FillOrigin.Bottom : exports.FillOrigin.Top, amount / 0.5, clockwise);
                     let vec = vb.getPosition(-8, s_vec3);
-                    s_rect$3.set(vec.x, vec.y, 0, 0);
-                    vb.addQuad(s_rect$3);
+                    s_rect$4.set(vec.x, vec.y, 0, 0);
+                    vb.addQuad(s_rect$4);
                     vb.addTriangles(-4);
                 }
                 else {
@@ -6782,8 +6831,8 @@
                         vertRect.y += vertRect.height;
                     fillRadial180(vb, vertRect, clockwise ? exports.FillOrigin.Top : exports.FillOrigin.Bottom, amount / 0.5, clockwise);
                     let vec = vb.getPosition(-8, s_vec3);
-                    s_rect$3.set(vec.x, vec.y, 0, 0);
-                    vb.addQuad(s_rect$3);
+                    s_rect$4.set(vec.x, vec.y, 0, 0);
+                    vb.addQuad(s_rect$4);
                     vb.addTriangles(-4);
                 }
                 else {
@@ -7526,7 +7575,7 @@
         }
     }
 
-    var s_rect$4 = new Rect();
+    var s_rect$3 = new Rect();
     var c_white = new Color4(0xFFFFFF, 1);
     class BitmapFont {
         constructor() {
@@ -7572,8 +7621,8 @@
             let ty = -y - this._glyph.y * this._scale;
             let bx = x + (this._glyph.x + this._glyph.width) * this._scale;
             let by = -y - (this._glyph.y + this._glyph.height) * this._scale;
-            s_rect$4.setMinMax(tx, by, bx, ty);
-            vb.addQuad(s_rect$4, this._glyph.uv, this.tint ? this._color : c_white);
+            s_rect$3.setMinMax(tx, by, bx, ty);
+            vb.addQuad(s_rect$3, this._glyph.uv, this.tint ? this._color : c_white);
             vb.addTriangles(-4);
             return 4;
         }
@@ -7762,11 +7811,13 @@
         }
     }
 
+    exports.ScaleMode = void 0;
     (function (ScaleMode) {
         ScaleMode[ScaleMode["ConstantPixelSize"] = 0] = "ConstantPixelSize";
         ScaleMode[ScaleMode["ScaleWithScreenSize"] = 1] = "ScaleWithScreenSize";
         ScaleMode[ScaleMode["ConstantPhysicalSize"] = 2] = "ConstantPhysicalSize";
     })(exports.ScaleMode || (exports.ScaleMode = {}));
+    exports.ScreenMatchMode = void 0;
     (function (ScreenMatchMode) {
         ScreenMatchMode[ScreenMatchMode["MatchWidthOrHeight"] = 0] = "MatchWidthOrHeight";
         ScreenMatchMode[ScreenMatchMode["MatchWidth"] = 1] = "MatchWidth";
@@ -7806,7 +7857,7 @@
                 return;
             let dx = _designResolutionX;
             let dy = _designResolutionY;
-            if ( (screenWidth > screenHeight && dx < dy || screenWidth < screenHeight && dx > dy)) {
+            if ((screenWidth > screenHeight && dx < dy || screenWidth < screenHeight && dx > dy)) {
                 //scale should not change when orientation change
                 let tmp = dx;
                 dx = dy;
@@ -7867,7 +7918,7 @@
         }
     }
 
-    var s_rect$5 = new Rect();
+    var s_rect$2 = new Rect();
     class DynamicFont {
         constructor() {
             this.version = 0;
@@ -7893,17 +7944,20 @@
         }
         createTexture(size) {
             this._canvas.width = this._canvas.height = size;
-            if (!this.mainTexture) {
-                this._texture = new three.Texture(this._canvas);
-                this._texture.generateMipmaps = false;
-                this._texture.magFilter = three.LinearFilter;
-                this._texture.minFilter = three.LinearFilter;
-                this.mainTexture = new NTexture(this._texture);
-            }
-            else {
-                this._texture.needsUpdate = true;
-                this.mainTexture.reload(this._texture);
-            }
+            if (this._texture)
+                this._texture.dispose();
+            let tex = new three.Texture(this._canvas);
+            tex.generateMipmaps = false;
+            tex.magFilter = three.LinearFilter;
+            tex.minFilter = three.LinearFilter;
+            tex.colorSpace = three.SRGBColorSpace;
+            tex.premultiplyAlpha = true;
+            tex.needsUpdate = true;
+            this._texture = tex;
+            if (!this.mainTexture)
+                this.mainTexture = new NTexture(tex);
+            else
+                this.mainTexture.reload(tex);
             this.clearTexture();
         }
         clearTexture() {
@@ -7916,7 +7970,7 @@
             if (this._canvas.width < 2048)
                 this.createTexture(this._canvas.width * 2);
             else
-                this.clearTexture();
+                this.clearTexture(); //threejs高版本引入一个bug dom节点作为纹理时不能随意改变scale
             this.version++;
             Stage.fontRebuilt = true;
             console.log("font atlas rebuilt : %s (%d)", this.name, this._canvas.width);
@@ -8088,18 +8142,18 @@
                 if (!this._glyph.outlines)
                     return 0;
                 let outlineGlyph = this._glyph.outlines[this._format.outline];
-                s_rect$5.copy(outlineGlyph.vertRect);
-                s_rect$5.x += x;
-                s_rect$5.y -= y;
+                s_rect$2.copy(outlineGlyph.vertRect);
+                s_rect$2.x += x;
+                s_rect$2.y -= y;
                 this._outlineColor.a = outlineGlyph.chl;
-                vb.addQuad(s_rect$5, outlineGlyph.uvRect, this._outlineColor);
+                vb.addQuad(s_rect$2, outlineGlyph.uvRect, this._outlineColor);
                 vb.addTriangles(-4);
             }
-            s_rect$5.copy(this._glyph.vertRect);
-            s_rect$5.x += x;
-            s_rect$5.y -= y;
+            s_rect$2.copy(this._glyph.vertRect);
+            s_rect$2.x += x;
+            s_rect$2.y -= y;
             this._color.a = this._glyph.chl;
-            vb.addQuad(s_rect$5, this._glyph.uvRect, this._color);
+            vb.addQuad(s_rect$2, this._glyph.uvRect, this._color);
             vb.addTriangles(-4);
             return 4;
         }
@@ -8202,32 +8256,32 @@
             this._branchIndex = -1;
         }
         static get branch() {
-            return _branch;
+            return UIPackage._branch;
         }
         static set branch(value) {
-            _branch = value;
-            for (var pkgId in _instById) {
-                var pkg = _instById[pkgId];
+            UIPackage._branch = value;
+            for (var pkgId in UIPackage._instById) {
+                var pkg = UIPackage._instById[pkgId];
                 if (pkg._branches) {
                     pkg._branchIndex = pkg._branches.indexOf(value);
                 }
             }
         }
         static getVar(key) {
-            return _vars[key];
+            return UIPackage._vars[key];
         }
         static setVar(key, value) {
-            _vars[key] = value;
+            UIPackage._vars[key] = value;
         }
         static getById(id) {
-            return _instById[id];
+            return UIPackage._instById[id];
         }
         static getByName(name) {
-            return _instByName[name];
+            return UIPackage._instByName[name];
         }
         static loadPackage(resKey, onProgress) {
             return new Promise(resolve => {
-                let pkg = _instById[resKey];
+                let pkg = UIPackage._instById[resKey];
                 if (pkg) {
                     resolve(pkg);
                     return;
@@ -8254,9 +8308,9 @@
                         }
                     }
                     let resolve2 = () => {
-                        _instById[pkg.id] = pkg;
-                        _instByName[pkg.name] = pkg;
-                        _instById[pkg._resKey] = pkg;
+                        UIPackage._instById[pkg.id] = pkg;
+                        UIPackage._instByName[pkg.name] = pkg;
+                        UIPackage._instById[pkg._resKey] = pkg;
                         resolve(pkg);
                     };
                     if (promises.length > 0)
@@ -8267,17 +8321,17 @@
             });
         }
         static removePackage(packageIdOrName) {
-            var pkg = _instById[packageIdOrName];
+            var pkg = UIPackage._instById[packageIdOrName];
             if (!pkg)
-                pkg = _instByName[packageIdOrName];
+                pkg = UIPackage._instByName[packageIdOrName];
             if (!pkg)
                 throw new Error("unknown package: " + packageIdOrName);
             pkg.dispose();
-            delete _instById[pkg.id];
-            delete _instByName[pkg.name];
-            delete _instById[pkg._resKey];
+            delete UIPackage._instById[pkg.id];
+            delete UIPackage._instByName[pkg.name];
+            delete UIPackage._instById[pkg._resKey];
             if (pkg._customId != null)
-                delete _instById[pkg._customId];
+                delete UIPackage._instById[pkg._customId];
         }
         static createObject(pkgName, resName, userClass) {
             var pkg = UIPackage.getByName(pkgName);
@@ -8309,19 +8363,19 @@
             var pos2 = url.indexOf("/", pos1 + 2);
             if (pos2 == -1) {
                 if (url.length > 13) {
-                    var pkgId = url.substr(5, 8);
+                    var pkgId = url.substring(5, 13);
                     var pkg = UIPackage.getById(pkgId);
                     if (pkg) {
-                        var srcId = url.substr(13);
+                        var srcId = url.substring(13);
                         return pkg.getItemById(srcId);
                     }
                 }
             }
             else {
-                var pkgName = url.substr(pos1 + 2, pos2 - pos1 - 2);
+                var pkgName = url.substring(pos1 + 2, pos2);
                 pkg = UIPackage.getByName(pkgName);
                 if (pkg) {
-                    var srcName = url.substr(pos2 + 1);
+                    var srcName = url.substring(pos2 + 1);
                     return pkg.getItemByName(srcName);
                 }
             }
@@ -8342,15 +8396,15 @@
             var pos2 = url.indexOf("/", pos1 + 2);
             if (pos2 == -1)
                 return url;
-            var pkgName = url.substr(pos1 + 2, pos2 - pos1 - 2);
-            var srcName = url.substr(pos2 + 1);
+            var pkgName = url.substring(pos1 + 2, pos2);
+            var srcName = url.substring(pos2 + 1);
             return UIPackage.getItemURL(pkgName, srcName);
         }
         loadPackage(buffer) {
             if (buffer.readUint() != 0x46475549)
                 throw new Error("old package format found in '" + this._resKey + "'");
             buffer.version = buffer.readInt();
-            var compressed = buffer.readBool();
+            buffer.readBool();
             this._id = buffer.readString();
             this._name = buffer.readString();
             buffer.skip(20);
@@ -8375,8 +8429,8 @@
                 cnt = buffer.readShort();
                 if (cnt > 0) {
                     this._branches = buffer.readSArray(cnt);
-                    if (_branch)
-                        this._branchIndex = this._branches.indexOf(_branch);
+                    if (UIPackage._branch)
+                        this._branchIndex = this._branches.indexOf(UIPackage._branch);
                 }
                 branchIncluded = cnt > 0;
             }
@@ -8437,7 +8491,7 @@
                             else
                                 pi.objectType = exports.ObjectType.Component;
                             pi.rawData = buffer.readBuffer();
-                            Decls$1.UIObjectFactory.resolveExtension(pi);
+                            Decls.UIObjectFactory.resolveExtension(pi);
                             break;
                         }
                     case exports.PackageItemType.Atlas:
@@ -8534,10 +8588,10 @@
         }
         set customId(value) {
             if (this._customId != null)
-                delete _instById[this._customId];
+                delete UIPackage._instById[this._customId];
             this._customId = value;
             if (this._customId != null)
-                _instById[this._customId] = this;
+                UIPackage._instById[this._customId] = this;
         }
         createObject(resName, userClass) {
             var pi = this._itemsByName[resName];
@@ -8547,7 +8601,7 @@
                 return null;
         }
         internalCreateObject(item, userClass) {
-            var g = Decls$1.UIObjectFactory.newObject(item, userClass);
+            var g = Decls.UIObjectFactory.newObject(item, userClass);
             if (g == null)
                 return null;
             constructingDepth.n++;
@@ -8742,10 +8796,10 @@
             font.mainTexture = mainTexture;
         }
     }
-    var _instById = {};
-    var _instByName = {};
-    var _branch = "";
-    var _vars = {};
+    UIPackage._instById = {};
+    UIPackage._instByName = {};
+    UIPackage._branch = "";
+    UIPackage._vars = {};
     FontManager.packageFontGetter = name => UIPackage.getItemAssetByURL(name);
     function loadTexture(pi, onProgress) {
         return new Promise((resolve, reject) => {
@@ -8753,10 +8807,11 @@
                 texture.generateMipmaps = false;
                 texture.magFilter = three.LinearFilter;
                 texture.minFilter = three.LinearFilter;
+                texture.colorSpace = three.SRGBColorSpace;
                 pi.texture = new NTexture(texture);
                 resolve();
             }, onProgress, ev => {
-                reject(ev.message);
+                reject(ev);
             });
         });
     }
@@ -8766,11 +8821,11 @@
                 pi.audioBuffer = buffer;
                 resolve();
             }, onProgress, ev => {
-                reject(ev.message);
+                reject(ev);
             });
         });
     }
-    var Decls$1 = {};
+    var Decls = {};
 
     class ControllerAction {
         constructor() {
@@ -9114,8 +9169,8 @@
         }
     }
 
-    var s_vec2$2 = new three.Vector2();
-    var s_rect$6 = new Rect();
+    var s_vec2$3 = new three.Vector2();
+    var s_rect$1 = new Rect();
     var s_endPos = new three.Vector2();
     var s_oldChange = new three.Vector2();
     var s_gestureFlag = 0;
@@ -9489,11 +9544,11 @@
             var rect;
             if (target instanceof GObject) {
                 if (target.parent != this._owner) {
-                    target.parent.localToGlobalRect(target.x, target.y, target.width, target.height, s_rect$6);
-                    rect = this._owner.globalToLocalRect(s_rect$6.x, s_rect$6.y, s_rect$6.width, s_rect$6.height, s_rect$6);
+                    target.parent.localToGlobalRect(target.x, target.y, target.width, target.height, s_rect$1);
+                    rect = this._owner.globalToLocalRect(s_rect$1.x, s_rect$1.y, s_rect$1.width, s_rect$1.height, s_rect$1);
                 }
                 else {
-                    rect = s_rect$6;
+                    rect = s_rect$1;
                     rect.set(target.x, target.y, target.width, target.height);
                 }
             }
@@ -9884,7 +9939,7 @@
             }
             else
                 this._dragged = false;
-            var pt = this._owner.globalToLocal(evt.input.x, evt.input.y, s_vec2$2);
+            var pt = this._owner.globalToLocal(evt.input.x, evt.input.y, s_vec2$3);
             this._containerPos.set(this._container.x, this._container.y);
             this._beginTouchPos.set(pt.x, pt.y);
             this._lastTouchPos.set(pt.x, pt.y);
@@ -10285,7 +10340,7 @@
                     xDir = pos.x - this._containerPos.x;
                     yDir = pos.y - this._containerPos.y;
                 }
-                var pt = this._owner.getSnappingPositionWithDir(-pos.x, -pos.y, xDir, yDir, s_vec2$2);
+                var pt = this._owner.getSnappingPositionWithDir(-pos.x, -pos.y, xDir, yDir, s_vec2$3);
                 if (pos.x < 0 && pos.x > -this._overlapSize.x)
                     pos.x = -pt.x;
                 if (pos.y < 0 && pos.y > -this._overlapSize.y)
@@ -10420,7 +10475,7 @@
                 if (pos > 0) {
                     if (this._header.displayObject.parent == null)
                         this._maskContainer.addChildAt(this._header.displayObject, 0);
-                    var pt = s_vec2$2;
+                    var pt = s_vec2$3;
                     pt.set(this._header.width, this._header.height);
                     pt[this._refreshBarAxis] = pos;
                     this._header.setSize(pt.x, pt.y);
@@ -10435,7 +10490,7 @@
                 if (pos < -max || max == 0 && this._footerLockedSize > 0) {
                     if (this._footer.displayObject.parent == null)
                         this._maskContainer.addChildAt(this._footer.displayObject, 0);
-                    pt = s_vec2$2;
+                    pt = s_vec2$3;
                     pt.set(this._footer.x, this._footer.y);
                     if (max > 0)
                         pt[this._refreshBarAxis] = pos + this._contentSize[this._refreshBarAxis];
@@ -11682,7 +11737,7 @@
                                 value.audioClip = value.sound;
                         }
                         if (value.audioClip)
-                            Decls.GRoot.inst.playOneShotSound(value.audioClip, value.volume);
+                            Decls$1.GRoot.inst.playOneShotSound(value.audioClip, value.volume);
                     }
                     break;
                 case ActionType.Shake:
@@ -11878,8 +11933,8 @@
                 let i = key.indexOf("-");
                 if (i == -1)
                     return;
-                let key2 = key.substr(0, i);
-                let key3 = key.substr(i + 1);
+                let key2 = key.substring(0, i);
+                let key3 = key.substring(i + 1);
                 let col = strings[key2];
                 if (!col) {
                     col = {};
@@ -11891,7 +11946,7 @@
         static translateComponent(item) {
             if (TranslationHelper.strings == null)
                 return;
-            var compStrings = TranslationHelper.strings[item.owner.id + item.id];
+            let compStrings = TranslationHelper.strings[item.owner.id + item.id];
             if (!compStrings)
                 return;
             var elementId, value;
@@ -12061,7 +12116,7 @@
         }
     }
 
-    var s_vec2$3 = new three.Vector2();
+    var s_vec2$2 = new three.Vector2();
     class ShapeHitTest {
         constructor(obj) {
             this.shape = obj;
@@ -12072,9 +12127,9 @@
             if (this.shape.parent) {
                 let p = this.shape.parent["$owner"];
                 if (p) {
-                    p.transformPoint(x, y, this.shape.obj3D, s_vec2$3);
-                    x = s_vec2$3.x;
-                    y = s_vec2$3.y;
+                    p.transformPoint(x, y, this.shape.obj3D, s_vec2$2);
+                    x = s_vec2$2.x;
+                    y = s_vec2$2.y;
                 }
             }
             let ht = this.shape.graphics.meshFactory;
@@ -12917,11 +12972,11 @@
                     else
                         pi = null;
                     if (pi) {
-                        child = Decls$1.UIObjectFactory.newObject(pi);
+                        child = Decls.UIObjectFactory.newObject(pi);
                         child.constructFromResource();
                     }
                     else
-                        child = Decls$1.UIObjectFactory.newObject(type);
+                        child = Decls.UIObjectFactory.newObject(type);
                 }
                 child._underConstruct = true;
                 child.setup_beforeAdd(buffer, curPos);
@@ -13246,12 +13301,32 @@
         }
     }
 
-    var _inst;
+    var _inst$1;
     class GRoot extends GComponent {
+        static get inst() {
+            if (!_inst$1) {
+                _inst$1 = new GRoot();
+                Stage.scene.add(_inst$1.displayObject.obj3D);
+            }
+            return _inst$1;
+        }
+        static findFor(obj) {
+            if (obj instanceof GRoot)
+                return obj;
+            if (!obj)
+                return _inst$1;
+            var p = obj._parent;
+            while (p) {
+                if (p instanceof GRoot)
+                    return p;
+                p = p.parent;
+            }
+            return _inst$1;
+        }
         constructor() {
             super();
-            if (!_inst)
-                _inst = this;
+            if (!_inst$1)
+                _inst$1 = this;
             this.opaque = false;
             this._popupStack = [];
             this._justClosedPopups = [];
@@ -13262,26 +13337,6 @@
             this._modalLayer.addRelation(this, exports.RelationType.Size);
             this.applyScaleFactor();
             this.on("content_scale_factor_changed", this.applyScaleFactor, this);
-        }
-        static get inst() {
-            if (!_inst) {
-                _inst = new GRoot();
-                Stage.scene.add(_inst.displayObject.obj3D);
-            }
-            return _inst;
-        }
-        static findFor(obj) {
-            if (obj instanceof GRoot)
-                return obj;
-            if (!obj)
-                return _inst;
-            var p = obj._parent;
-            while (p) {
-                if (p instanceof GRoot)
-                    return p;
-                p = p.parent;
-            }
-            return _inst;
         }
         applyScaleFactor() {
             this.setSize(Math.ceil(Stage.width / UIContentScaler.scaleFactor), Math.ceil(Stage.height / UIContentScaler.scaleFactor));
@@ -13573,7 +13628,7 @@
             this.checkPopups();
         }
     }
-    Decls.GRoot = GRoot;
+    Decls$1.GRoot = GRoot;
 
     class TextFormat {
         constructor() {
@@ -13619,10 +13674,10 @@
             while (true) {
                 pos2 = aSource.indexOf('&', pos1);
                 if (pos2 == -1) {
-                    sb += aSource.substr(pos1);
+                    sb += aSource.substring(pos1);
                     break;
                 }
-                sb += aSource.substr(pos1, pos2 - pos1);
+                sb += aSource.substring(pos1, pos2);
                 pos1 = pos2 + 1;
                 pos2 = pos1;
                 let end = Math.min(len, pos2 + 10);
@@ -13631,14 +13686,14 @@
                         break;
                 }
                 if (pos2 < end && pos2 > pos1) {
-                    let entity = aSource.substr(pos1, pos2 - pos1);
+                    let entity = aSource.substring(pos1, pos2);
                     let u = 0;
                     if (entity[0] == '#') {
                         if (entity.length > 1) {
                             if (entity[1] == 'x')
-                                u = parseInt(entity.substr(2), 16);
+                                u = parseInt(entity.substring(2), 16);
                             else
-                                u = parseInt(entity.substr(1));
+                                u = parseInt(entity.substring(1));
                             sb += String.fromCharCode(u);
                             pos1 = pos2 + 1;
                         }
@@ -13772,7 +13827,7 @@
                     break;
                 c = this.source[pos];
                 if (c == '!') {
-                    if (this.sourceLen > pos + 7 && this.source.substr(pos - 1, 9) == CDATA_START) {
+                    if (this.sourceLen > pos + 7 && this.source.substring(pos - 1, pos + 8) == CDATA_START) {
                         pos = this.source.indexOf(CDATA_END, pos);
                         this.tagType = XMLTagType.CDATA;
                         this.tagName = "";
@@ -13784,7 +13839,7 @@
                         this.parsePos += this.tagLength;
                         return true;
                     }
-                    else if (this.sourceLen > pos + 2 && this.source.substr(pos - 1, 4) == COMMENT_START) {
+                    else if (this.sourceLen > pos + 2 && this.source.substring(pos - 1, pos + 3) == COMMENT_START) {
                         pos = this.source.indexOf(COMMENT_END, pos);
                         this.tagType = XMLTagType.Comment;
                         this.tagName = "";
@@ -13816,9 +13871,9 @@
                 }
                 if (pos == this.sourceLen)
                     break;
-                buffer += this.source.substr(this.parsePos + 1, pos - this.parsePos - 1);
+                buffer += this.source.substring(this.parsePos + 1, pos);
                 if (buffer.length > 0 && buffer[0] == '/')
-                    buffer = buffer.substr(1);
+                    buffer = buffer.substring(1);
                 let singleQuoted = false, doubleQuoted = false;
                 let possibleEnd = -1;
                 for (; pos < this.sourceLen; pos++) {
@@ -13861,7 +13916,7 @@
             return false;
         }
         static getTagSource() {
-            return this.source.substr(this.tagPos, this.tagLength);
+            return this.source.substring(this.tagPos, this.tagLength - this.tagPos);
         }
         static getRawText(trim) {
             if (this.lastTagEnd == this.tagPos)
@@ -13876,10 +13931,10 @@
                 if (i == this.tagPos)
                     return "";
                 else
-                    return this.source.substr(i, this.tagPos - i).trim();
+                    return this.source.substring(i, this.tagPos).trim();
             }
             else
-                return this.source.substr(this.lastTagEnd, this.tagPos - this.lastTagEnd);
+                return this.source.substring(this.lastTagEnd, this.tagPos);
         }
         static getText(trim) {
             if (this.lastTagEnd == this.tagPos)
@@ -13894,10 +13949,10 @@
                 if (i == this.tagPos)
                     return "";
                 else
-                    return XMLUtils.decodeString(this.source.substr(i, this.tagPos - i)).trimRight();
+                    return XMLUtils.decodeString(this.source.substring(i, this.tagPos)).trimRight();
             }
             else
-                return XMLUtils.decodeString(this.source.substr(this.lastTagEnd, this.tagPos - this.lastTagEnd));
+                return XMLUtils.decodeString(this.source.substring(this.lastTagEnd, this.tagPos));
         }
         static getAttribute(attrName) {
             if (!this.attrParsed) {
@@ -13989,7 +14044,7 @@
                         if (this.lowerCaseName)
                             attrName = attrName.toLowerCase();
                         buffer = "";
-                        attrs[attrName] = XMLUtils.decodeString(this.source.substr(valueStart, valueEnd - valueStart + 1));
+                        attrs[attrName] = XMLUtils.decodeString(this.source.substring(valueStart, valueEnd + 1));
                         i = valueEnd + 1;
                     }
                     else
@@ -14103,7 +14158,7 @@
             this._elements = elements;
             this._textFormatStackTop = 0;
             this._format.copy(defaultFormat);
-            this._format["colorChanged"] = false;
+            this._format._colorChanged = false;
             let skipText = 0;
             let ignoreWhiteSpace = parseOptions.ignoreWhiteSpace;
             let skipNextCR = false;
@@ -14114,7 +14169,7 @@
                     text = XMLIterator.getText(ignoreWhiteSpace);
                     if (text.length > 0) {
                         if (skipNextCR && text[0] == '\n')
-                            text = text.substr(1);
+                            text = text.substring(1);
                         this.appendText(text);
                     }
                 }
@@ -14199,7 +14254,7 @@
                         if (XMLIterator.tagType == XMLTagType.Start) {
                             this.pushTextFormat();
                             this._format.underline = this._format.underline || parseOptions.linkUnderline;
-                            if (!this._format["colorChanged"])
+                            if (!this._format._colorChanged)
                                 this._format.color = parseOptions.linkColor;
                             let element = elementPool.borrow(HtmlElementType.Link);
                             element.fetchAttributes();
@@ -14294,7 +14349,7 @@
                 text = XMLIterator.getText(ignoreWhiteSpace);
                 if (text.length > 0) {
                     if (skipNextCR && text[0] == '\n')
-                        text = text.substr(1);
+                        text = text.substring(1);
                     this.appendText(text);
                 }
             }
@@ -14309,14 +14364,14 @@
             else
                 tf = this._textFormatStack[this._textFormatStackTop];
             tf.copy(this._format);
-            tf["colorChanged"] = this._format["colorChanged"];
+            tf._colorChanged = this._format._colorChanged;
             this._textFormatStackTop++;
         }
         popTextFormat() {
             if (this._textFormatStackTop > 0) {
                 let tf = this._textFormatStack[this._textFormatStackTop - 1];
                 this._format.copy(tf);
-                this._format["colorChanged"] = tf["colorChanged"];
+                this._format._colorChanged = tf._colorChanged;
                 this._textFormatStackTop--;
             }
         }
@@ -14345,7 +14400,7 @@
             this._elements.push(element);
         }
     }
-    var defaultParser = new HtmlParser();
+    var defaultParser$1 = new HtmlParser();
 
     class TextField extends DisplayObject {
         constructor() {
@@ -14625,7 +14680,7 @@
         }
         parseText() {
             if (this._html) {
-                defaultParser.parse(this._text, this._textFormat, this._elements, this.isRich ? this.htmlParseOptions : null);
+                defaultParser$1.parse(this._text, this._textFormat, this._elements, this.isRich ? this.htmlParseOptions : null);
                 this._parsedText = "";
             }
             else
@@ -15265,12 +15320,12 @@
                 pos1 = this._readPos;
             }
             if (pos1 < this._text.length)
-                result += this._text.substr(pos1);
+                result += this._text.substring(pos1);
             this._text = null;
             return result;
         }
     }
-    var defaultParser$1 = new UBBParser();
+    var defaultParser = new UBBParser();
 
     class InputTextField extends TextField {
         constructor() {
@@ -15281,15 +15336,11 @@
             this._text2 = '';
             this.maxLength = 0;
             this.editable = true;
-            this._borderColor = new Color4();
-            this._backgroundColor = new Color4(0xFFFFFF, 0);
             this.on("focus_in", this.__focusIn, this, true);
             this.on("focus_out", this.__focusOut, this, true);
             this.on("removed_from_stage", this.__removed, this);
         }
         get text() {
-            if (this._editing)
-                this._text2 = this._element.value;
             return this._text2;
         }
         set text(value) {
@@ -15301,24 +15352,28 @@
         }
         set promptText(value) {
             this._promptText = value;
-            this._decodedPromptText = defaultParser$1.parse(value);
+            this._decodedPromptText = defaultParser.parse(value);
             this.updateText();
         }
         get password() {
             return this._password;
         }
         set password(value) {
-            this._password = value;
+            if (this._password != value) {
+                this._password = value;
+                if (this._element instanceof HTMLInputElement)
+                    this._element.type = value ? "password" : "text";
+            }
         }
         updateText() {
-            if (this._editing)
-                this._element.value = this._text2;
-            else if (this._text2.length == 0 && this._promptText)
+            if (this._text2.length == 0 && this._promptText)
                 super.htmlText = this._decodedPromptText;
             else if (this._password)
                 super.text = "*".repeat(this._text2.length);
             else
                 super.text = this._text2;
+            if (this._element)
+                this._element.value = this._text2;
         }
         onSizeChanged() {
             super.onSizeChanged();
@@ -15355,10 +15410,40 @@
             e.style.background = 'transparent';
             e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
             Stage.domElement.parentNode.appendChild(e);
+            if (e instanceof HTMLInputElement) {
+                if (this._password)
+                    e.type = "password";
+                else
+                    e.type = "text";
+                e.addEventListener("keydown", evt => {
+                    if ((evt.key == "Enter" && !evt.ctrlKey && !evt.altKey && !evt.metaKey)) {
+                        this._text2 = e.value;
+                        this.dispatchEvent("submit");
+                    }
+                });
+                e.addEventListener("input", (evt) => {
+                    this._text2 = e.value;
+                    if (!evt.isComposing)
+                        this.dispatchEvent("changed");
+                });
+                e.addEventListener("compositionend", () => {
+                    this._text2 = e.value;
+                    this.dispatchEvent("changed");
+                });
+            }
+            else {
+                e.addEventListener("input", (evt) => {
+                    this._text2 = e.value;
+                    if (!evt.isComposing)
+                        this.dispatchEvent("changed");
+                });
+                e.addEventListener("compositionend", () => {
+                    this._text2 = e.value;
+                    this.dispatchEvent("changed");
+                });
+            }
             e.onblur = () => { Stage.setFocus(null); };
-            e.onkeydown = (evt) => {
-                this.dispatchEvent("onkeydown", evt['keycode']);
-            };
+            e.onkeydown = (evt) => { this.dispatchEvent("onkeydown", evt.code); };
             this.setFormat();
         }
         setFormat() {
@@ -15388,7 +15473,7 @@
             e.style.display = "inline-block";
             this.locateInputElement();
             e.value = this._text2;
-            //e.maxLength = this.maxLength;
+            e.maxLength = this.maxLength > 0 ? this.maxLength : 524288;
             e.focus();
             this._editing = true;
             this._graphics.material.visible = false;
@@ -15398,14 +15483,14 @@
             this.localToGlobal(0, 0, s_pos);
             this.localToGlobal(1, 1, s_scale);
             s_scale.sub(s_pos);
-            s_mat$1.copy(Stage.canvasTransform).invert();
+            s_mat.copy(Stage.canvasTransform).invert();
             s_tmp.set(s_pos.x, s_pos.y, 0);
-            s_tmp.applyMatrix4(s_mat$1);
+            s_tmp.applyMatrix4(s_mat);
             s_pos.set(s_tmp.x, s_tmp.y);
             let rot = 0;
-            if (s_mat$1.elements[1] > 0)
+            if (s_mat.elements[1] > 0)
                 rot = 90;
-            else if (s_mat$1.elements[1] < 0)
+            else if (s_mat.elements[1] < 0)
                 rot = -90;
             let style = this._element.style;
             style.width = this.width.toFixed(2) + "px";
@@ -15419,7 +15504,6 @@
                 return;
             this._element.style.display = "none";
             this._element.blur();
-            this._text2 = this._element.value;
             this._editing = false;
             this.updateText();
             this._graphics.material.visible = true;
@@ -15433,7 +15517,7 @@
     }
     var s_pos = new three.Vector2();
     var s_scale = new three.Vector2();
-    var s_mat$1 = new three.Matrix4();
+    var s_mat = new three.Matrix4();
     var s_tmp = new three.Vector3();
 
     class GTextField extends GObject {
@@ -15470,7 +15554,7 @@
                 str = this.parseTemplate(str);
             this._textField.maxWidth = this.maxWidth;
             if (this._ubbEnabled)
-                this._textField.htmlText = defaultParser$1.parse(XMLUtils.encodeString(str));
+                this._textField.htmlText = defaultParser.parse(XMLUtils.encodeString(str));
             else
                 this._textField.text = str;
         }
@@ -15693,7 +15777,7 @@
                 if (pos2 == -1)
                     break;
                 if (pos2 == pos1 + 1) {
-                    result += template.substr(pos1, 2);
+                    result += template.substring(pos1, pos1 + 2);
                     pos1 = pos2 + 1;
                     continue;
                 }
@@ -15714,14 +15798,14 @@
                 pos1 = pos2 + 1;
             }
             if (pos1 < template.length)
-                result += template.substr(pos1);
+                result += template.substring(pos1);
             return result;
         }
     }
 
     class HtmlImage {
         constructor() {
-            this.loader = Decls$1.UIObjectFactory.newObject(exports.ObjectType.Loader);
+            this.loader = Decls.UIObjectFactory.newObject(exports.ObjectType.Loader);
             this.loader.fill = exports.LoaderFillType.ScaleFree;
             this.loader.touchable = false;
         }
@@ -15780,7 +15864,7 @@
         }
     }
 
-    var s_rect$7 = new Rect();
+    var s_rect = new Rect();
     class SelectionShape extends DisplayObject {
         constructor() {
             super();
@@ -15791,10 +15875,10 @@
         refresh() {
             let count = this.rects.length;
             if (count > 0) {
-                s_rect$7.copy(this.rects[0]);
+                s_rect.copy(this.rects[0]);
                 for (let i = 1; i < count; i++)
-                    s_rect$7.union(this.rects[i]);
-                this.setSize(s_rect$7.xMax, s_rect$7.yMax);
+                    s_rect.union(this.rects[i]);
+                this.setSize(s_rect.xMax, s_rect.yMax);
             }
             else
                 this.setSize(0, 0);
@@ -16001,7 +16085,7 @@
                 str = this.parseTemplate(str);
             this._textField.maxWidth = this.maxWidth;
             if (this._ubbEnabled)
-                this._textField.htmlText = defaultParser$1.parse(str);
+                this._textField.htmlText = defaultParser.parse(str);
             else
                 this._textField.htmlText = str;
         }
@@ -17454,7 +17538,7 @@
         }
     }
 
-    let s_vec2$4 = new three.Vector2();
+    let s_vec2$1 = new three.Vector2();
     class GSlider extends GComponent {
         constructor() {
             super();
@@ -17634,7 +17718,7 @@
         __gripTouchMove(evt) {
             if (!this.canDrag)
                 return;
-            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$4);
+            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$1);
             var deltaX = pt.x - this._clickPos.x;
             var deltaY = pt.y - this._clickPos.y;
             if (this._reverse) {
@@ -17651,7 +17735,7 @@
         __barTouchBegin(evt) {
             if (!this.changeOnClick)
                 return;
-            var pt = this._gripObject.globalToLocal(evt.input.x, evt.input.y, s_vec2$4);
+            var pt = this._gripObject.globalToLocal(evt.input.x, evt.input.y, s_vec2$1);
             var percent = clamp01((this._value - this._min) / (this._max - this._min));
             var delta = 0;
             if (this._barObjectH)
@@ -17832,7 +17916,7 @@
         }
     }
 
-    var s_vec2$5 = new three.Vector2();
+    var s_vec2 = new three.Vector2();
     class GScrollBar extends GComponent {
         constructor() {
             super();
@@ -17909,7 +17993,7 @@
         __gripTouchMove(evt) {
             if (!this.onStage)
                 return;
-            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
+            var pt = this.globalToLocal(evt.input.x, evt.input.y, s_vec2);
             if (this._vertical) {
                 let curY = pt.y - this._dragOffset.y;
                 let diff = this._bar.height - this._grip.height;
@@ -17947,7 +18031,7 @@
         }
         __barTouchBegin(evt) {
             evt.stopPropagation();
-            var pt = this._grip.globalToLocal(evt.input.x, evt.input.y, s_vec2$5);
+            var pt = this._grip.globalToLocal(evt.input.x, evt.input.y, s_vec2);
             if (this._vertical) {
                 if (pt.y < 0)
                     this._target.scrollUp(4);
@@ -20796,10 +20880,15 @@
         }
     }
     UIObjectFactory.extensions = {};
-    Decls$1.UIObjectFactory = UIObjectFactory;
+    Decls.UIObjectFactory = UIObjectFactory;
 
-    var _inst$1;
+    var _inst;
     class DragDropManager {
+        static get inst() {
+            if (!_inst)
+                _inst = new DragDropManager();
+            return _inst;
+        }
         constructor() {
             let a = this._agent = new GLoader();
             a.draggable = true;
@@ -20810,11 +20899,6 @@
             a.verticalAlign = "middle";
             a.sortingOrder = 1000000;
             a.on("drag_end", this.__dragEnd, this);
-        }
-        static get inst() {
-            if (!_inst$1)
-                _inst$1 = new DragDropManager();
-            return _inst$1;
         }
         get dragAgent() {
             return this._agent;
@@ -21086,7 +21170,5 @@
     exports.lerp = lerp;
     exports.repeat = repeat;
 
-    Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
+}));
 //# sourceMappingURL=fairygui.js.map

@@ -1,6 +1,6 @@
 export class Pool<T extends Object>
 {
-    pool = [];
+    pool: Array<T> = [];
     _init: (arg0: T, ...argArray: any[]) => void;
     _reset: (arg0: T) => void;
     _ct: new () => T;

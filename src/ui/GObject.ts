@@ -83,7 +83,7 @@ export class GObject {
         this._name = "";
 
         this.createDisplayObject();
-        this._displayObject["$owner"] = this;
+        (<any>this._displayObject)["$owner"] = this;
 
         this._relations = new Relations(this);
         this._gears = new Array<GearBase>(10);
@@ -957,7 +957,7 @@ export class GObject {
         if (buffer.readBool())
             this.grayed = true;
         var bm: number = buffer.readByte();
-        this.blendMode = BlendModeTranslate[bm] || NormalBlending;
+        this.blendMode = (<any>BlendModeTranslate)[bm] || NormalBlending;
 
         var filter: number = buffer.readByte();
         if (filter == 1) {
@@ -1109,7 +1109,7 @@ export class GObject {
     public static cast(obj: any): GObject {
         let dobj: any;
         if (obj instanceof Object3D) {
-            dobj = obj["$owner"];
+            dobj = (<any>obj)["$owner"];
             if (!dobj)
                 return null;
         }

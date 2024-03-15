@@ -10,7 +10,7 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { Timers } from "../utils/Timers";
 
 export class AsyncOperation {
-    public callback: (GObject) => void;
+    public callback: (obj: GObject) => void;
 
     private _itemList: Array<DisplayListItem>;
     private _objectPool: GObject[];

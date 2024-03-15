@@ -3,7 +3,9 @@
       "declaration": false,
       "target": "es6",
       "module": "es6",
-      "moduleResolution":"Node"
+      "moduleResolution":"Node",
+      "strict": true,
+      "strictNullChecks": false
   },
   
   "include": [

@@ -6,7 +6,7 @@ import { GearBase } from "./GearBase";
 export class GearXY extends GearBase {
     public positionsInPercent: boolean;
 
-    private _storage: { [index: string]: GearXYValue };
+    private _storage: Record<string, GearXYValue>;
     private _default: GearXYValue;
 
     protected init(): void {

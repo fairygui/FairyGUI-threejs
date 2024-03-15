@@ -18,6 +18,9 @@ export class TextFormat {
     public shadowOffset: Vector2 = new Vector2();
     public shadowColor: number = 0;
 
+    /**@internal */
+    _colorChanged: boolean;
+
     public copy(source: TextFormat): void {
         this.size = source.size;
         this.font = source.font;

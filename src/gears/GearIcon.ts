@@ -2,7 +2,7 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { GearBase } from "./GearBase";
 
 export class GearIcon extends GearBase {
-    private _storage: { [index: string]: string };
+    private _storage: Record<string, string>;
     private _default: string;
 
     protected init(): void {

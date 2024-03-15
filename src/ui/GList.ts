@@ -13,7 +13,7 @@ import { GObjectPool } from "./GObjectPool";
 import { UIPackage } from "./UIPackage";
 
 export class GList extends GComponent {
-    public itemRenderer: (index: number, item: GObject) => void;
+    public itemRenderer: (index: number, item: any) => void;
     public itemProvider: (index: number) => string;
 
     public scrollItemToViewOnClick: boolean;

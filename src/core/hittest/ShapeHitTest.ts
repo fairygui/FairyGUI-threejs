@@ -17,7 +17,7 @@ export class ShapeHitTest implements IHitTest {
             return false;
 
         if (this.shape.parent) {
-            let p: DisplayObject = this.shape.parent["$owner"];
+            let p: DisplayObject = (<any>this.shape.parent)["$owner"];
             if (p) {
                 p.transformPoint(x, y, this.shape.obj3D, s_vec2);
                 x = s_vec2.x;

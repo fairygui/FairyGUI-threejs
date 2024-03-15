@@ -9,10 +9,10 @@ export class XMLUtils {
         while (true) {
             pos2 = aSource.indexOf('&', pos1);
             if (pos2 == -1) {
-                sb += aSource.substr(pos1);
+                sb += aSource.substring(pos1);
                 break;
             }
-            sb += aSource.substr(pos1, pos2 - pos1);
+            sb += aSource.substring(pos1, pos2);
 
             pos1 = pos2 + 1;
             pos2 = pos1;
@@ -22,14 +22,14 @@ export class XMLUtils {
                     break;
             }
             if (pos2 < end && pos2 > pos1) {
-                let entity: string = aSource.substr(pos1, pos2 - pos1);
+                let entity: string = aSource.substring(pos1, pos2);
                 let u = 0;
                 if (entity[0] == '#') {
                     if (entity.length > 1) {
                         if (entity[1] == 'x')
-                            u = parseInt(entity.substr(2), 16);
+                            u = parseInt(entity.substring(2), 16);
                         else
-                            u = parseInt(entity.substr(1));
+                            u = parseInt(entity.substring(1));
                         sb += String.fromCharCode(u);
                         pos1 = pos2 + 1;
                     }

@@ -5,7 +5,7 @@ export class XML {
     public name: string;
     public text: string;
 
-    private _attributes: { [index: string]: string };
+    private _attributes: Record<string, string>;
     private _children: Array<XML>;
 
     public constructor(XmlString?: string) {
@@ -13,7 +13,7 @@ export class XML {
             this.parse(XmlString);
     }
 
-    public get attributes(): { [index: string]: string } {
+    public get attributes(): Record<string, string> {
         if (!this._attributes)
             this._attributes = {};
         return this._attributes;

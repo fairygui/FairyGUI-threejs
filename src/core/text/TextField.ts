@@ -85,7 +85,6 @@ export class TextField extends DisplayObject implements IMeshFactory {
     }
 
     public set align(value: AlignType) {
-
         if (this._textFormat.align != value) {
             this._textFormat.align = value;
             if (this._text)
@@ -98,7 +97,6 @@ export class TextField extends DisplayObject implements IMeshFactory {
     }
 
     public set verticalAlign(value: VertAlignType) {
-
         if (this._verticalAlign != value) {
             this._verticalAlign = value;
             if (!this._textChanged)

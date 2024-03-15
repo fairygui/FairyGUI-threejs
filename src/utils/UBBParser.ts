@@ -3,7 +3,7 @@ export class UBBParser {
     private _text: string;
     private _readPos: number = 0;
 
-    protected _handlers: { [index: string]: (tagName: string, end: boolean, attr: string) => string };
+    protected _handlers: Record<string, (tagName: string, end: boolean, attr: string) => string>;
 
     public defaultImgWidth: number = 0;
     public defaultImgHeight: number = 0;
@@ -169,7 +169,7 @@ export class UBBParser {
         }
 
         if (pos1 < this._text.length)
-            result += this._text.substr(pos1);
+            result += this._text.substring(pos1);
 
         this._text = null;
 

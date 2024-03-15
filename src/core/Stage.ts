@@ -120,7 +120,7 @@ export class Stage {
 
         if (this.fontRebuilt) {
             _scene.traverseVisible(obj => {
-                let dobj = obj["$owner"];
+                let dobj = (<any>obj)["$owner"];
                 if (dobj && ('redraw' in dobj))
                     dobj.redraw();
             });
@@ -156,9 +156,9 @@ export class HitTestContext {
 
     public set camera(value: Camera) {
         this._camera = value;
-        this._ray = this._camera["$hitTestRay"];
+        this._ray = (<any>this._camera)["$hitTestRay"];
         if (!this._ray)
-            this._camera["$hitTestRay"] = this._ray = { origin: new Vector3(), direction: new Vector3() };
+            (<any>this._camera)["$hitTestRay"] = this._ray = { origin: new Vector3(), direction: new Vector3() };
 
         screenToWorld(this._camera, this.screenPt.x, this.screenPt.y, this._ray.origin, this._ray.direction);
     }
@@ -249,21 +249,21 @@ function updateCanvasMatrix() {
     var element: HTMLElement = _canvas;
     var style = element.style;
 
-    if(style.paddingTop)
-        offsetY += parseInt(style.paddingTop,10);
+    if (style.paddingTop)
+        offsetY += parseInt(style.paddingTop, 10);
 
-    if(style.paddingLeft)
-        offsetX += parseInt(style.paddingTop,10);
-        
+    if (style.paddingLeft)
+        offsetX += parseInt(style.paddingTop, 10);
+
     do {
         offsetX += element.offsetLeft;
         offsetY += element.offsetTop;
         style = element.style;
 
-        if(style.borderLeftWidth)
+        if (style.borderLeftWidth)
             offsetX += parseInt(style.borderLeftWidth, 10);
 
-        if(style.borderTopWidth)
+        if (style.borderTopWidth)
             offsetY += parseInt(style.borderTopWidth, 10);
     } while (element = <HTMLElement>element.offsetParent);
 
@@ -512,7 +512,7 @@ function handleRollOver(touch: TouchInfo) {
     if (touch.lastRollOver) {
         _rollOutChain.push(touch.lastRollOver);
         touch.lastRollOver.obj3D.traverseAncestors(obj => {
-            let dobj = obj["$owner"];
+            let dobj = (<any>obj)["$owner"];
             if (dobj)
                 _rollOutChain.push(dobj);
         });
@@ -522,7 +522,7 @@ function handleRollOver(touch: TouchInfo) {
     if (touch.target) {
         let obj = touch.target.obj3D;
         while (obj) {
-            let dobj = obj["$owner"];
+            let dobj = (<any>obj)["$owner"];
             if (dobj) {
                 let i = _rollOutChain.indexOf(dobj);
                 if (i != -1) {
@@ -583,7 +583,7 @@ function setFocus(obj: DisplayObject): void {
         t.dispatchEvent("focus_out");
     }
 
-    if (!obj || !obj["isInput"])
+    if (!obj || !(<any>obj)["isInput"])
         return;
 
     activeTextInput = obj;
@@ -595,7 +595,7 @@ export function screenToWorld(camera: Camera, x: number, y: number, outPt: Vecto
     outPt.set((x / _width) * 2 - 1, - (y / _height) * 2 + 1, 0);
     outPt.unproject(camera);
 
-    if (camera["isPerspectiveCamera"]) {
+    if ((<any>camera)["isPerspectiveCamera"]) {
         s_v3.setFromMatrixPosition(camera.matrixWorld);
         outDir.copy(outPt).sub(s_v3).normalize();
         outDir.multiplyScalar(-1);
@@ -685,7 +685,7 @@ class TouchInfo {
         if (this.target) {
             this.downTargets.push(this.target);
             this.target.obj3D.traverseAncestors(obj => {
-                let dobj = obj["$owner"];
+                let dobj = (<any>obj)["$owner"];
                 if (dobj)
                     this.downTargets.push(dobj);
             });
@@ -783,7 +783,7 @@ class TouchInfo {
             if (i != -1 && obj.stage)
                 break;
 
-            obj = obj.parent ? obj.parent["$owner"] : null;
+            obj = obj.parent ? (<any>obj.parent)["$owner"] : null;
         }
 
         this.downTargets.length = 0;
@@ -801,7 +801,7 @@ export function broadcastEvent(p: Object3D, type: string, data?: any): void {
     let arr = ev._callChain;
 
     p.traverseVisible(obj => {
-        let dobj = obj["$owner"];
+        let dobj = (<any>obj)["$owner"];
         if (dobj)
             arr.push(dobj);
     });
@@ -827,13 +827,13 @@ export function bubbleEvent(p: Object3D, type: string, data?: any, addChain?: Ar
     let ev = EventPool.borrow();
     ev._type = type;
     ev.data = data;
-    ev._initiator = p["$owner"];
+    ev._initiator = (<any>p)["$owner"];
     let arr = ev._callChain;
 
     if (ev.initiator)
         arr.push(ev.initiator);
     p.traverseAncestors(obj => {
-        let dobj = obj["$owner"];
+        let dobj = (<any>obj)["$owner"];
         if (dobj)
             arr.push(dobj);
     });

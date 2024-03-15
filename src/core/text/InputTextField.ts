@@ -18,10 +18,6 @@ export class InputTextField extends TextField {
     private _password: boolean;
     private _promptText: string;
     private _decodedPromptText?: string;
-    private _border: number;
-    private _corner: number;
-    private _borderColor: Color4;
-    private _backgroundColor: Color4;
     private _editing: boolean;
 
     private _element: InputElement;
@@ -36,8 +32,6 @@ export class InputTextField extends TextField {
         this._text2 = '';
         this.maxLength = 0;
         this.editable = true;
-        this._borderColor = new Color4();
-        this._backgroundColor = new Color4(0xFFFFFF, 0);
 
         this.on("focus_in", this.__focusIn, this, true);
         this.on("focus_out", this.__focusOut, this, true);
@@ -45,8 +39,6 @@ export class InputTextField extends TextField {
     }
 
     public get text(): string {
-        if (this._editing)
-            this._text2 = this._element.value;
         return this._text2;
     }
 
@@ -72,18 +64,22 @@ export class InputTextField extends TextField {
     }
 
     public set password(value: boolean) {
-        this._password = value;
+        if (this._password != value) {
+            this._password = value;
+            if (this._element instanceof HTMLInputElement)
+                this._element.type = value ? "password" : "text";
+        }
     }
 
     private updateText() {
-        if (this._editing)
-            this._element.value = this._text2;
-        else if (this._text2.length == 0 && this._promptText)
+        if (this._text2.length == 0 && this._promptText)
             super.htmlText = this._decodedPromptText;
         else if (this._password)
             super.text = "*".repeat(this._text2.length);
         else
             super.text = this._text2;
+        if (this._element)
+            this._element.value = this._text2;
     }
 
     protected onSizeChanged() {
@@ -124,11 +120,46 @@ export class InputTextField extends TextField {
         e.style.position = "absolute";
         e.style.display = "none";
         e.style.background = 'transparent';
-        e.style.transformOrigin = e.style["WebkitTransformOrigin"] = "0 0 0";
+        e.style.transformOrigin = (<any>e.style)["WebkitTransformOrigin"] = "0 0 0";
         Stage.domElement.parentNode.appendChild(e);
 
+        if (e instanceof HTMLInputElement) {
+            if (this._password)
+                e.type = "password";
+            else
+                e.type = "text";
+
+            e.addEventListener("keydown", evt => {
+                if ((evt.key == "Enter" && !evt.ctrlKey && !evt.altKey && !evt.metaKey)) {
+                    this._text2 = e.value;
+                    this.dispatchEvent("submit");
+                }
+            });
+
+            e.addEventListener("input", (evt: Event) => {
+                this._text2 = e.value;
+                if (!(<InputEvent>evt).isComposing)
+                    this.dispatchEvent("changed");
+            });
+            e.addEventListener("compositionend", () => {
+                this._text2 = e.value;
+                this.dispatchEvent("changed");
+            });
+        }
+        else {
+            e.addEventListener("input", (evt: Event) => {
+                this._text2 = e.value;
+                if (!(<InputEvent>evt).isComposing)
+                    this.dispatchEvent("changed");
+            });
+            e.addEventListener("compositionend", () => {
+                this._text2 = e.value;
+                this.dispatchEvent("changed");
+            });
+        }
+
         e.onblur = () => { Stage.setFocus(null); };
-        e.onkeydown = (evt) => { this.dispatchEvent("onkeydown", evt.keyCode); };
+        e.onkeydown = (evt) => { this.dispatchEvent("onkeydown", evt.code); };
 
         this.setFormat();
     }
@@ -167,7 +198,7 @@ export class InputTextField extends TextField {
         this.locateInputElement();
 
         e.value = this._text2;
-        e.maxLength = this.maxLength;//不能注释  没有这句的话会导致编辑器里设置的文本框最大长度无效
+        e.maxLength = this.maxLength > 0 ? this.maxLength : 524288;
         e.focus();
 
         this._editing = true;
@@ -205,7 +236,6 @@ export class InputTextField extends TextField {
 
         this._element.style.display = "none";
         this._element.blur();
-        this._text2 = this._element.value;
 
         this._editing = false;
         this.updateText();

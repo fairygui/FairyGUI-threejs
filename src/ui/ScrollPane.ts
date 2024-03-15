@@ -45,7 +45,7 @@ export class ScrollPane {
     private _vScrollNone: boolean;
     private _hScrollNone: boolean;
     private _needRefresh: boolean;
-    private _refreshBarAxis: string;
+    private _refreshBarAxis: "x" | "y";
 
     private _displayOnLeft?: boolean;
     private _snapToItem?: boolean;
@@ -1350,7 +1350,7 @@ export class ScrollPane {
         bar.displayObject.visible = false;
     }
 
-    private getLoopPartSize(division: number, axis: string): number {
+    private getLoopPartSize(division: number, axis: "x" | "y"): number {
         return (this._contentSize[axis] + (axis == "x" ? (<GList>(this._owner)).columnGap : (<GList>(this._owner)).lineGap)) / division;
     }
 
@@ -1391,7 +1391,7 @@ export class ScrollPane {
             this.loopCheckingTarget2(endPos, "y");
     }
 
-    private loopCheckingTarget2(endPos: Vector2, axis: string): void {
+    private loopCheckingTarget2(endPos: Vector2, axis: "x" | "y"): void {
         var halfSize: number;
         var tmp: number;
         if (endPos[axis] > 0) {
@@ -1412,7 +1412,7 @@ export class ScrollPane {
         }
     }
 
-    private loopCheckingNewPos(value: number, axis: string): number {
+    private loopCheckingNewPos(value: number, axis: "x" | "y"): number {
         if (this._overlapSize[axis] == 0)
             return value;
 
@@ -1469,7 +1469,7 @@ export class ScrollPane {
         }
     }
 
-    private alignByPage(pos: number, axis: string, inertialScrolling: boolean): number {
+    private alignByPage(pos: number, axis: "x" | "y", inertialScrolling: boolean): number {
         var page: number;
 
         if (pos > 0)
@@ -1528,7 +1528,7 @@ export class ScrollPane {
         resultPos.y = this.updateTargetAndDuration2(orignPos.y, "y");
     }
 
-    private updateTargetAndDuration2(pos: number, axis: string): number {
+    private updateTargetAndDuration2(pos: number, axis: "x" | "y"): number {
         var v: number = this._velocity[axis];
         var duration: number = 0;
         if (pos > 0)
@@ -1577,7 +1577,7 @@ export class ScrollPane {
         return pos;
     }
 
-    private fixDuration(axis: string, oldChange: number): void {
+    private fixDuration(axis: "x" | "y", oldChange: number): void {
         if (this._tweenChange[axis] == 0 || Math.abs(this._tweenChange[axis]) >= Math.abs(oldChange))
             return;
 
@@ -1694,7 +1694,7 @@ export class ScrollPane {
         }
     }
 
-    private runTween(axis: string): number {
+    private runTween(axis: "x" | "y"): number {
         var newValue: number;
         if (this._tweenChange[axis] != 0) {
             this._tweenTime[axis] += Timers.deltaTime / 1000;

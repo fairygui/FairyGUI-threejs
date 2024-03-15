@@ -5,11 +5,11 @@ import { AlignType, AutoSizeType, ObjectPropID, VertAlignType } from "./FieldTyp
 import { GObject } from "./GObject";
 import { UIConfig } from "./UIConfig";
 import { ByteBuffer } from "../utils/ByteBuffer";
-import { UBBParser, defaultParser } from "../utils/UBBParser";
+import { defaultParser } from "../utils/UBBParser";
 import { XMLUtils } from "../utils/xml/XMLUtils";
 import { RichTextField } from "../core/text/RichTextField";
 
-export type TextTemplate = { [index: string]: string };
+export type TextTemplate = Record<string, string>;
 
 export class GTextField extends GObject {
     protected _textField: TextField | RichTextField | InputTextField;
@@ -330,7 +330,7 @@ export class GTextField extends GObject {
                 break;
 
             if (pos2 == pos1 + 1) {
-                result += template.substr(pos1, 2);
+                result += template.substring(pos1, pos1 + 2);
                 pos1 = pos2 + 1;
                 continue;
             }
@@ -353,7 +353,7 @@ export class GTextField extends GObject {
         }
 
         if (pos1 < template.length)
-            result += template.substr(pos1);
+            result += template.substring(pos1);
 
         return result;
     }

@@ -1,4 +1,4 @@
-import { AudioLoader, FileLoader, LinearFilter, Texture, TextureLoader, Vector2 } from "three";
+import { AudioLoader, FileLoader, LinearFilter, SRGBColorSpace, TextureLoader, Vector2 } from "three";
 import { PixelHitTestData } from "../core/hittest/PixelHitTest";
 import { Frame } from "../core/MovieClip";
 import { NTexture } from "../core/NTexture";
@@ -18,14 +18,19 @@ export class UIPackage {
     private _id: string;
     private _name: string;
     private _items: Array<PackageItem>;
-    private _itemsById: { [index: string]: PackageItem };
-    private _itemsByName: { [index: string]: PackageItem };
+    private _itemsById: Record<string, PackageItem>;
+    private _itemsByName: Record<string, PackageItem>;
     private _resKey: string;
     private _customId: string;
-    private _sprites: { [index: string]: AtlasSprite };
+    private _sprites: Record<string, AtlasSprite>;
     private _dependencies: Array<PackageDependency>;
     private _branches: Array<string>;
     public _branchIndex: number;
+
+    private static _instById: Record<string, UIPackage> = {};
+    private static _instByName: Record<string, UIPackage> = {};
+    private static _branch: string = "";
+    private static _vars: Record<string, string> = {};
 
     // public static _objectFactory: typeof UIObjectFactory = UIObjectFactory;
 
@@ -40,13 +45,13 @@ export class UIPackage {
     }
 
     public static get branch(): string {
-        return _branch;
+        return UIPackage._branch;
     }
 
     public static set branch(value: string) {
-        _branch = value;
-        for (var pkgId in _instById) {
-            var pkg: UIPackage = _instById[pkgId];
+        UIPackage._branch = value;
+        for (var pkgId in UIPackage._instById) {
+            var pkg: UIPackage = UIPackage._instById[pkgId];
             if (pkg._branches) {
                 pkg._branchIndex = pkg._branches.indexOf(value);
             }
@@ -54,24 +59,24 @@ export class UIPackage {
     }
 
     public static getVar(key: string): string {
-        return _vars[key];
+        return UIPackage._vars[key];
     }
 
     public static setVar(key: string, value: string) {
-        _vars[key] = value;
+        UIPackage._vars[key] = value;
     }
 
     public static getById(id: string): UIPackage {
-        return _instById[id];
+        return UIPackage._instById[id];
     }
 
     public static getByName(name: string): UIPackage {
-        return _instByName[name];
+        return UIPackage._instByName[name];
     }
 
     public static loadPackage(resKey: string, onProgress?: (event: ProgressEvent) => void): Promise<UIPackage> {
         return new Promise<UIPackage>(resolve => {
-            let pkg: UIPackage = _instById[resKey];
+            let pkg: UIPackage = UIPackage._instById[resKey];
             if (pkg) {
                 resolve(pkg);
                 return;
@@ -101,9 +106,9 @@ export class UIPackage {
                 }
 
                 let resolve2 = () => {
-                    _instById[pkg.id] = pkg;
-                    _instByName[pkg.name] = pkg;
-                    _instById[pkg._resKey] = pkg;
+                    UIPackage._instById[pkg.id] = pkg;
+                    UIPackage._instByName[pkg.name] = pkg;
+                    UIPackage._instById[pkg._resKey] = pkg;
 
                     resolve(pkg);
                 };
@@ -117,18 +122,18 @@ export class UIPackage {
     }
 
     public static removePackage(packageIdOrName: string): void {
-        var pkg: UIPackage = _instById[packageIdOrName];
+        var pkg: UIPackage = UIPackage._instById[packageIdOrName];
         if (!pkg)
-            pkg = _instByName[packageIdOrName];
+            pkg = UIPackage._instByName[packageIdOrName];
         if (!pkg)
             throw new Error("unknown package: " + packageIdOrName);
 
         pkg.dispose();
-        delete _instById[pkg.id];
-        delete _instByName[pkg.name];
-        delete _instById[pkg._resKey];
+        delete UIPackage._instById[pkg.id];
+        delete UIPackage._instByName[pkg.name];
+        delete UIPackage._instById[pkg._resKey];
         if (pkg._customId != null)
-            delete _instById[pkg._customId];
+            delete UIPackage._instById[pkg._customId];
     }
 
     public static createObject(pkgName: string, resName: string, userClass?: new () => GObject): GObject {
@@ -167,19 +172,19 @@ export class UIPackage {
         var pos2: number = url.indexOf("/", pos1 + 2);
         if (pos2 == -1) {
             if (url.length > 13) {
-                var pkgId: string = url.substr(5, 8);
+                var pkgId: string = url.substring(5, 13);
                 var pkg: UIPackage = UIPackage.getById(pkgId);
                 if (pkg) {
-                    var srcId: string = url.substr(13);
+                    var srcId: string = url.substring(13);
                     return pkg.getItemById(srcId);
                 }
             }
         }
         else {
-            var pkgName: string = url.substr(pos1 + 2, pos2 - pos1 - 2);
+            var pkgName: string = url.substring(pos1 + 2, pos2);
             pkg = UIPackage.getByName(pkgName);
             if (pkg) {
-                var srcName: string = url.substr(pos2 + 1);
+                var srcName: string = url.substring(pos2 + 1);
                 return pkg.getItemByName(srcName);
             }
         }
@@ -207,8 +212,8 @@ export class UIPackage {
         if (pos2 == -1)
             return url;
 
-        var pkgName: string = url.substr(pos1 + 2, pos2 - pos1 - 2);
-        var srcName: string = url.substr(pos2 + 1);
+        var pkgName: string = url.substring(pos1 + 2, pos2);
+        var srcName: string = url.substring(pos2 + 1);
         return UIPackage.getItemURL(pkgName, srcName);
     }
 
@@ -257,8 +262,8 @@ export class UIPackage {
             cnt = buffer.readShort();
             if (cnt > 0) {
                 this._branches = buffer.readSArray(cnt);
-                if (_branch)
-                    this._branchIndex = this._branches.indexOf(_branch);
+                if (UIPackage._branch)
+                    this._branchIndex = this._branches.indexOf(UIPackage._branch);
             }
 
             branchIncluded = cnt > 0;
@@ -449,10 +454,10 @@ export class UIPackage {
 
     public set customId(value: string) {
         if (this._customId != null)
-            delete _instById[this._customId];
+            delete UIPackage._instById[this._customId];
         this._customId = value;
         if (this._customId != null)
-            _instById[this._customId] = this;
+            UIPackage._instById[this._customId] = this;
     }
 
     public createObject(resName: string, userClass?: new () => GObject): GObject {
@@ -711,11 +716,6 @@ interface AtlasSprite {
     rotated?: boolean;
 }
 
-var _instById: { [index: string]: UIPackage } = {};
-var _instByName: { [index: string]: UIPackage } = {};
-var _branch: string = "";
-var _vars: { [index: string]: string } = {};
-
 FontManager.packageFontGetter = name => <BaseFont>UIPackage.getItemAssetByURL(name);
 
 export interface IObjectFactoryType {
@@ -730,12 +730,13 @@ function loadTexture(pi: PackageItem, onProgress?: (event: ProgressEvent) => voi
                 texture.generateMipmaps = false;
                 texture.magFilter = LinearFilter;
                 texture.minFilter = LinearFilter;
+                texture.colorSpace = SRGBColorSpace;
                 pi.texture = new NTexture(texture);
                 resolve();
             },
             onProgress,
             ev => {
-                reject(ev.message);
+                reject(ev);
             });
     });
 }
@@ -749,7 +750,7 @@ function loadSound(pi: PackageItem, onProgress?: (event: ProgressEvent) => void)
             },
             onProgress,
             ev => {
-                reject(ev.message);
+                reject(ev);
             });
     });
 }

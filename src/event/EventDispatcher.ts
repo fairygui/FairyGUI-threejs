@@ -3,7 +3,7 @@ import { Event, EventPool, EventType } from "./Event";
 type Listeners = { dispatching?: number, callbacks: Array<any>, captures: Array<any> };
 
 export class EventDispatcher {
-    public _listeners: { [index: string]: Listeners };
+    public _listeners: Record<string, Listeners>;
 
     constructor() {
         this._listeners = {};

@@ -4,7 +4,7 @@ import { ByteBuffer } from "../utils/ByteBuffer";
 import { GearBase } from "./GearBase";
 
 export class GearLook extends GearBase {
-    private _storage: { [index: string]: GearLookValue };
+    private _storage: Record<string, GearLookValue>;
     private _default: GearLookValue;
 
     protected init(): void {

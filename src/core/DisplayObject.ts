@@ -32,8 +32,8 @@ export class DisplayObject extends EventDispatcher {
         super();
 
         this._obj3D = new Object3D();
-        this._obj3D["isGroup"] = true;
-        this._obj3D["$owner"] = this;
+        (<any>this._obj3D)["isGroup"] = true;
+        (<any>this._obj3D)["$owner"] = this;
         this._obj3D.layers.set(UILayer);
 
         this._pos = this._obj3D.position;
@@ -253,7 +253,7 @@ export class DisplayObject extends EventDispatcher {
         let t: Object3D = this._obj3D;
         while (t.parent)
             t = t.parent;
-        return t["isScene"];
+        return (<any>t)["isScene"];
     }
 
     public get graphics(): NGraphics {
@@ -305,7 +305,7 @@ export class DisplayObject extends EventDispatcher {
 
     public validateMatrix(): void {
         this._obj3D.traverseAncestors(e => {
-            let dobj = e["$owner"];
+            let dobj = (<any>e)["$owner"];
             if (dobj && dobj._matrixDirty) {
                 dobj._matrixDirty = false;
                 dobj._obj3D.updateMatrixWorld(true);
@@ -320,7 +320,7 @@ export class DisplayObject extends EventDispatcher {
     public _getRenderCamera(): Camera {
         let p = this._obj3D;
         while (p) {
-            let dobj = p["$owner"];
+            let dobj = (<any>p)["$owner"];
             if (dobj && dobj.camera)
                 return dobj.camera;
 
@@ -611,7 +611,7 @@ export function traverseUpdate(p: Object3D, clippingPlanes: any, alpha: number):
     let children = p.children;
     let cnt = children.length;
 
-    let dobj = p["$owner"];
+    let dobj = (<any>p)["$owner"];
     if (dobj) {
         if (dobj._clipRect)
             clippingPlanes = dobj._clipPlanes;
@@ -620,7 +620,7 @@ export function traverseUpdate(p: Object3D, clippingPlanes: any, alpha: number):
 
     for (let i = 0; i < cnt; i++) {
         let child: Object3D = children[i];
-        dobj = child["$owner"];
+        dobj = (<any>child)["$owner"];
         if (dobj)
             dobj.update(clippingPlanes, alpha);
 
@@ -637,7 +637,7 @@ export function traverseHitTest(p: Object3D, context: HitTestContext, mask?: any
         if (!child.visible)
             continue;
 
-        let dobj = child["$owner"];
+        let dobj = (<any>child)["$owner"];
         if (dobj) {
             if (dobj == mask || dobj._touchDisabled)
                 continue;

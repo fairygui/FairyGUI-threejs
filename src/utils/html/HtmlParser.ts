@@ -29,7 +29,7 @@ export class HtmlParser {
         this._elements = elements;
         this._textFormatStackTop = 0;
         this._format.copy(defaultFormat);
-        this._format["colorChanged"] = false;
+        this._format._colorChanged = false;
         let skipText: number = 0;
         let ignoreWhiteSpace: boolean = parseOptions.ignoreWhiteSpace;
         let skipNextCR: boolean = false;
@@ -41,7 +41,7 @@ export class HtmlParser {
                 text = XMLIterator.getText(ignoreWhiteSpace);
                 if (text.length > 0) {
                     if (skipNextCR && text[0] == '\n')
-                        text = text.substr(1);
+                        text = text.substring(1);
                     this.appendText(text);
                 }
             }
@@ -138,7 +138,7 @@ export class HtmlParser {
                         this.pushTextFormat();
 
                         this._format.underline = this._format.underline || parseOptions.linkUnderline;
-                        if (!this._format["colorChanged"])
+                        if (!this._format._colorChanged)
                             this._format.color = parseOptions.linkColor;
 
                         let element = elementPool.borrow(HtmlElementType.Link);
@@ -244,7 +244,7 @@ export class HtmlParser {
             text = XMLIterator.getText(ignoreWhiteSpace);
             if (text.length > 0) {
                 if (skipNextCR && text[0] == '\n')
-                    text = text.substr(1);
+                    text = text.substring(1);
                 this.appendText(text);
             }
         }
@@ -261,7 +261,7 @@ export class HtmlParser {
         else
             tf = this._textFormatStack[this._textFormatStackTop];
         tf.copy(this._format);
-        tf["colorChanged"] = this._format["colorChanged"];
+        tf._colorChanged = this._format._colorChanged;
         this._textFormatStackTop++;
     }
 
@@ -269,7 +269,7 @@ export class HtmlParser {
         if (this._textFormatStackTop > 0) {
             let tf: TextFormat = this._textFormatStack[this._textFormatStackTop - 1];
             this._format.copy(tf);
-            this._format["colorChanged"] = tf["colorChanged"];
+            this._format._colorChanged = tf._colorChanged;
             this._textFormatStackTop--;
         }
     }

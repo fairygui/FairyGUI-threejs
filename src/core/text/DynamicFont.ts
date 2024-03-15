@@ -2,7 +2,7 @@ import { NTexture } from "../NTexture";
 import { TextFormat } from "./TextFormat";
 import { GlyphInfo } from "./BaseFont";
 import { VertexBuffer } from "../mesh/VertexBuffer";
-import { Texture, LinearFilter } from "three";
+import { Texture, LinearFilter, SRGBColorSpace } from "three";
 import { Rect } from "../../utils/Rect";
 import { Color4 } from "../../utils/Color";
 import { Stage } from "../Stage";
@@ -23,7 +23,7 @@ type Glyph = {
     baseline?: number,
     ver: number;
 
-    outlines?: { [index: number]: OutlineGlyph }
+    outlines?: Record<string, OutlineGlyph>;
 }
 
 var s_rect = new Rect();
@@ -38,7 +38,7 @@ export class DynamicFont {
     protected _context: CanvasRenderingContext2D;
     protected _texture: Texture;
     protected _packers: Array<BinPacker>;
-    protected _glyphs: { [index: number]: Glyph };
+    protected _glyphs: Record<string, Glyph>;
 
     protected _name: string;
     protected _format: TextFormat;
@@ -60,9 +60,9 @@ export class DynamicFont {
         this._canvas = document.createElement("canvas");
         this._context = this._canvas.getContext("2d");
         this._context.globalCompositeOperation = "lighter";
-        
-        this.createTexture(1024);
-        
+
+        this.createTexture(512);
+
         this._scale = Stage.devicePixelRatio;
     }
 
@@ -78,17 +78,22 @@ export class DynamicFont {
     private createTexture(size: number): void {
         this._canvas.width = this._canvas.height = size;
 
-        if (!this.mainTexture) {
-            this._texture = new Texture(this._canvas);
-            this._texture.generateMipmaps = false;
-            this._texture.magFilter = LinearFilter;
-            this._texture.minFilter = LinearFilter;
-            this.mainTexture = new NTexture(this._texture);
-        }
-        else {
-            this._texture.needsUpdate = true;
-            this.mainTexture.reload(this._texture);
-        }
+        if (this._texture)
+            this._texture.dispose();
+
+        let tex = new Texture(this._canvas);
+        tex.generateMipmaps = false;
+        tex.magFilter = LinearFilter;
+        tex.minFilter = LinearFilter;
+        tex.colorSpace = SRGBColorSpace;
+        tex.premultiplyAlpha = true;
+        tex.needsUpdate = true;
+        this._texture = tex;
+
+        if (!this.mainTexture)
+            this.mainTexture = new NTexture(tex);
+        else
+            this.mainTexture.reload(tex);
 
         this.clearTexture();
     }
@@ -102,10 +107,10 @@ export class DynamicFont {
     }
 
     protected rebuild(): void {
-        // if (this._canvas.width < 2048)
-        //     this.createTexture(this._canvas.width * 2);
-        // else
-        this.clearTexture();//threejs高版本引入一个bug dom节点作为纹理时不能随意改变scale
+        if (this._canvas.width < 2048)
+            this.createTexture(this._canvas.width * 2);
+        else
+            this.clearTexture();//threejs高版本引入一个bug dom节点作为纹理时不能随意改变scale
         this.version++;
         Stage.fontRebuilt = true;
         console.log("font atlas rebuilt : %s (%d)", this.name, this._canvas.width);
@@ -121,26 +126,22 @@ export class DynamicFont {
         this._outlineColor.setHex(format.outlineColor);
     }
 
-    public prepareCharacters(text: string) 
-    {
+    public prepareCharacters(text: string) {
         let len = text.length;
-        let i:number = 0;
+        let i: number = 0;
         //绘制文本本体
-        for (i = 0; i < len; i++) 
-        {
+        for (i = 0; i < len; i++) {
             let ch = text[i];
-            let glyph = this.getGlyphsOf(ch,this._size);
-            if (this._format.outline > 0)
-            {
+            let glyph = this.getGlyphsOf(ch, this._size);
+            if (this._format.outline > 0) {
                 this.prepareOutline(ch, glyph, this._size, this._format.outline);
             }
-            this.prepareChar(ch, this._size,glyph);
+            this.prepareChar(ch, this._size, glyph);
             glyph.ver = this.version;
         }
     }
 
-    protected getGlyphsOf(ch:string,size:number):Glyph
-    {
+    protected getGlyphsOf(ch: string, size: number): Glyph {
         let key: number = (size << 16) + ch.charCodeAt(0);
         let glyph: Glyph = this._glyphs[key];
         if (glyph && glyph.ver == this.version)
@@ -156,8 +157,7 @@ export class DynamicFont {
         return glyph;
     }
 
-    protected prepareChar(ch: string, size: number,glyph:Glyph): Glyph 
-    {
+    protected prepareChar(ch: string, size: number, glyph: Glyph): Glyph {
         if (this.keepCrisp)
             size *= this._scale;
         let w: number = glyph.sourceRect.width;
@@ -170,7 +170,7 @@ export class DynamicFont {
             this.rebuild();
             return null;
         }
-    
+
         this._context.font = size + "px " + this._name;
         this._context.textBaseline = "alphabetic";
         this._context.fillStyle = node.z == 0 ? "#FF0000" : (node.z == 1 ? "#00FF00" : "#0000FF");
@@ -340,8 +340,7 @@ export class DynamicFont {
         return Math.round(size * 1.25);
     }
 
-    getBaseline(ch: string, font: string, size: number): number 
-    {
+    getBaseline(ch: string, font: string, size: number): number {
         if (!this.eSpan) {
             this.eSpan = document.createElement('span');
             this.eBlock = document.createElement("div");
@@ -357,7 +356,7 @@ export class DynamicFont {
             div.appendChild(this.eSpan);
             div.appendChild(this.eBlock);
             document.body.appendChild(div);
-            }
+        }
 
         this.eSpan.innerHTML = ch;
         this.eSpan.style.fontFamily = font;

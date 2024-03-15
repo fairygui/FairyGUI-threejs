@@ -59,7 +59,7 @@ export class XMLIterator {
 
             c = this.source[pos];
             if (c == '!') {
-                if (this.sourceLen > pos + 7 && this.source.substr(pos - 1, 9) == CDATA_START) {
+                if (this.sourceLen > pos + 7 && this.source.substring(pos - 1, pos + 8) == CDATA_START) {
                     pos = this.source.indexOf(CDATA_END, pos);
                     this.tagType = XMLTagType.CDATA;
                     this.tagName = "";
@@ -71,7 +71,7 @@ export class XMLIterator {
                     this.parsePos += this.tagLength;
                     return true;
                 }
-                else if (this.sourceLen > pos + 2 && this.source.substr(pos - 1, 4) == COMMENT_START) {
+                else if (this.sourceLen > pos + 2 && this.source.substring(pos - 1, pos + 3) == COMMENT_START) {
                     pos = this.source.indexOf(COMMENT_END, pos);
                     this.tagType = XMLTagType.Comment;
                     this.tagName = "";
@@ -105,9 +105,9 @@ export class XMLIterator {
             if (pos == this.sourceLen)
                 break;
 
-            buffer += this.source.substr(this.parsePos + 1, pos - this.parsePos - 1);
+            buffer += this.source.substring(this.parsePos + 1, pos);
             if (buffer.length > 0 && buffer[0] == '/')
-                buffer = buffer.substr(1);
+                buffer = buffer.substring(1);
 
             let singleQuoted: boolean = false, doubleQuoted: boolean = false;
             let possibleEnd: number = -1;
@@ -159,7 +159,7 @@ export class XMLIterator {
     }
 
     public static getTagSource(): string {
-        return this.source.substr(this.tagPos, this.tagLength);
+        return this.source.substring(this.tagPos, this.tagLength - this.tagPos);
     }
 
     public static getRawText(trim?: boolean) {
@@ -176,10 +176,10 @@ export class XMLIterator {
             if (i == this.tagPos)
                 return "";
             else
-                return this.source.substr(i, this.tagPos - i).trim();
+                return this.source.substring(i, this.tagPos).trim();
         }
         else
-            return this.source.substr(this.lastTagEnd, this.tagPos - this.lastTagEnd);
+            return this.source.substring(this.lastTagEnd, this.tagPos);
     }
 
     public static getText(trim?: boolean): string {
@@ -196,10 +196,10 @@ export class XMLIterator {
             if (i == this.tagPos)
                 return "";
             else
-                return XMLUtils.decodeString(this.source.substr(i, this.tagPos - i)).trimRight();
+                return XMLUtils.decodeString(this.source.substring(i, this.tagPos)).trimRight();
         }
         else
-            return XMLUtils.decodeString(this.source.substr(this.lastTagEnd, this.tagPos - this.lastTagEnd));
+            return XMLUtils.decodeString(this.source.substring(this.lastTagEnd, this.tagPos));
     }
 
     public static getAttribute(attrName: string): string {
@@ -300,7 +300,7 @@ export class XMLIterator {
                     if (this.lowerCaseName)
                         attrName = attrName.toLowerCase();
                     buffer = "";
-                    attrs[attrName] = XMLUtils.decodeString(this.source.substr(valueStart, valueEnd - valueStart + 1));
+                    attrs[attrName] = XMLUtils.decodeString(this.source.substring(valueStart, valueEnd + 1));
                     i = valueEnd + 1;
                 }
                 else
